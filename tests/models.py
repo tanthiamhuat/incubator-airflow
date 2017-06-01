@@ -52,13 +52,15 @@ from airflow.utils import timezone
 from airflow.utils.weight_rule import WeightRule
 from airflow.utils.state import State
 from airflow.utils.trigger_rule import TriggerRule
-from mock import patch
+from mock import Mock, mock_open, patch
 from parameterized import parameterized
 from tempfile import NamedTemporaryFile
 
 DEFAULT_DATE = timezone.datetime(2016, 1, 1)
 TEST_DAGS_FOLDER = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), 'dags')
+
+configuration.load_test_config()
 
 
 class DagTest(unittest.TestCase):
@@ -1361,6 +1363,8 @@ class DagBagTest(unittest.TestCase):
         self.assertEqual([], dagbag.process_file(None))
 
 
+send_email_test = Mock()
+
 class TaskInstanceTest(unittest.TestCase):
 
     def test_set_task_dates(self):
@@ -1583,6 +1587,35 @@ class TaskInstanceTest(unittest.TestCase):
             task=task, execution_date=timezone.utcnow())
         ti.run()
         self.assertEqual(models.State.SKIPPED, ti.state)
+
+    def test_failure_email(self):
+        """
+        Test that failure email is sent
+        """
+        dag = models.DAG(dag_id='test_failure_email')
+        task = BashOperator(
+            task_id='test_failure_email_op',
+            bash_command='exit 1',
+            dag=dag,
+            owner='airflow',
+            start_date=datetime.datetime(2016, 2, 1, 0, 0, 0),
+            email='to')
+
+        ti = TI(
+            task=task, execution_date=datetime.datetime.now())
+
+        configuration.set('email', 'EMAIL_BACKEND', 'tests.models.send_email_test')
+        configuration.set('email', 'SUBJECT_TEMPLATE', '/subject/path')
+        configuration.set('email', 'HTML_CONTENT_TEMPLATE', '/html_content/path')
+
+        with patch('airflow.models.open', mock_open(read_data='template: {{ti.task_id}}'), create=True):
+            try:
+                ti.run()
+            except AirflowException:
+                pass
+
+        send_email_test.assert_called_once_with('to', 'template: test_failure_email_op', 'template: test_failure_email_op',
+            bcc=None, cc=None, dryrun=False, files=None, mime_charset='us-ascii', mime_subtype='mixed')
 
     def test_retry_delay(self):
         """
