@@ -14,23 +14,22 @@
 
 import ssl
 
-from airflow.exceptions import AirflowConfigException, AirflowException
 from airflow import configuration
+from airflow.exceptions import AirflowConfigException, AirflowException
 from airflow.utils.log.logging_mixin import LoggingMixin
-
 
 DEFAULT_CELERY_CONFIG = {
     'accept_content': ['json', 'pickle'],
     'event_serializer': 'json',
-    'result_serializer': 'pickle',
     'worker_prefetch_multiplier': 1,
     'task_acks_late': True,
+    'task_ignore_result': True,
     'task_default_queue': configuration.get('celery', 'DEFAULT_QUEUE'),
     'task_default_exchange': configuration.get('celery', 'DEFAULT_QUEUE'),
     'broker_url': configuration.get('celery', 'BROKER_URL'),
     'broker_transport_options': {'visibility_timeout': 21600},
-    'result_backend': configuration.get('celery', 'CELERY_RESULT_BACKEND'),
-    'worker_concurrency': configuration.getint('celery', 'CELERYD_CONCURRENCY'),
+    'result_backend': configuration.get('celery', 'RESULT_BACKEND'),
+    'worker_concurrency': configuration.getint('celery', 'WORKER_CONCURRENCY')
 }
 
 celery_ssl_active = False
@@ -55,4 +54,3 @@ except Exception as e:
     raise AirflowException('Exception: There was an unknown Celery SSL Error. '
                            'Please ensure you want to use '
                            'SSL and/or have all necessary certs and key ({}).'.format(e))
-

@@ -11,24 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import unittest
 import sys
-
-from airflow.executors.celery_executor import app
-from airflow.executors.celery_executor import CeleryExecutor
-from airflow.utils.state import State
+import unittest
 from celery.contrib.testing.worker import start_worker
 
+from airflow.executors.celery_executor import CeleryExecutor
+from airflow.executors.celery_executor import app
+from airflow.utils.state import State
+
+
 # leave this it is used by the test worker
-import celery.contrib.testing.tasks
 
 
 class CeleryExecutorTest(unittest.TestCase):
-
     def test_celery_integration(self):
         executor = CeleryExecutor()
         executor.start()
-        with start_worker(app=app, logfile=sys.stdout, loglevel='debug'):
+        with start_worker(app=app,
+                          logfile=sys.stdout,
+                          ping_task_timeout=22,
+                          loglevel='debug'):
 
             success_command = 'echo 1'
             fail_command = 'exit 1'
