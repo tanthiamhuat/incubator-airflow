@@ -112,6 +112,7 @@ ENV/
 
 # PyCharm
 .idea/
+*.iml
 
 # vim
 *.swp
@@ -124,3 +125,4 @@ ENV/
 
 # Spark
 rat-results.txt
+
