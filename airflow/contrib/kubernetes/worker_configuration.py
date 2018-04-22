@@ -16,10 +16,10 @@
 # under the License.
 
 import copy
-import os
 import six
 
 from airflow.contrib.kubernetes.pod import Pod, Resources
+from airflow.contrib.kubernetes.pod_generator import WorkerGenerator
 from airflow.contrib.kubernetes.secret import Secret
 
 
@@ -72,48 +72,6 @@ class WorkerConfiguration:
             'volumeMounts': volume_mounts
         }]
 
-    def _get_volumes_and_mounts(self):
-        """Determine volumes and volume mounts for Airflow workers"""
-        dags_volume_name = "airflow-dags"
-        dags_path = os.path.join(self.kube_config.dags_folder,
-                                 self.kube_config.git_subpath)
-        volumes = [{
-            'name': dags_volume_name
-        }]
-        volume_mounts = [{
-            'name': dags_volume_name,
-            'mountPath': dags_path,
-            'readOnly': True
-        }]
-
-        # Mount the airflow.cfg file via a configmap the user has specified
-        if self.kube_config.airflow_configmap:
-            config_volume_name = "airflow-config"
-            config_path = '{}/airflow.cfg'.format(self.kube_config.airflow_home)
-            volumes.append({
-                'name': config_volume_name,
-                'configMap': {
-                    'name': self.kube_config.airflow_configmap
-                }
-            })
-            volume_mounts.append({
-                'name': config_volume_name,
-                'mountPath': config_path,
-                'subPath': 'airflow.cfg',
-                'readOnly': True
-            })
-
-        # A PV with the DAGs should be mounted
-        if self.kube_config.dags_volume_claim:
-            volumes[0]['persistentVolumeClaim'] = {
-                "claimName": self.kube_config.dags_volume_claim}
-            if self.kube_config.dags_volume_subpath:
-                volume_mounts[0]["subPath"] = self.kube_config.dags_volume_subpath
-        else:
-            # Create a Shared Volume for the Git-Sync module to populate
-            volumes[0]["emptyDir"] = {}
-        return volumes, volume_mounts
-
     def _get_environment(self):
         """Defines any necessary environment variables for the pod executor"""
         env = {
@@ -141,7 +99,7 @@ class WorkerConfiguration:
 
     def make_pod(self, namespace, worker_uuid, pod_id, dag_id, task_id, execution_date,
                  airflow_command, kube_executor_config):
-        volumes, volume_mounts = self._get_volumes_and_mounts()
+        volumes, volume_mounts = WorkerGenerator.init_volumes_and_mounts(self.kube_config)
         worker_init_container_spec = self._get_init_containers(
             copy.deepcopy(volume_mounts))
         resources = Resources(

@@ -146,10 +146,17 @@ class KubeConfig:
         self.dags_volume_claim = self.safe_get(self.kubernetes_section,
                                                'dags_volume_claim', None)
 
-        # This prop may optionally be set for PV Claims and is used to locate DAGs on a
-        #  SubPath
+        # This prop may optionally be set for PV Claims and is used to write logs
+        self.logs_volume_claim = self.safe_get(
+            self.kubernetes_section, 'logs_volume_claim', None)
+
+        # This prop may optionally be set for PV Claims and is used to locate DAGs
+        # on a SubPath
         self.dags_volume_subpath = self.safe_get(
             self.kubernetes_section, 'dags_volume_subpath', None)
+
+        # This prop may optionally be set for PV Claims and is used to write logs
+        self.base_log_folder = configuration.get(self.core_section, 'base_log_folder')
 
         # The Kubernetes Namespace in which the Scheduler and Webserver reside. Note
         # that if your

@@ -35,7 +35,7 @@ class PodGenerator:
     def add_init_container(self,
                            name,
                            image,
-                           securityContext,
+                           security_context,
                            init_environment,
                            volume_mounts
                            ):
@@ -46,7 +46,7 @@ class PodGenerator:
         Args:
             name (str):
             image (str):
-            securityContext (dict):
+            security_context (dict):
             init_environment (dict):
             volume_mounts (dict):
 
@@ -57,7 +57,7 @@ class PodGenerator:
             {
                 'name': name,
                 'image': image,
-                'securityContext': securityContext,
+                'securityContext': security_context,
                 'env': init_environment,
                 'volumeMounts': volume_mounts
             }
@@ -118,17 +118,9 @@ class PodGenerator:
             return []
         return self.kube_config.image_pull_secrets.split(',')
 
-    def make_pod(self, namespace, image, pod_id, cmds,
-                 arguments, labels, kube_executor_config=None):
+    def make_pod(self, namespace, image, pod_id, cmds, arguments, labels):
         volumes, volume_mounts = self._get_volumes_and_mounts()
         worker_init_container_spec = self._get_init_containers()
-
-        # resources = Resources(
-        #     request_memory=kube_executor_config.request_memory,
-        #     request_cpu=kube_executor_config.request_cpu,
-        #     limit_memory=kube_executor_config.limit_memory,
-        #     limit_cpu=kube_executor_config.limit_cpu
-        # )
 
         return Pod(
             namespace=namespace,
@@ -148,39 +140,62 @@ class PodGenerator:
         )
 
 
-'''
-This class is a necessary building block to the kubernetes executor, which will be PR'd
-shortly
-'''
-
-
 class WorkerGenerator(PodGenerator):
     def __init__(self, kube_config):
         PodGenerator.__init__(self, kube_config)
-        self.volumes, self.volume_mounts = self._init_volumes_and_mounts()
+        self.volumes, self.volume_mounts = self._init_volumes_and_mounts(kube_config)
         self.init_containers = self._init_init_containers()
 
-    def _init_volumes_and_mounts(self):
-        dags_volume_name = "airflow-dags"
-        dags_path = os.path.join(self.kube_config.dags_folder,
-                                 self.kube_config.git_subpath)
-        volumes = [{
-            'name': dags_volume_name
-        }]
+    @staticmethod
+    def init_volumes_and_mounts(kube_conf):
+        dags_volume_name = 'airflow-dags'
+        logs_volume_name = 'airflow-logs'
+
+        def _construct_volume(name, claim, subpath=None):
+            vo = {
+                'name': name
+            }
+            if claim:
+                vo['persistentVolumeClaim'] = {
+                    'claimName': claim
+                }
+                if subpath:
+                    vo['subPath'] = subpath
+            else:
+                vo['emptyDir'] = {}
+            return vo
+
+        volumes = [
+            _construct_volume(
+                dags_volume_name,
+                kube_conf.dags_volume_claim,
+                kube_conf.dags_volume_subpath
+            ),
+            _construct_volume(
+                logs_volume_name,
+                kube_conf.logs_volume_claim
+            )
+        ]
         volume_mounts = [{
             'name': dags_volume_name,
-            'mountPath': dags_path,
+            'mountPath': os.path.join(
+                kube_conf.dags_folder,
+                kube_conf.git_subpath
+            ),
             'readOnly': True
+        }, {
+            'name': logs_volume_name,
+            'mountPath': kube_conf.base_log_folder
         }]
 
         # Mount the airflow.cfg file via a configmap the user has specified
-        if self.kube_config.airflow_configmap:
+        if kube_conf.airflow_configmap:
             config_volume_name = "airflow-config"
-            config_path = '{}/airflow.cfg'.format(self.kube_config.airflow_home)
+            config_path = '{}/airflow.cfg'.format(kube_conf.airflow_home)
             volumes.append({
                 'name': config_volume_name,
                 'configMap': {
-                    'name': self.kube_config.airflow_configmap
+                    'name': kube_conf.airflow_configmap
                 }
             })
             volume_mounts.append({
@@ -190,24 +205,16 @@ class WorkerGenerator(PodGenerator):
                 'readOnly': True
             })
 
-        # A PV with the DAGs should be mounted
-        if self.kube_config.dags_volume_claim:
-            volumes[0]['persistentVolumeClaim'] = {
-                "claimName": self.kube_config.dags_volume_claim}
-            if self.kube_config.dags_volume_subpath:
-                volume_mounts[0]["subPath"] = self.kube_config.dags_volume_subpath
-        else:
-            # Create a Shared Volume for the Git-Sync module to populate
-            volumes[0]["emptyDir"] = {}
         return volumes, volume_mounts
 
-    def _init_labels(self, dag_id, task_id, execution_date, worker_uuid):
+    @staticmethod
+    def _init_labels(dag_id, task_id, execution_date, worker_uuid):
         return {
             "airflow-worker": worker_uuid,
             "dag_id": dag_id,
             "task_id": task_id,
             "execution_date": execution_date
-        },
+        }
 
     def _get_environment(self):
         env = super(self, WorkerGenerator).env_vars
@@ -269,14 +276,14 @@ class WorkerGenerator(PodGenerator):
                         dag_id,
                         task_id,
                         execution_date,
-                        airflow_command,
-                        kube_executor_config):
+                        airflow_command):
+        image = self.kube_config.kube_image
         cmds = ["bash", "-cx", "--"]
         labels = self._init_labels(dag_id, task_id, execution_date, worker_uuid)
         PodGenerator.make_pod(self,
                               namespace=namespace,
                               pod_id=pod_id,
                               cmds=cmds,
+                              image=image,
                               arguments=airflow_command,
-                              labels=labels,
-                              kube_executor_config=kube_executor_config)
+                              labels=labels)

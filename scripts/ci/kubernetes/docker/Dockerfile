@@ -28,7 +28,10 @@ RUN apt-get update -y && apt-get install -y \
         libssl-dev \
         git \
         inetutils-telnet \
-        bind9utils
+        bind9utils \
+        zip \
+        unzip \
+    && apt-get clean
 
 RUN pip install -U setuptools && \
     pip install -U pip
