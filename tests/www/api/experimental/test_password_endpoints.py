@@ -56,20 +56,16 @@ class ApiPasswordTests(unittest.TestCase):
 
     def test_authorized(self):
         with self.app.test_client() as c:
-            response = c.post(
+            response = c.get(
                 '/api/experimental/pools',
-                data=json.dumps(dict(run_id='my_run' + datetime.now().isoformat())),
-                content_type="application/json",
                 headers={'Authorization': 'Basic aGVsbG86d29ybGQ='}  # hello:world
             )
             self.assertEqual(200, response.status_code)
 
     def test_unauthorized(self):
         with self.app.test_client() as c:
-            response = c.post(
-                '/api/experimental/pools',
-                data=json.dumps(dict(run_id='my_run' + datetime.now().isoformat())),
-                content_type="application/json"
+            response = c.get(
+                '/api/experimental/pools'
             )
 
             self.assertEqual(401, response.status_code)
