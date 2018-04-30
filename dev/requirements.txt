@@ -1,5 +1,5 @@
 click>=6.6,<7
 jira>=1.0.7,<2
 keyring==12.2.0
-gitpython
+gitpython==2.1.9
 
