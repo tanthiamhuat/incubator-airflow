@@ -23,7 +23,6 @@ from six.moves import zip
 from past.builtins import basestring, unicode
 
 import unicodecsv as csv
-import itertools
 import re
 import six
 import subprocess
@@ -740,6 +739,7 @@ class HiveServer2Hook(BaseHook):
     """
     def __init__(self, hiveserver2_conn_id='hiveserver2_default'):
         self.hiveserver2_conn_id = hiveserver2_conn_id
+        self._cursor_description = []
 
     def get_conn(self, schema=None):
         db = self.get_connection(self.hiveserver2_conn_id)
@@ -766,32 +766,47 @@ class HiveServer2Hook(BaseHook):
             user=db.login,
             database=schema or db.schema or 'default')
 
-    def get_results(self, hql, schema='default', arraysize=1000):
+    def _get_results(self, hql, schema='default', fetch_size=None):
         from impala.error import ProgrammingError
-        with self.get_conn(schema) as conn:
-            if isinstance(hql, basestring):
-                hql = [hql]
-            results = {
-                'data': [],
-                'header': [],
-            }
-            cur = conn.cursor()
+        if isinstance(hql, basestring):
+            hql = [hql]
+        with self.get_conn(schema) as conn, conn.cursor() as cur:
+            cur.arraysize = fetch_size
             for statement in hql:
                 cur.execute(statement)
-                records = []
-                try:
-                    # impala Lib raises when no results are returned
-                    # we're silencing here as some statements in the list
-                    # may be `SET` or DDL
-                    records = cur.fetchall()
-                except ProgrammingError:
-                    self.log.debug("get_results returned no records")
-                if records:
-                    results = {
-                        'data': records,
-                        'header': cur.description,
-                    }
-            return results
+                # we only get results of statements that returns
+                lowered_statement = statement.lower().strip()
+                if (lowered_statement.startswith('select') or
+                   lowered_statement.startswith('with')):
+                    try:
+                        # impala Lib raises when no results are returned
+                        # we're silencing here as some statements in the list
+                        # may be `SET` or DDL
+                        for row in cur:
+                            yield row
+                    except ProgrammingError:
+                        self.log.debug("get_results returned no records")
+                    description = cur.description
+                    previous_description = self._cursor_description
+                    # if we return data, we expect the schema to be equal
+                    if (previous_description and
+                       previous_description != description):
+                        message = '''The statements are producing different descriptions:
+                        Current: {}
+                        Previous: {}'''.format(repr(description),
+                                               repr(previous_description))
+                        raise ValueError(message)
+                    elif not previous_description:
+                        self._cursor_description = description
+
+    def get_results(self, hql, schema='default', fetch_size=None):
+        results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
+        results = {
+            'data': list(results_iter),
+            'header': self._cursor_description.copy(),
+        }
+        self._cursor_description = []
+        return results
 
     def to_csv(
             self,
@@ -802,29 +817,23 @@ class HiveServer2Hook(BaseHook):
             lineterminator='\r\n',
             output_header=True,
             fetch_size=1000):
-        schema = schema or 'default'
-        with self.get_conn(schema) as conn:
-            with conn.cursor() as cur:
-                self.log.info("Running query: %s", hql)
-                cur.execute(hql)
-                schema = cur.description
-                with open(csv_filepath, 'wb') as f:
-                    writer = csv.writer(f,
-                                        delimiter=delimiter,
-                                        lineterminator=lineterminator,
-                                        encoding='utf-8')
-                    if output_header:
-                        writer.writerow([c[0] for c in cur.description])
-                    i = 0
-                    while True:
-                        rows = [row for row in cur.fetchmany(fetch_size) if row]
-                        if not rows:
-                            break
+        results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
+        with open(csv_filepath, 'wb') as f:
+            writer = csv.writer(f,
+                                delimiter=delimiter,
+                                lineterminator=lineterminator,
+                                encoding='utf-8')
+            if output_header:
+                writer.writerow([c[0] for c in self._cursor_description])
 
-                        writer.writerows(rows)
-                        i += len(rows)
-                        self.log.info("Written %s rows so far.", i)
-                    self.log.info("Done. Loaded a total of %s rows.", i)
+            for i, row in enumerate(results_iter):
+                writer.writerow(row)
+                if i % fetch_size == 0:
+                    self.log.info("Written %s rows so far.", i)
+
+        self.log.info("Done. Loaded a total of %s rows.", i)
+        self._cursor_description = []
+
 
     def get_records(self, hql, schema='default'):
         """
