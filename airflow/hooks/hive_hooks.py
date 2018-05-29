@@ -817,13 +817,16 @@ class HiveServer2Hook(BaseHook):
             lineterminator='\r\n',
             output_header=True,
             fetch_size=1000):
+        self.log.debug('Cursor (before call) description is ', self._cursor_description)
         results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
+        self.log.debug('Cursor (after call) description is ', self._cursor_description)
         with open(csv_filepath, 'wb') as f:
             writer = csv.writer(f,
                                 delimiter=delimiter,
                                 lineterminator=lineterminator,
                                 encoding='utf-8')
             if output_header:
+                self.log.debug('Cursor description is ', self._cursor_description)
                 writer.writerow([c[0] for c in self._cursor_description])
 
             for i, row in enumerate(results_iter):
