@@ -405,7 +405,7 @@ class TestHiveServer2Hook(unittest.TestCase):
         csv_filepath = 'query_results.csv'
         hook.to_csv(query, csv_filepath, schema=self.database,
                     delimiter=',', lineterminator='\n', output_header=True)
-        df = pd.read_csv(csv_filepath, sep=',', header=0)
+        df = pd.read_csv(csv_filepath, sep=',')
         self.assertListEqual(df.columns.tolist(), self.columns)
         self.assertListEqual(df[self.columns[0]].values.tolist(), [1, 2])
         self.assertEqual(len(df), 2)

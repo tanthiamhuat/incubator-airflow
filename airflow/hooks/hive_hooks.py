@@ -786,17 +786,16 @@ class HiveServer2Hook(BaseHook):
                             yield row
                     except ProgrammingError:
                         self.log.debug("get_results returned no records")
-                    description = cur.description
-                    previous_description = self._cursor_description
+                    description = [c for c in cur.description]
                     # if we return data, we expect the schema to be equal
-                    if (previous_description and
-                       previous_description != description):
+                    if (self._cursor_description and
+                       self._cursor_description != description):
                         message = '''The statements are producing different descriptions:
                         Current: {}
                         Previous: {}'''.format(repr(description),
-                                               repr(previous_description))
+                                               repr(self._cursor_description))
                         raise ValueError(message)
-                    elif not previous_description:
+                    elif not self._cursor_description:
                         self._cursor_description = description
 
     def get_results(self, hql, schema='default', fetch_size=None):
@@ -817,26 +816,26 @@ class HiveServer2Hook(BaseHook):
             lineterminator='\r\n',
             output_header=True,
             fetch_size=1000):
-        self.log.debug('Cursor (before call) description is ', self._cursor_description)
         results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
-        self.log.debug('Cursor (after call) description is ', self._cursor_description)
         with open(csv_filepath, 'wb') as f:
             writer = csv.writer(f,
                                 delimiter=delimiter,
                                 lineterminator=lineterminator,
                                 encoding='utf-8')
             if output_header:
-                self.log.debug('Cursor description is ', self._cursor_description)
-                writer.writerow([c[0] for c in self._cursor_description])
+                self.log.debug('Cursor in header is %s', self._cursor_description)
+                header = [c[0] for c in self._cursor_description]
+                self.log.debug('Header is %s', header)
+                writer.writerow(header)
 
             for i, row in enumerate(results_iter):
+                self.log.debug("row is %s", row)
                 writer.writerow(row)
                 if i % fetch_size == 0:
                     self.log.info("Written %s rows so far.", i)
 
         self.log.info("Done. Loaded a total of %s rows.", i)
         self._cursor_description = []
-
 
     def get_records(self, hql, schema='default'):
         """
