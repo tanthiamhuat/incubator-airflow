@@ -19,6 +19,8 @@
 
 DIRNAME=$(cd "$(dirname "$0")"; pwd)
 AIRFLOW_ROOT="$DIRNAME/../.."
+
+rm -rf /home/travis/.wheelhouse/
 cd $AIRFLOW_ROOT && pip --version && ls -l $HOME/.wheelhouse && tox --version
 
 if [ -z "$KUBERNETES_VERSION" ];
