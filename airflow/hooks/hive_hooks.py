@@ -19,6 +19,9 @@
 #
 
 from __future__ import print_function, unicode_literals
+
+import os
+
 from six.moves import zip
 from past.builtins import basestring, unicode
 
@@ -739,7 +742,6 @@ class HiveServer2Hook(BaseHook):
     """
     def __init__(self, hiveserver2_conn_id='hiveserver2_default'):
         self.hiveserver2_conn_id = hiveserver2_conn_id
-        self._cursor_description = []
 
     def get_conn(self, schema=None):
         db = self.get_connection(self.hiveserver2_conn_id)
@@ -770,6 +772,7 @@ class HiveServer2Hook(BaseHook):
         from impala.error import ProgrammingError
         if isinstance(hql, basestring):
             hql = [hql]
+        previous_description = None
         with self.get_conn(schema) as conn, conn.cursor() as cur:
             cur.arraysize = fetch_size
             for statement in hql:
@@ -778,6 +781,16 @@ class HiveServer2Hook(BaseHook):
                 lowered_statement = statement.lower().strip()
                 if (lowered_statement.startswith('select') or
                    lowered_statement.startswith('with')):
+                    description = [c for c in cur.description]
+                    if previous_description and previous_description != description:
+                        message = '''The statements are producing different descriptions:
+                                     Current: {}
+                                     Previous: {}'''.format(repr(description),
+                                                            repr(previous_description))
+                        raise ValueError(message)
+                    elif not previous_description:
+                        previous_description = description
+                        yield description
                     try:
                         # impala Lib raises when no results are returned
                         # we're silencing here as some statements in the list
@@ -786,25 +799,14 @@ class HiveServer2Hook(BaseHook):
                             yield row
                     except ProgrammingError:
                         self.log.debug("get_results returned no records")
-                    description = [c for c in cur.description]
-                    # if we return data, we expect the schema to be equal
-                    if (self._cursor_description and
-                       self._cursor_description != description):
-                        message = '''The statements are producing different descriptions:
-                        Current: {}
-                        Previous: {}'''.format(repr(description),
-                                               repr(self._cursor_description))
-                        raise ValueError(message)
-                    elif not self._cursor_description:
-                        self._cursor_description = description
 
     def get_results(self, hql, schema='default', fetch_size=None):
         results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
+        header = next(results_iter)
         results = {
             'data': list(results_iter),
-            'header': self._cursor_description.copy(),
+            'header': header
         }
-        self._cursor_description = []
         return results
 
     def to_csv(
@@ -816,23 +818,32 @@ class HiveServer2Hook(BaseHook):
             lineterminator='\r\n',
             output_header=True,
             fetch_size=1000):
+
         results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
+        header = next(results_iter)
+        message = None
+
         with open(csv_filepath, 'wb') as f:
             writer = csv.writer(f,
                                 delimiter=delimiter,
                                 lineterminator=lineterminator,
                                 encoding='utf-8')
-            if output_header:
-                self.log.debug('Cursor in header is %s', self._cursor_description)
-                header = [c[0] for c in self._cursor_description]
-                self.log.debug('Header is %s', header)
-                writer.writerow(header)
+            try:
+                if output_header:
+                    self.log.debug('Cursor description is %s', header)
+                    writer.writerow([c[0] for c in header])
 
-            for i, row in enumerate(results_iter):
-                self.log.debug("row is %s", row)
-                writer.writerow(row)
-                if i % fetch_size == 0:
-                    self.log.info("Written %s rows so far.", i)
+                for i, row in enumerate(results_iter):
+                    writer.writerow(row)
+                    if i % fetch_size == 0:
+                        self.log.info("Written %s rows so far.", i)
+            except ValueError as exception:
+                message = str(exception)
+
+        if message:
+            # need to clean up the file first
+            os.remove(csv_filepath)
+            raise ValueError(message)
 
         self.log.info("Done. Loaded a total of %s rows.", i)
         self._cursor_description = []
