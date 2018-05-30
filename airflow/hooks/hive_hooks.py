@@ -739,7 +739,6 @@ class HiveServer2Hook(BaseHook):
     """
     def __init__(self, hiveserver2_conn_id='hiveserver2_default'):
         self.hiveserver2_conn_id = hiveserver2_conn_id
-        self._cursor_description = []
 
     def get_conn(self, schema=None):
         db = self.get_connection(self.hiveserver2_conn_id)
@@ -770,6 +769,7 @@ class HiveServer2Hook(BaseHook):
         from impala.error import ProgrammingError
         if isinstance(hql, basestring):
             hql = [hql]
+        cursor_description = None
         with self.get_conn(schema) as conn, conn.cursor() as cur:
             cur.arraysize = fetch_size
             for statement in hql:
@@ -778,6 +778,17 @@ class HiveServer2Hook(BaseHook):
                 lowered_statement = statement.lower().strip()
                 if (lowered_statement.startswith('select') or
                    lowered_statement.startswith('with')):
+                    description = cur.description
+                    if (cursor_description and
+                       description != cursor_description):
+                        message = '''The statements are producing different descriptions:
+                                     Current: {}
+                                     Previous: {}'''.format(repr(description),
+                                                            repr(cursor_description))
+                        raise ValueError(message)
+                    elif not cursor_description:
+                        cursor_description = description
+                        yield description
                     try:
                         # impala Lib raises when no results are returned
                         # we're silencing here as some statements in the list
@@ -786,24 +797,13 @@ class HiveServer2Hook(BaseHook):
                             yield row
                     except ProgrammingError:
                         self.log.debug("get_results returned no records")
-                    description = cur.description
-                    previous_description = self._cursor_description
-                    # if we return data, we expect the schema to be equal
-                    if (previous_description and
-                       previous_description != description):
-                        message = '''The statements are producing different descriptions:
-                        Current: {}
-                        Previous: {}'''.format(repr(description),
-                                               repr(previous_description))
-                        raise ValueError(message)
-                    elif not previous_description:
-                        self._cursor_description = description
 
     def get_results(self, hql, schema='default', fetch_size=None):
         results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
+        header = next(results_iter)
         results = {
             'data': list(results_iter),
-            'header': self._cursor_description.copy(),
+            'header': header,
         }
         self._cursor_description = []
         return results
@@ -817,17 +817,16 @@ class HiveServer2Hook(BaseHook):
             lineterminator='\r\n',
             output_header=True,
             fetch_size=1000):
-        self.log.debug('Cursor (before call) description is ', self._cursor_description)
         results_iter = self._get_results(hql, schema, fetch_size=fetch_size)
-        self.log.debug('Cursor (after call) description is ', self._cursor_description)
         with open(csv_filepath, 'wb') as f:
             writer = csv.writer(f,
                                 delimiter=delimiter,
                                 lineterminator=lineterminator,
                                 encoding='utf-8')
+            header = next(results_iter)
             if output_header:
-                self.log.debug('Cursor description is ', self._cursor_description)
-                writer.writerow([c[0] for c in self._cursor_description])
+                self.log.debug('Cursor description is ', header)
+                writer.writerow([c[0] for c in header])
 
             for i, row in enumerate(results_iter):
                 writer.writerow(row)
@@ -836,7 +835,6 @@ class HiveServer2Hook(BaseHook):
 
         self.log.info("Done. Loaded a total of %s rows.", i)
         self._cursor_description = []
-
 
     def get_records(self, hql, schema='default'):
         """
