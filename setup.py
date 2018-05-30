@@ -155,7 +155,7 @@ hdfs = ['snakebite>=2.7.8']
 hive = [
     'hmsclient>=0.1.0',
     'pyhive>=0.1.3',
-    'impyla>=0.13.3',
+    'impyla>=0.14.1',
     'thrift_sasl==0.2.1',
     'unicodecsv>=0.14.1'
 ]
