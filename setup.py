@@ -153,7 +153,6 @@ gcp_api = [
 github_enterprise = ['Flask-OAuthlib>=0.9.1']
 hdfs = ['snakebite>=2.7.8']
 hive = [
-    'hmsclient==0.1.2',
     'pyhive>=0.1.3',
     'impyla>=0.14.1',
     'thrift_sasl==0.2.1',
@@ -242,9 +241,6 @@ def do_setup():
         include_package_data=True,
         zip_safe=False,
         scripts=['airflow/bin/airflow'],
-        dependency_links=[
-            'git+https://github.com/Fokko/hmsclient.git@master#egg=hmsclient-0.1.2',
-        ],
         install_requires=[
             'alembic>=0.8.3, <0.9',
             'bleach==2.1.2',
