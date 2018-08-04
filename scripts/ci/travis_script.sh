@@ -21,6 +21,9 @@ DIRNAME=$(cd "$(dirname "$0")"; pwd)
 AIRFLOW_ROOT="$DIRNAME/../.."
 cd $AIRFLOW_ROOT && pip --version && ls -l $HOME/.wheelhouse && tox --version
 
+echo "Tox version:"
+tox --version
+
 if [ -z "$KUBERNETES_VERSION" ];
 then
   tox -e $TOX_ENV
