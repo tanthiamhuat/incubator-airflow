@@ -32,7 +32,7 @@ class FTPSensor(BaseSensorOperator):
     :param ftp_conn_id: The connection to run the sensor against
     :type ftp_conn_id: str
     """
-    template_fields = ('path',)
+    template_fields = ('path', )
 
     @apply_defaults
     def __init__(self, path, ftp_conn_id='ftp_default', *args, **kwargs):
@@ -62,6 +62,7 @@ class FTPSensor(BaseSensorOperator):
 
 class FTPSSensor(FTPSensor):
     """Waits for a file or directory to be present on FTP over SSL."""
+
     def _create_hook(self):
         """Return connection hook."""
         return FTPSHook(ftp_conn_id=self.ftp_conn_id)

@@ -49,11 +49,17 @@ class ECSOperator(BaseOperator):
     ui_color = '#f0ede4'
     client = None
     arn = None
-    template_fields = ('overrides',)
+    template_fields = ('overrides', )
 
     @apply_defaults
-    def __init__(self, task_definition, cluster, overrides,
-                 aws_conn_id=None, region_name=None, launch_type='EC2', **kwargs):
+    def __init__(self,
+                 task_definition,
+                 cluster,
+                 overrides,
+                 aws_conn_id=None,
+                 region_name=None,
+                 launch_type='EC2',
+                 **kwargs):
         super(ECSOperator, self).__init__(**kwargs)
 
         self.aws_conn_id = aws_conn_id
@@ -66,24 +72,19 @@ class ECSOperator(BaseOperator):
         self.hook = self.get_hook()
 
     def execute(self, context):
-        self.log.info(
-            'Running ECS Task - Task definition: %s - on cluster %s',
-            self.task_definition, self.cluster
-        )
+        self.log.info('Running ECS Task - Task definition: %s - on cluster %s',
+                      self.task_definition, self.cluster)
         self.log.info('ECSOperator overrides: %s', self.overrides)
 
         self.client = self.hook.get_client_type(
-            'ecs',
-            region_name=self.region_name
-        )
+            'ecs', region_name=self.region_name)
 
         response = self.client.run_task(
             cluster=self.cluster,
             taskDefinition=self.task_definition,
             overrides=self.overrides,
             startedBy=self.owner,
-            launchType=self.launch_type
-        )
+            launchType=self.launch_type)
 
         failures = response['failures']
         if len(failures) > 0:
@@ -99,16 +100,11 @@ class ECSOperator(BaseOperator):
     def _wait_for_task_ended(self):
         waiter = self.client.get_waiter('tasks_stopped')
         waiter.config.max_attempts = sys.maxsize  # timeout is managed by airflow
-        waiter.wait(
-            cluster=self.cluster,
-            tasks=[self.arn]
-        )
+        waiter.wait(cluster=self.cluster, tasks=[self.arn])
 
     def _check_success_task(self):
         response = self.client.describe_tasks(
-            cluster=self.cluster,
-            tasks=[self.arn]
-        )
+            cluster=self.cluster, tasks=[self.arn])
         self.log.info('ECS Task stopped, check status: %s', response)
 
         if len(response.get('failures', [])) > 0:
@@ -122,16 +118,15 @@ class ECSOperator(BaseOperator):
                     raise AirflowException(
                         'This task is not in success state {}'.format(task))
                 elif container.get('lastStatus') == 'PENDING':
-                    raise AirflowException('This task is still pending {}'.format(task))
+                    raise AirflowException(
+                        'This task is still pending {}'.format(task))
                 elif 'error' in container.get('reason', '').lower():
                     raise AirflowException(
                         'This containers encounter an error during launching : {}'.
                         format(container.get('reason', '').lower()))
 
     def get_hook(self):
-        return AwsHook(
-            aws_conn_id=self.aws_conn_id
-        )
+        return AwsHook(aws_conn_id=self.aws_conn_id)
 
     def on_kill(self):
         response = self.client.stop_task(

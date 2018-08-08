@@ -56,7 +56,6 @@ from airflow.utils.state import State
 
 
 class LocalWorker(multiprocessing.Process, LoggingMixin):
-
     """LocalWorker Process implementation to run airflow commands. Executes the given
     command and puts the result into a result queue when done, terminating execution."""
 
@@ -99,7 +98,6 @@ class LocalWorker(multiprocessing.Process, LoggingMixin):
 
 
 class QueuedLocalWorker(LocalWorker):
-
     """LocalWorker implementation that is waiting for tasks from a queue and will
     continue executing commands as they become available in the queue. It will terminate
     execution once the poison token is found."""
@@ -178,7 +176,8 @@ class LocalExecutor(BaseExecutor):
             self.executor.queue = multiprocessing.JoinableQueue()
 
             self.executor.workers = [
-                QueuedLocalWorker(self.executor.queue, self.executor.result_queue)
+                QueuedLocalWorker(self.executor.queue,
+                                  self.executor.result_queue)
                 for _ in range(self.executor.parallelism)
             ]
 
@@ -216,8 +215,9 @@ class LocalExecutor(BaseExecutor):
         self.workers = []
         self.workers_used = 0
         self.workers_active = 0
-        self.impl = (LocalExecutor._UnlimitedParallelism(self) if self.parallelism == 0
-                     else LocalExecutor._LimitedParallelism(self))
+        self.impl = (LocalExecutor._UnlimitedParallelism(self)
+                     if self.parallelism == 0 else
+                     LocalExecutor._LimitedParallelism(self))
 
         self.impl.start()
 

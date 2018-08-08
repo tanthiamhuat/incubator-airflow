@@ -28,7 +28,8 @@ HOSTNAME_PATTERN = '_HOST'
 
 def get_kerberos_principal(principal, host):
     components = get_components(principal)
-    if not components or len(components) != 3 or components[1] != HOSTNAME_PATTERN:
+    if not components or len(
+            components) != 3 or components[1] != HOSTNAME_PATTERN:
         return principal
     else:
         if not host:

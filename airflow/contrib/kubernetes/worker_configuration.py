@@ -73,7 +73,9 @@ class WorkerConfiguration(LoggingMixin):
         return [{
             'name': self.kube_config.git_sync_init_container_name,
             'image': self.kube_config.git_sync_container,
-            'securityContext': {'runAsUser': 0},
+            'securityContext': {
+                'runAsUser': 0
+            },
             'env': init_environment,
             'volumeMounts': volume_mounts
         }]
@@ -81,8 +83,10 @@ class WorkerConfiguration(LoggingMixin):
     def _get_environment(self):
         """Defines any necessary environment variables for the pod executor"""
         env = {
-            "AIRFLOW__CORE__EXECUTOR": "LocalExecutor",
-            "AIRFLOW__CORE__SQL_ALCHEMY_CONN": conf.get("core", "SQL_ALCHEMY_CONN"),
+            "AIRFLOW__CORE__EXECUTOR":
+            "LocalExecutor",
+            "AIRFLOW__CORE__SQL_ALCHEMY_CONN":
+            conf.get("core", "SQL_ALCHEMY_CONN"),
         }
 
         if self.kube_config.airflow_configmap:
@@ -94,7 +98,8 @@ class WorkerConfiguration(LoggingMixin):
     def _get_secrets(self):
         """Defines any necessary secrets for the pod executor"""
         worker_secrets = []
-        for env_var_name, obj_key_pair in six.iteritems(self.kube_config.kube_secrets):
+        for env_var_name, obj_key_pair in six.iteritems(
+                self.kube_config.kube_secrets):
             k8s_secret_obj, k8s_secret_key = obj_key_pair.split('=')
             worker_secrets.append(
                 Secret('env', env_var_name, k8s_secret_obj, k8s_secret_key))
@@ -111,26 +116,18 @@ class WorkerConfiguration(LoggingMixin):
         logs_volume_name = 'airflow-logs'
 
         def _construct_volume(name, claim):
-            volume = {
-                'name': name
-            }
+            volume = {'name': name}
             if claim:
-                volume['persistentVolumeClaim'] = {
-                    'claimName': claim
-                }
+                volume['persistentVolumeClaim'] = {'claimName': claim}
             else:
                 volume['emptyDir'] = {}
             return volume
 
         volumes = [
-            _construct_volume(
-                dags_volume_name,
-                self.kube_config.dags_volume_claim
-            ),
-            _construct_volume(
-                logs_volume_name,
-                self.kube_config.logs_volume_claim
-            )
+            _construct_volume(dags_volume_name,
+                              self.kube_config.dags_volume_claim),
+            _construct_volume(logs_volume_name,
+                              self.kube_config.logs_volume_claim)
         ]
 
         dag_volume_mount_path = ""
@@ -138,10 +135,8 @@ class WorkerConfiguration(LoggingMixin):
         if self.kube_config.dags_volume_claim:
             dag_volume_mount_path = self.worker_airflow_dags
         else:
-            dag_volume_mount_path = os.path.join(
-                self.worker_airflow_dags,
-                self.kube_config.git_subpath
-            )
+            dag_volume_mount_path = os.path.join(self.worker_airflow_dags,
+                                                 self.kube_config.git_subpath)
         dags_volume_mount = {
             'name': dags_volume_name,
             'mountPath': dag_volume_mount_path,
@@ -157,10 +152,7 @@ class WorkerConfiguration(LoggingMixin):
         if self.kube_config.logs_volume_subpath:
             logs_volume_mount['subPath'] = self.kube_config.logs_volume_subpath
 
-        volume_mounts = [
-            dags_volume_mount,
-            logs_volume_mount
-        ]
+        volume_mounts = [dags_volume_mount, logs_volume_mount]
 
         # Mount the airflow.cfg file via a configmap the user has specified
         if self.kube_config.airflow_configmap:
@@ -181,8 +173,8 @@ class WorkerConfiguration(LoggingMixin):
 
         return volumes, volume_mounts
 
-    def make_pod(self, namespace, worker_uuid, pod_id, dag_id, task_id, execution_date,
-                 airflow_command, kube_executor_config):
+    def make_pod(self, namespace, worker_uuid, pod_id, dag_id, task_id,
+                 execution_date, airflow_command, kube_executor_config):
         volumes, volume_mounts = self.init_volumes_and_mounts()
         worker_init_container_spec = self._get_init_containers(
             copy.deepcopy(volume_mounts))
@@ -190,8 +182,7 @@ class WorkerConfiguration(LoggingMixin):
             request_memory=kube_executor_config.request_memory,
             request_cpu=kube_executor_config.request_cpu,
             limit_memory=kube_executor_config.limit_memory,
-            limit_cpu=kube_executor_config.limit_cpu
-        )
+            limit_cpu=kube_executor_config.limit_cpu)
         gcp_sa_key = kube_executor_config.gcp_service_account_key
         annotations = kube_executor_config.annotations.copy()
         if gcp_sa_key:
@@ -201,8 +192,8 @@ class WorkerConfiguration(LoggingMixin):
             namespace=namespace,
             name=pod_id,
             image=kube_executor_config.image or self.kube_config.kube_image,
-            image_pull_policy=(kube_executor_config.image_pull_policy or
-                               self.kube_config.kube_image_pull_policy),
+            image_pull_policy=(kube_executor_config.image_pull_policy
+                               or self.kube_config.kube_image_pull_policy),
             cmds=['bash', '-cx', '--'],
             args=[airflow_command],
             labels={
@@ -220,7 +211,6 @@ class WorkerConfiguration(LoggingMixin):
             volume_mounts=volume_mounts,
             resources=resources,
             annotations=annotations,
-            node_selectors=(kube_executor_config.node_selectors or
-                            self.kube_config.kube_node_selectors),
-            affinity=kube_executor_config.affinity
-        )
+            node_selectors=(kube_executor_config.node_selectors
+                            or self.kube_config.kube_node_selectors),
+            affinity=kube_executor_config.affinity)

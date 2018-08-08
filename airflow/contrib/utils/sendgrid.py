@@ -34,9 +34,15 @@ from airflow.utils.email import get_email_address_list
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
-def send_email(to, subject, html_content, files=None,
-               dryrun=False, cc=None, bcc=None,
-               mime_subtype='mixed', **kwargs):
+def send_email(to,
+               subject,
+               html_content,
+               files=None,
+               dryrun=False,
+               cc=None,
+               bcc=None,
+               mime_subtype='mixed',
+               **kwargs):
     """
     Send an email with html content using sendgrid.
 
@@ -51,8 +57,10 @@ def send_email(to, subject, html_content, files=None,
     SENDGRID_API_KEY={your-sendgrid-api-key}.
     """
     mail = Mail()
-    from_email = kwargs.get('from_email') or os.environ.get('SENDGRID_MAIL_FROM')
-    from_name = kwargs.get('from_name') or os.environ.get('SENDGRID_MAIL_SENDER')
+    from_email = kwargs.get('from_email') or os.environ.get(
+        'SENDGRID_MAIL_FROM')
+    from_name = kwargs.get('from_name') or os.environ.get(
+        'SENDGRID_MAIL_SENDER')
     mail.from_email = Email(from_email, from_name)
     mail.subject = subject
 
@@ -74,7 +82,8 @@ def send_email(to, subject, html_content, files=None,
     pers_custom_args = kwargs.get('personalization_custom_args', None)
     if isinstance(pers_custom_args, dict):
         for key in pers_custom_args.keys():
-            personalization.add_custom_arg(CustomArg(key, pers_custom_args[key]))
+            personalization.add_custom_arg(
+                CustomArg(key, pers_custom_args[key]))
 
     mail.add_personalization(personalization)
     mail.add_content(Content('text/html', html_content))
@@ -103,8 +112,8 @@ def _post_sendgrid_mail(mail_data):
     response = sg.client.mail.send.post(request_body=mail_data)
     # 2xx status code.
     if response.status_code >= 200 and response.status_code < 300:
-        log.info('Email with subject %s is successfully sent to recipients: %s' %
-                 (mail_data['subject'], mail_data['personalizations']))
+        log.info('Email with subject %s is successfully sent to recipients: %s'
+                 % (mail_data['subject'], mail_data['personalizations']))
     else:
-        log.warning('Failed to send out email with subject %s, status code: %s' %
-                    (mail_data['subject'], response.status_code))
+        log.warning('Failed to send out email with subject %s, status code: %s'
+                    % (mail_data['subject'], response.status_code))

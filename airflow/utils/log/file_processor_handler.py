@@ -107,7 +107,8 @@ class FileProcessorHandler(logging.Handler):
         :return: None
         """
         log_directory = self._get_log_directory()
-        latest_log_directory_path = os.path.join(self.base_log_folder, "latest")
+        latest_log_directory_path = os.path.join(self.base_log_folder,
+                                                 "latest")
         if os.path.isdir(log_directory):
             try:
                 # if symlink exists but is stale, update it
@@ -115,12 +116,11 @@ class FileProcessorHandler(logging.Handler):
                     if os.readlink(latest_log_directory_path) != log_directory:
                         os.unlink(latest_log_directory_path)
                         os.symlink(log_directory, latest_log_directory_path)
-                elif (os.path.isdir(latest_log_directory_path) or
-                          os.path.isfile(latest_log_directory_path)):
+                elif (os.path.isdir(latest_log_directory_path)
+                      or os.path.isfile(latest_log_directory_path)):
                     logging.warning(
                         "%s already exists as a dir/file. Skip creating symlink.",
-                        latest_log_directory_path
-                    )
+                        latest_log_directory_path)
                 else:
                     os.symlink(log_directory, latest_log_directory_path)
             except OSError:

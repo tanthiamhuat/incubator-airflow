@@ -25,7 +25,7 @@ class WebHdfsSensor(BaseSensorOperator):
     """
     Waits for a file or folder to land in HDFS
     """
-    template_fields = ('filepath',)
+    template_fields = ('filepath', )
 
     @apply_defaults
     def __init__(self,

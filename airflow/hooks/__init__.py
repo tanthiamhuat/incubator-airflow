@@ -17,10 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 import os
 import sys
-
 
 # ------------------------------------------------------------------------
 #
@@ -35,7 +33,6 @@ import sys
 
 # Imports the hooks dynamically while keeping the package API clean,
 # abstracting the underlying modules
-
 
 _hooks = {
     'base_hook': ['BaseHook'],
@@ -65,7 +62,6 @@ _hooks = {
     'oracle_hook': ['OracleHook'],
     'slack_hook': ['SlackHook'],
 }
-
 
 if not os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
     from airflow.utils.helpers import AirflowImporter

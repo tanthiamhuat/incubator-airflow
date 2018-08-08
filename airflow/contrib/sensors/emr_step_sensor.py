@@ -38,11 +38,7 @@ class EmrStepSensor(EmrBaseSensor):
     template_ext = ()
 
     @apply_defaults
-    def __init__(self,
-                 job_flow_id,
-                 step_id,
-                 *args,
-                 **kwargs):
+    def __init__(self, job_flow_id, step_id, *args, **kwargs):
         super(EmrStepSensor, self).__init__(*args, **kwargs)
         self.job_flow_id = job_flow_id
         self.step_id = step_id
@@ -50,8 +46,10 @@ class EmrStepSensor(EmrBaseSensor):
     def get_emr_response(self):
         emr = EmrHook(aws_conn_id=self.aws_conn_id).get_conn()
 
-        self.log.info('Poking step %s on cluster %s', self.step_id, self.job_flow_id)
-        return emr.describe_step(ClusterId=self.job_flow_id, StepId=self.step_id)
+        self.log.info('Poking step %s on cluster %s', self.step_id,
+                      self.job_flow_id)
+        return emr.describe_step(
+            ClusterId=self.job_flow_id, StepId=self.step_id)
 
     @staticmethod
     def state_from_response(response):

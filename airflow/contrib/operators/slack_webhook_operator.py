@@ -62,9 +62,8 @@ class SlackWebhookOperator(SimpleHttpOperator):
                  proxy=None,
                  *args,
                  **kwargs):
-        super(SlackWebhookOperator, self).__init__(endpoint=webhook_token,
-                                                   *args,
-                                                   **kwargs)
+        super(SlackWebhookOperator, self).__init__(
+            endpoint=webhook_token, *args, **kwargs)
         self.http_conn_id = http_conn_id
         self.webhook_token = webhook_token
         self.message = message
@@ -80,13 +79,6 @@ class SlackWebhookOperator(SimpleHttpOperator):
         Call the SparkSqlHook to run the provided sql query
         """
         self.hook = SlackWebhookHook(
-            self.http_conn_id,
-            self.webhook_token,
-            self.message,
-            self.channel,
-            self.username,
-            self.icon_emoji,
-            self.link_names,
-            self.proxy
-        )
+            self.http_conn_id, self.webhook_token, self.message, self.channel,
+            self.username, self.icon_emoji, self.link_names, self.proxy)
         self.hook.execute()

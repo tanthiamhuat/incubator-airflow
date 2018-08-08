@@ -38,12 +38,12 @@ class EmrAddStepsOperator(BaseOperator):
     ui_color = '#f9c915'
 
     @apply_defaults
-    def __init__(
-            self,
-            job_flow_id,
-            aws_conn_id='s3_default',
-            steps=None,
-            *args, **kwargs):
+    def __init__(self,
+                 job_flow_id,
+                 aws_conn_id='s3_default',
+                 steps=None,
+                 *args,
+                 **kwargs):
         super(EmrAddStepsOperator, self).__init__(*args, **kwargs)
         steps = steps or []
         self.job_flow_id = job_flow_id
@@ -54,7 +54,8 @@ class EmrAddStepsOperator(BaseOperator):
         emr = EmrHook(aws_conn_id=self.aws_conn_id).get_conn()
 
         self.log.info('Adding steps to %s', self.job_flow_id)
-        response = emr.add_job_flow_steps(JobFlowId=self.job_flow_id, Steps=self.steps)
+        response = emr.add_job_flow_steps(
+            JobFlowId=self.job_flow_id, Steps=self.steps)
 
         if not response['ResponseMetadata']['HTTPStatusCode'] == 200:
             raise AirflowException('Adding steps failed: %s' % response)

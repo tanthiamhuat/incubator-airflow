@@ -29,6 +29,7 @@ def action_logging(f):
     """
     Decorator to log user actions
     """
+
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         session = settings.Session()
@@ -61,6 +62,7 @@ def gzipped(f):
     """
     Decorator to make a view compressed
     """
+
     @functools.wraps(f)
     def view_func(*args, **kwargs):
         @after_this_request
@@ -72,12 +74,11 @@ def gzipped(f):
 
             response.direct_passthrough = False
 
-            if (response.status_code < 200 or response.status_code >= 300 or
-                    'Content-Encoding' in response.headers):
+            if (response.status_code < 200 or response.status_code >= 300
+                    or 'Content-Encoding' in response.headers):
                 return response
             gzip_buffer = IO()
-            gzip_file = gzip.GzipFile(mode='wb',
-                                      fileobj=gzip_buffer)
+            gzip_file = gzip.GzipFile(mode='wb', fileobj=gzip_buffer)
             gzip_file.write(response.data)
             gzip_file.close()
 
@@ -97,6 +98,7 @@ def has_dag_access(**dag_kwargs):
     """
     Decorator to check whether the user has read / write permission on the dag.
     """
+
     def decorator(f):
         @functools.wraps(f)
         def wrapper(self, *args, **kwargs):
@@ -110,16 +112,17 @@ def has_dag_access(**dag_kwargs):
             #    has can_dag_edit permissions on the dag
             # 3. if 2 false, check whether it is can_dag_read view,
             #    and whether user has the permissions
-            if (
-                has_access('can_dag_edit', 'all_dags') or
-                has_access('can_dag_edit', dag_id) or (not can_dag_edit and
-                                                       (has_access('can_dag_read',
-                                                                   'all_dags') or
-                                                        has_access('can_dag_read',
-                                                                   dag_id)))):
+            if (has_access('can_dag_edit', 'all_dags')
+                    or has_access('can_dag_edit', dag_id)
+                    or (not can_dag_edit and
+                        (has_access('can_dag_read', 'all_dags')
+                         or has_access('can_dag_read', dag_id)))):
                 return f(self, *args, **kwargs)
             else:
-                return redirect(url_for(self.appbuilder.sm.auth_view.
-                                        __class__.__name__ + ".login"))
+                return redirect(
+                    url_for(self.appbuilder.sm.auth_view.__class__.__name__ +
+                            ".login"))
+
         return wrapper
+
     return decorator

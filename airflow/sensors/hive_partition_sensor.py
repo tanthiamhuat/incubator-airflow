@@ -41,12 +41,17 @@ class HivePartitionSensor(BaseSensorOperator):
         connection id
     :type metastore_conn_id: str
     """
-    template_fields = ('schema', 'table', 'partition',)
+    template_fields = (
+        'schema',
+        'table',
+        'partition',
+    )
     ui_color = '#C5CAE9'
 
     @apply_defaults
     def __init__(self,
-                 table, partition="ds='{{ ds }}'",
+                 table,
+                 partition="ds='{{ ds }}'",
                  metastore_conn_id='metastore_default',
                  schema='default',
                  poke_interval=60 * 3,
@@ -64,12 +69,11 @@ class HivePartitionSensor(BaseSensorOperator):
     def poke(self, context):
         if '.' in self.table:
             self.schema, self.table = self.table.split('.')
-        self.log.info(
-            'Poking for table {self.schema}.{self.table}, '
-            'partition {self.partition}'.format(**locals()))
+        self.log.info('Poking for table {self.schema}.{self.table}, '
+                      'partition {self.partition}'.format(**locals()))
         if not hasattr(self, 'hook'):
             from airflow.hooks.hive_hooks import HiveMetastoreHook
             self.hook = HiveMetastoreHook(
                 metastore_conn_id=self.metastore_conn_id)
-        return self.hook.check_for_partition(
-            self.schema, self.table, self.partition)
+        return self.hook.check_for_partition(self.schema, self.table,
+                                             self.partition)

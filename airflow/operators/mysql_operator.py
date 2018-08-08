@@ -36,14 +36,19 @@ class MySqlOperator(BaseOperator):
     :type database: string
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
+    template_fields = ('sql', )
+    template_ext = ('.sql', )
     ui_color = '#ededed'
 
     @apply_defaults
-    def __init__(
-            self, sql, mysql_conn_id='mysql_default', parameters=None,
-            autocommit=False, database=None, *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 mysql_conn_id='mysql_default',
+                 parameters=None,
+                 autocommit=False,
+                 database=None,
+                 *args,
+                 **kwargs):
         super(MySqlOperator, self).__init__(*args, **kwargs)
         self.mysql_conn_id = mysql_conn_id
         self.sql = sql
@@ -53,9 +58,7 @@ class MySqlOperator(BaseOperator):
 
     def execute(self, context):
         self.log.info('Executing: %s', self.sql)
-        hook = MySqlHook(mysql_conn_id=self.mysql_conn_id,
-                         schema=self.database)
+        hook = MySqlHook(
+            mysql_conn_id=self.mysql_conn_id, schema=self.database)
         hook.run(
-            self.sql,
-            autocommit=self.autocommit,
-            parameters=self.parameters)
+            self.sql, autocommit=self.autocommit, parameters=self.parameters)

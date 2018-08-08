@@ -34,7 +34,6 @@ from qds_sdk.commands import Command, HiveCommand, PrestoCommand, HadoopCommand,
     PigCommand, ShellCommand, SparkCommand, DbTapQueryCommand, DbExportCommand, \
     DbImportCommand
 
-
 COMMAND_CLASSES = {
     "hivecmd": HiveCommand,
     "prestocmd": PrestoCommand,
@@ -52,26 +51,39 @@ HYPHEN_ARGS = ['cluster_label', 'app_id', 'note_id']
 POSITIONAL_ARGS = ['sub_command', 'parameters']
 
 COMMAND_ARGS = {
-    "hivecmd": ['query', 'script_location', 'macros', 'tags', 'sample_size',
-                'cluster_label', 'name'],
-    'prestocmd': ['query', 'script_location', 'macros', 'tags', 'cluster_label', 'name'],
+    "hivecmd": [
+        'query', 'script_location', 'macros', 'tags', 'sample_size',
+        'cluster_label', 'name'
+    ],
+    'prestocmd':
+    ['query', 'script_location', 'macros', 'tags', 'cluster_label', 'name'],
     'hadoopcmd': ['sub_command', 'tags', 'cluster_label', 'name'],
-    'shellcmd': ['script', 'script_location', 'files', 'archives', 'parameters', 'tags',
-                 'cluster_label', 'name'],
-    'pigcmd': ['script', 'script_location', 'parameters', 'tags', 'cluster_label',
-               'name'],
+    'shellcmd': [
+        'script', 'script_location', 'files', 'archives', 'parameters', 'tags',
+        'cluster_label', 'name'
+    ],
+    'pigcmd': [
+        'script', 'script_location', 'parameters', 'tags', 'cluster_label',
+        'name'
+    ],
     'dbtapquerycmd': ['db_tap_id', 'query', 'macros', 'tags', 'name'],
-    'sparkcmd': ['program', 'cmdline', 'sql', 'script_location', 'macros', 'tags',
-                 'cluster_label', 'language', 'app_id', 'name', 'arguments', 'note_id',
-                 'user_program_arguments'],
-    'dbexportcmd': ['mode', 'hive_table', 'partition_spec', 'dbtap_id', 'db_table',
-                    'db_update_mode', 'db_update_keys', 'export_dir',
-                    'fields_terminated_by', 'tags', 'name', 'customer_cluster_label',
-                    'use_customer_cluster', 'additional_options'],
-    'dbimportcmd': ['mode', 'hive_table', 'dbtap_id', 'db_table', 'where_clause',
-                    'parallelism', 'extract_query', 'boundary_query', 'split_column',
-                    'tags', 'name', 'hive_serde', 'customer_cluster_label',
-                    'use_customer_cluster', 'schema', 'additional_options']
+    'sparkcmd': [
+        'program', 'cmdline', 'sql', 'script_location', 'macros', 'tags',
+        'cluster_label', 'language', 'app_id', 'name', 'arguments', 'note_id',
+        'user_program_arguments'
+    ],
+    'dbexportcmd': [
+        'mode', 'hive_table', 'partition_spec', 'dbtap_id', 'db_table',
+        'db_update_mode', 'db_update_keys', 'export_dir',
+        'fields_terminated_by', 'tags', 'name', 'customer_cluster_label',
+        'use_customer_cluster', 'additional_options'
+    ],
+    'dbimportcmd': [
+        'mode', 'hive_table', 'dbtap_id', 'db_table', 'where_clause',
+        'parallelism', 'extract_query', 'boundary_query', 'split_column',
+        'tags', 'name', 'hive_serde', 'customer_cluster_label',
+        'use_customer_cluster', 'schema', 'additional_options'
+    ]
 }
 
 
@@ -95,8 +107,9 @@ class QuboleHook(BaseHook, LoggingMixin):
             if cmd is not None:
                 log = LoggingMixin().log
                 if cmd.status == 'done':
-                    log.info('Command ID: %s has been succeeded, hence marking this '
-                             'TI as Success.', cmd_id)
+                    log.info(
+                        'Command ID: %s has been succeeded, hence marking this '
+                        'TI as Success.', cmd_id)
                     ti.state = State.SUCCESS
                 elif cmd.status == 'running':
                     log.info('Cancelling the Qubole Command Id: %s', cmd_id)
@@ -105,23 +118,25 @@ class QuboleHook(BaseHook, LoggingMixin):
     def execute(self, context):
         args = self.cls.parse(self.create_cmd_args(context))
         self.cmd = self.cls.create(**args)
-        context['task_instance'].xcom_push(key='qbol_cmd_id', value=self.cmd.id)
-        self.log.info(
-            "Qubole command created with Id: %s and Status: %s",
-            self.cmd.id, self.cmd.status
-        )
+        context['task_instance'].xcom_push(
+            key='qbol_cmd_id', value=self.cmd.id)
+        self.log.info("Qubole command created with Id: %s and Status: %s",
+                      self.cmd.id, self.cmd.status)
 
         while not Command.is_done(self.cmd.status):
             time.sleep(Qubole.poll_interval)
             self.cmd = self.cls.find(self.cmd.id)
-            self.log.info("Command Id: %s and Status: %s", self.cmd.id, self.cmd.status)
+            self.log.info("Command Id: %s and Status: %s", self.cmd.id,
+                          self.cmd.status)
 
         if 'fetch_logs' in self.kwargs and self.kwargs['fetch_logs'] is True:
-            self.log.info("Logs for Command Id: %s \n%s", self.cmd.id, self.cmd.get_log())
+            self.log.info("Logs for Command Id: %s \n%s", self.cmd.id,
+                          self.cmd.get_log())
 
         if self.cmd.status != 'done':
-            raise AirflowException('Command Id: {0} failed with Status: {1}'.format(
-                                   self.cmd.id, self.cmd.status))
+            raise AirflowException(
+                'Command Id: {0} failed with Status: {1}'.format(
+                    self.cmd.id, self.cmd.status))
 
     def kill(self, ti):
         """
@@ -133,10 +148,16 @@ class QuboleHook(BaseHook, LoggingMixin):
             cmd_id = ti.xcom_pull(key="qbol_cmd_id", task_ids=ti.task_id)
             self.cmd = self.cls.find(cmd_id)
         if self.cls and self.cmd:
-            self.log.info('Sending KILL signal to Qubole Command Id: %s', self.cmd.id)
+            self.log.info('Sending KILL signal to Qubole Command Id: %s',
+                          self.cmd.id)
             self.cmd.cancel()
 
-    def get_results(self, ti=None, fp=None, inline=True, delim=None, fetch=True):
+    def get_results(self,
+                    ti=None,
+                    fp=None,
+                    inline=True,
+                    delim=None,
+                    fetch=True):
         """
         Get results (or just s3 locations) of a command from Qubole and save into a file
         :param ti: Task Instance of the dag, used to determine the Quboles command id
@@ -149,8 +170,7 @@ class QuboleHook(BaseHook, LoggingMixin):
         if fp is None:
             iso = datetime.datetime.utcnow().isoformat()
             logpath = os.path.expanduser(
-                configuration.conf.get('core', 'BASE_LOG_FOLDER')
-            )
+                configuration.conf.get('core', 'BASE_LOG_FOLDER'))
             resultpath = logpath + '/' + self.dag_id + '/' + self.task_id + '/results'
             configuration.mkdir_p(resultpath)
             fp = open(resultpath + '/' + iso, 'wb')

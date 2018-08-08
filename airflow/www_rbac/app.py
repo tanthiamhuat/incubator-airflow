@@ -58,7 +58,11 @@ def create_app(config=None, session=None, testing=False, app_name="Airflow"):
     api.load_auth()
     api.api_auth.init_app(app)
 
-    cache = Cache(app=app, config={'CACHE_TYPE': 'filesystem', 'CACHE_DIR': '/tmp'})  # noqa
+    cache = Cache(
+        app=app, config={
+            'CACHE_TYPE': 'filesystem',
+            'CACHE_DIR': '/tmp'
+        })  # noqa
 
     from airflow.www_rbac.blueprints import routes
     app.register_blueprint(routes)
@@ -89,49 +93,44 @@ def create_app(config=None, session=None, testing=False, app_name="Airflow"):
             appbuilder.add_view_no_menu(views.DagModelView())
             appbuilder.add_view_no_menu(views.ConfigurationView())
             appbuilder.add_view_no_menu(views.VersionView())
-            appbuilder.add_view(views.DagRunModelView,
-                                "DAG Runs",
-                                category="Browse",
-                                category_icon="fa-globe")
-            appbuilder.add_view(views.JobModelView,
-                                "Jobs",
-                                category="Browse")
-            appbuilder.add_view(views.LogModelView,
-                                "Logs",
-                                category="Browse")
-            appbuilder.add_view(views.SlaMissModelView,
-                                "SLA Misses",
-                                category="Browse")
-            appbuilder.add_view(views.TaskInstanceModelView,
-                                "Task Instances",
-                                category="Browse")
-            appbuilder.add_link("Configurations",
-                                href='/configuration',
-                                category="Admin",
-                                category_icon="fa-user")
-            appbuilder.add_view(views.ConnectionModelView,
-                                "Connections",
-                                category="Admin")
-            appbuilder.add_view(views.PoolModelView,
-                                "Pools",
-                                category="Admin")
-            appbuilder.add_view(views.VariableModelView,
-                                "Variables",
-                                category="Admin")
-            appbuilder.add_view(views.XComModelView,
-                                "XComs",
-                                category="Admin")
-            appbuilder.add_link("Documentation",
-                                href='https://airflow.apache.org/',
-                                category="Docs",
-                                category_icon="fa-cube")
-            appbuilder.add_link("Github",
-                                href='https://github.com/apache/incubator-airflow',
-                                category="Docs")
-            appbuilder.add_link('Version',
-                                href='/version',
-                                category='About',
-                                category_icon='fa-th')
+            appbuilder.add_view(
+                views.DagRunModelView,
+                "DAG Runs",
+                category="Browse",
+                category_icon="fa-globe")
+            appbuilder.add_view(views.JobModelView, "Jobs", category="Browse")
+            appbuilder.add_view(views.LogModelView, "Logs", category="Browse")
+            appbuilder.add_view(
+                views.SlaMissModelView, "SLA Misses", category="Browse")
+            appbuilder.add_view(
+                views.TaskInstanceModelView,
+                "Task Instances",
+                category="Browse")
+            appbuilder.add_link(
+                "Configurations",
+                href='/configuration',
+                category="Admin",
+                category_icon="fa-user")
+            appbuilder.add_view(
+                views.ConnectionModelView, "Connections", category="Admin")
+            appbuilder.add_view(views.PoolModelView, "Pools", category="Admin")
+            appbuilder.add_view(
+                views.VariableModelView, "Variables", category="Admin")
+            appbuilder.add_view(views.XComModelView, "XComs", category="Admin")
+            appbuilder.add_link(
+                "Documentation",
+                href='https://airflow.apache.org/',
+                category="Docs",
+                category_icon="fa-cube")
+            appbuilder.add_link(
+                "Github",
+                href='https://github.com/apache/incubator-airflow',
+                category="Docs")
+            appbuilder.add_link(
+                'Version',
+                href='/version',
+                category='About',
+                category_icon='fa-th')
 
             # Garbage collect old permissions/views after they have been modified.
             # Otherwise, when the name of a view or menu is changed, the framework
@@ -148,12 +147,13 @@ def create_app(config=None, session=None, testing=False, app_name="Airflow"):
         # a link to the default_auth
         if app.config['TESTING']:
             if six.PY2:
-                reload(e) # noqa
+                reload(e)  # noqa
             else:
                 import importlib
                 importlib.reload(e)
 
-        app.register_blueprint(e.api_experimental, url_prefix='/api/experimental')
+        app.register_blueprint(
+            e.api_experimental, url_prefix='/api/experimental')
 
         @app.context_processor
         def jinja_globals():

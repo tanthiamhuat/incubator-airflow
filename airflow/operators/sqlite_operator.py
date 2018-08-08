@@ -33,14 +33,17 @@ class SqliteOperator(BaseOperator):
         a '.sql' extensions.
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
+    template_fields = ('sql', )
+    template_ext = ('.sql', )
     ui_color = '#cdaaed'
 
     @apply_defaults
-    def __init__(
-            self, sql, sqlite_conn_id='sqlite_default', parameters=None,
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 sqlite_conn_id='sqlite_default',
+                 parameters=None,
+                 *args,
+                 **kwargs):
         super(SqliteOperator, self).__init__(*args, **kwargs)
         self.sqlite_conn_id = sqlite_conn_id
         self.sql = sql

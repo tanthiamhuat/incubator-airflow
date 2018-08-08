@@ -35,14 +35,19 @@ class MsSqlOperator(BaseOperator):
     :type database: string
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
+    template_fields = ('sql', )
+    template_ext = ('.sql', )
     ui_color = '#ededed'
 
     @apply_defaults
-    def __init__(
-            self, sql, mssql_conn_id='mssql_default', parameters=None,
-            autocommit=False, database=None, *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 mssql_conn_id='mssql_default',
+                 parameters=None,
+                 autocommit=False,
+                 database=None,
+                 *args,
+                 **kwargs):
         super(MsSqlOperator, self).__init__(*args, **kwargs)
         self.mssql_conn_id = mssql_conn_id
         self.sql = sql
@@ -52,7 +57,7 @@ class MsSqlOperator(BaseOperator):
 
     def execute(self, context):
         self.log.info('Executing: %s', self.sql)
-        hook = MsSqlHook(mssql_conn_id=self.mssql_conn_id,
-                         schema=self.database)
-        hook.run(self.sql, autocommit=self.autocommit,
-                 parameters=self.parameters)
+        hook = MsSqlHook(
+            mssql_conn_id=self.mssql_conn_id, schema=self.database)
+        hook.run(
+            self.sql, autocommit=self.autocommit, parameters=self.parameters)

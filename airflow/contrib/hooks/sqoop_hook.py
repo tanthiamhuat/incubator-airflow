@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
 """
 This module contains a sqoop 1.x hook
 """
@@ -54,9 +53,13 @@ class SqoopHook(BaseHook, LoggingMixin):
     :type properties: dict
     """
 
-    def __init__(self, conn_id='sqoop_default', verbose=False,
-                 num_mappers=None, hcatalog_database=None,
-                 hcatalog_table=None, properties=None):
+    def __init__(self,
+                 conn_id='sqoop_default',
+                 verbose=False,
+                 num_mappers=None,
+                 hcatalog_database=None,
+                 hcatalog_table=None,
+                 properties=None):
         # No mutable types in the default parameters
         self.conn = self.get_connection(conn_id)
         connection_parameters = self.conn.extra_dejson
@@ -71,11 +74,8 @@ class SqoopHook(BaseHook, LoggingMixin):
         self.verbose = verbose
         self.num_mappers = num_mappers
         self.properties = properties or {}
-        self.log.info(
-            "Using connection to: {}:{}/{}".format(
-                self.conn.host, self.conn.port, self.conn.schema
-            )
-        )
+        self.log.info("Using connection to: {}:{}/{}".format(
+            self.conn.host, self.conn.port, self.conn.schema))
 
     def get_conn(self):
         return self.conn
@@ -100,10 +100,7 @@ class SqoopHook(BaseHook, LoggingMixin):
         masked_cmd = ' '.join(self.cmd_mask_password(cmd))
         self.log.info("Executing command: {}".format(masked_cmd))
         self.sp = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            **kwargs)
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
 
         for line in iter(self.sp.stdout):
             self.log.info(line.strip())
@@ -113,7 +110,8 @@ class SqoopHook(BaseHook, LoggingMixin):
         self.log.info("Command exited with return code %s", self.sp.returncode)
 
         if self.sp.returncode:
-            raise AirflowException("Sqoop command failed: {}".format(masked_cmd))
+            raise AirflowException(
+                "Sqoop command failed: {}".format(masked_cmd))
 
     def _prepare_command(self, export=False):
         sqoop_cmd_type = "export" if export else "import"
@@ -147,11 +145,10 @@ class SqoopHook(BaseHook, LoggingMixin):
         if self.hcatalog_table:
             connection_cmd += ["--hcatalog-table", self.hcatalog_table]
 
-        connection_cmd += ["--connect", "{}:{}/{}".format(
-            self.conn.host,
-            self.conn.port,
-            self.conn.schema
-        )]
+        connection_cmd += [
+            "--connect", "{}:{}/{}".format(self.conn.host, self.conn.port,
+                                           self.conn.schema)
+        ]
 
         return connection_cmd
 
@@ -199,9 +196,17 @@ class SqoopHook(BaseHook, LoggingMixin):
 
         return cmd
 
-    def import_table(self, table, target_dir=None, append=False, file_type="text",
-                     columns=None, split_by=None, where=None, direct=False,
-                     driver=None, extra_import_options=None):
+    def import_table(self,
+                     table,
+                     target_dir=None,
+                     append=False,
+                     file_type="text",
+                     columns=None,
+                     split_by=None,
+                     where=None,
+                     direct=False,
+                     driver=None,
+                     extra_import_options=None):
         """
         Imports table from remote location to target dir. Arguments are
         copies of direct sqoop command line arguments
@@ -231,8 +236,15 @@ class SqoopHook(BaseHook, LoggingMixin):
 
         self.Popen(cmd)
 
-    def import_query(self, query, target_dir, append=False, file_type="text",
-                     split_by=None, direct=None, driver=None, extra_import_options=None):
+    def import_query(self,
+                     query,
+                     target_dir,
+                     append=False,
+                     file_type="text",
+                     split_by=None,
+                     direct=None,
+                     driver=None,
+                     extra_import_options=None):
         """
         Imports a specific query from the rdbms to hdfs
         :param query: Free format query to run
@@ -286,8 +298,9 @@ class SqoopHook(BaseHook, LoggingMixin):
             cmd += ["--input-lines-terminated-by", input_lines_terminated_by]
 
         if input_optionally_enclosed_by:
-            cmd += ["--input-optionally-enclosed-by",
-                    input_optionally_enclosed_by]
+            cmd += [
+                "--input-optionally-enclosed-by", input_optionally_enclosed_by
+            ]
 
         if batch:
             cmd += ["--batch"]
@@ -309,13 +322,21 @@ class SqoopHook(BaseHook, LoggingMixin):
 
         return cmd
 
-    def export_table(self, table, export_dir, input_null_string,
-                     input_null_non_string, staging_table,
-                     clear_staging_table, enclosed_by,
-                     escaped_by, input_fields_terminated_by,
+    def export_table(self,
+                     table,
+                     export_dir,
+                     input_null_string,
+                     input_null_non_string,
+                     staging_table,
+                     clear_staging_table,
+                     enclosed_by,
+                     escaped_by,
+                     input_fields_terminated_by,
                      input_lines_terminated_by,
-                     input_optionally_enclosed_by, batch,
-                     relaxed_isolation, extra_export_options=None):
+                     input_optionally_enclosed_by,
+                     batch,
+                     relaxed_isolation,
+                     extra_export_options=None):
         """
         Exports Hive table to remote location. Arguments are copies of direct
         sqoop command line Arguments
@@ -341,12 +362,11 @@ class SqoopHook(BaseHook, LoggingMixin):
             If a key doesn't have a value, just pass an empty string to it.
             Don't include prefix of -- for sqoop options.
         """
-        cmd = self._export_cmd(table, export_dir, input_null_string,
-                               input_null_non_string, staging_table,
-                               clear_staging_table, enclosed_by, escaped_by,
-                               input_fields_terminated_by,
-                               input_lines_terminated_by,
-                               input_optionally_enclosed_by, batch,
-                               relaxed_isolation, extra_export_options)
+        cmd = self._export_cmd(
+            table, export_dir, input_null_string, input_null_non_string,
+            staging_table, clear_staging_table, enclosed_by, escaped_by,
+            input_fields_terminated_by, input_lines_terminated_by,
+            input_optionally_enclosed_by, batch, relaxed_isolation,
+            extra_export_options)
 
         self.Popen(cmd)

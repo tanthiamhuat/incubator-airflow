@@ -65,8 +65,7 @@ class SSHHook(BaseHook, LoggingMixin):
                  key_file=None,
                  port=None,
                  timeout=10,
-                 keepalive_interval=30
-                 ):
+                 keepalive_interval=30):
         super(SSHHook, self).__init__(ssh_conn_id)
         self.ssh_conn_id = ssh_conn_id
         self.remote_host = remote_host
@@ -119,8 +118,7 @@ class SSHHook(BaseHook, LoggingMixin):
             self.log.debug(
                 "username to ssh to host: %s is not specified for connection id"
                 " %s. Using system's default provided by getpass.getuser()",
-                self.remote_host, self.ssh_conn_id
-            )
+                self.remote_host, self.ssh_conn_id)
             self.username = getpass.getuser()
 
         user_ssh_config_filename = os.path.expanduser('~/.ssh/config')
@@ -129,7 +127,8 @@ class SSHHook(BaseHook, LoggingMixin):
             ssh_conf.parse(open(user_ssh_config_filename))
             host_info = ssh_conf.lookup(self.remote_host)
             if host_info and host_info.get('proxycommand'):
-                self.host_proxy = paramiko.ProxyCommand(host_info.get('proxycommand'))
+                self.host_proxy = paramiko.ProxyCommand(
+                    host_info.get('proxycommand'))
 
             if not (self.password or self.key_file):
                 if host_info and host_info.get('identityfile'):
@@ -152,22 +151,24 @@ class SSHHook(BaseHook, LoggingMixin):
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         if self.password and self.password.strip():
-            client.connect(hostname=self.remote_host,
-                           username=self.username,
-                           password=self.password,
-                           key_filename=self.key_file,
-                           timeout=self.timeout,
-                           compress=self.compress,
-                           port=self.port,
-                           sock=self.host_proxy)
+            client.connect(
+                hostname=self.remote_host,
+                username=self.username,
+                password=self.password,
+                key_filename=self.key_file,
+                timeout=self.timeout,
+                compress=self.compress,
+                port=self.port,
+                sock=self.host_proxy)
         else:
-            client.connect(hostname=self.remote_host,
-                           username=self.username,
-                           key_filename=self.key_file,
-                           timeout=self.timeout,
-                           compress=self.compress,
-                           port=self.port,
-                           sock=self.host_proxy)
+            client.connect(
+                hostname=self.remote_host,
+                username=self.username,
+                key_filename=self.key_file,
+                timeout=self.timeout,
+                compress=self.compress,
+                port=self.port,
+                sock=self.host_proxy)
 
         if self.keepalive_interval:
             client.get_transport().set_keepalive(self.keepalive_interval)
@@ -176,10 +177,11 @@ class SSHHook(BaseHook, LoggingMixin):
         return client
 
     def __enter__(self):
-        warnings.warn('The contextmanager of SSHHook is deprecated.'
-                      'Please use get_conn() as a contextmanager instead.'
-                      'This method will be removed in Airflow 2.0',
-                      category=DeprecationWarning)
+        warnings.warn(
+            'The contextmanager of SSHHook is deprecated.'
+            'Please use get_conn() as a contextmanager instead.'
+            'This method will be removed in Airflow 2.0',
+            category=DeprecationWarning)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -187,7 +189,8 @@ class SSHHook(BaseHook, LoggingMixin):
             self.client.close()
             self.client = None
 
-    def get_tunnel(self, remote_port, remote_host="localhost", local_port=None):
+    def get_tunnel(self, remote_port, remote_host="localhost",
+                   local_port=None):
         """
         Creates a tunnel between two hosts. Like ssh -L <LOCAL_PORT>:host:<REMOTE_PORT>.
 
@@ -204,36 +207,42 @@ class SSHHook(BaseHook, LoggingMixin):
         if local_port:
             local_bind_address = ('localhost', local_port)
         else:
-            local_bind_address = ('localhost',)
+            local_bind_address = ('localhost', )
 
         if self.password and self.password.strip():
-            client = SSHTunnelForwarder(self.remote_host,
-                                        ssh_port=self.port,
-                                        ssh_username=self.username,
-                                        ssh_password=self.password,
-                                        ssh_pkey=self.key_file,
-                                        ssh_proxy=self.host_proxy,
-                                        local_bind_address=local_bind_address,
-                                        remote_bind_address=(remote_host, remote_port),
-                                        logger=self.log)
+            client = SSHTunnelForwarder(
+                self.remote_host,
+                ssh_port=self.port,
+                ssh_username=self.username,
+                ssh_password=self.password,
+                ssh_pkey=self.key_file,
+                ssh_proxy=self.host_proxy,
+                local_bind_address=local_bind_address,
+                remote_bind_address=(remote_host, remote_port),
+                logger=self.log)
         else:
-            client = SSHTunnelForwarder(self.remote_host,
-                                        ssh_port=self.port,
-                                        ssh_username=self.username,
-                                        ssh_pkey=self.key_file,
-                                        ssh_proxy=self.host_proxy,
-                                        local_bind_address=local_bind_address,
-                                        remote_bind_address=(remote_host, remote_port),
-                                        host_pkey_directories=[],
-                                        logger=self.log)
+            client = SSHTunnelForwarder(
+                self.remote_host,
+                ssh_port=self.port,
+                ssh_username=self.username,
+                ssh_pkey=self.key_file,
+                ssh_proxy=self.host_proxy,
+                local_bind_address=local_bind_address,
+                remote_bind_address=(remote_host, remote_port),
+                host_pkey_directories=[],
+                logger=self.log)
 
         return client
 
-    def create_tunnel(self, local_port, remote_port=None, remote_host="localhost"):
-        warnings.warn('SSHHook.create_tunnel is deprecated, Please'
-                      'use get_tunnel() instead. But please note that the'
-                      'order of the parameters have changed'
-                      'This method will be removed in Airflow 2.0',
-                      category=DeprecationWarning)
+    def create_tunnel(self,
+                      local_port,
+                      remote_port=None,
+                      remote_host="localhost"):
+        warnings.warn(
+            'SSHHook.create_tunnel is deprecated, Please'
+            'use get_tunnel() instead. But please note that the'
+            'order of the parameters have changed'
+            'This method will be removed in Airflow 2.0',
+            category=DeprecationWarning)
 
         return self.get_tunnel(remote_port, remote_host, local_port)

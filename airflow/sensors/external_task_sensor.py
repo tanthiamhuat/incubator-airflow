@@ -84,11 +84,10 @@ class ExternalTaskSensor(BaseSensorOperator):
         serialized_dttm_filter = ','.join(
             [datetime.isoformat() for datetime in dttm_filter])
 
-        self.log.info(
-            'Poking for '
-            '{self.external_dag_id}.'
-            '{self.external_task_id} on '
-            '{} ... '.format(serialized_dttm_filter, **locals()))
+        self.log.info('Poking for '
+                      '{self.external_dag_id}.'
+                      '{self.external_task_id} on '
+                      '{} ... '.format(serialized_dttm_filter, **locals()))
         TI = TaskInstance
 
         count = session.query(TI).filter(

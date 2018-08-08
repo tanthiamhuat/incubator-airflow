@@ -20,10 +20,7 @@ import flask_login
 
 # Need to expose these downstream
 # pylint: disable=unused-import
-from flask_login import (current_user,
-                         logout_user,
-                         login_required,
-                         login_user)
+from flask_login import (current_user, logout_user, login_required, login_user)
 # pylint: enable=unused-import
 
 from flask import url_for, redirect, request
@@ -43,7 +40,6 @@ def get_config_param(param):
 
 
 class GHEUser(models.User):
-
     def __init__(self, user):
         self.user = user
 
@@ -77,7 +73,6 @@ class AuthenticationError(Exception):
 
 
 class GHEAuthBackend(object):
-
     def __init__(self):
         self.ghe_host = get_config_param('host')
         self.login_manager = flask_login.LoginManager()
@@ -88,13 +83,11 @@ class GHEAuthBackend(object):
 
     def ghe_api_route(self, leaf):
         if not self.api_url:
-            self.api_url = (
-                'https://api.github.com' if self.ghe_host == 'github.com'
-                else '/'.join(['https:/',
-                               self.ghe_host,
-                               'api',
-                               get_config_param('api_rev')])
-            )
+            self.api_url = ('https://api.github.com'
+                            if self.ghe_host == 'github.com' else '/'.join([
+                                'https:/', self.ghe_host, 'api',
+                                get_config_param('api_rev')
+                            ]))
         return self.api_url + leaf
 
     def init_app(self, flask_app):
@@ -111,29 +104,26 @@ class GHEAuthBackend(object):
             base_url=self.ghe_host,
             request_token_url=None,
             access_token_method='POST',
-            access_token_url=''.join(['https://',
-                                      self.ghe_host,
-                                      '/login/oauth/access_token']),
-            authorize_url=''.join(['https://',
-                                   self.ghe_host,
-                                   '/login/oauth/authorize']))
+            access_token_url=''.join(
+                ['https://', self.ghe_host, '/login/oauth/access_token']),
+            authorize_url=''.join(
+                ['https://', self.ghe_host, '/login/oauth/authorize']))
 
         self.login_manager.user_loader(self.load_user)
 
-        self.flask_app.add_url_rule(get_config_param('oauth_callback_route'),
-                                    'ghe_oauth_callback',
-                                    self.oauth_callback)
+        self.flask_app.add_url_rule(
+            get_config_param('oauth_callback_route'), 'ghe_oauth_callback',
+            self.oauth_callback)
 
     def login(self, request):
         log.debug('Redirecting user to GHE login')
-        return self.ghe_oauth.authorize(callback=url_for(
-            'ghe_oauth_callback',
-            _external=True),
+        return self.ghe_oauth.authorize(
+            callback=url_for('ghe_oauth_callback', _external=True),
             state=request.args.get('next') or request.referrer or None)
 
     def get_ghe_user_profile_info(self, ghe_token):
-        resp = self.ghe_oauth.get(self.ghe_api_route('/user'),
-                                  token=(ghe_token, ''))
+        resp = self.ghe_oauth.get(
+            self.ghe_api_route('/user'), token=(ghe_token, ''))
 
         if not resp or resp.status != 200:
             raise AuthenticationError(
@@ -146,9 +136,10 @@ class GHEAuthBackend(object):
         try:
             # the response from ghe returns the id of the team as an integer
             try:
-                allowed_teams = [int(team.strip())
-                                 for team in
-                                 get_config_param('allowed_teams').split(',')]
+                allowed_teams = [
+                    int(team.strip())
+                    for team in get_config_param('allowed_teams').split(',')
+                ]
             except ValueError:
                 # this is to deprecate using the string name for a team
                 raise ValueError(
@@ -160,13 +151,12 @@ class GHEAuthBackend(object):
             return True
 
         # https://developer.github.com/v3/orgs/teams/#list-user-teams
-        resp = self.ghe_oauth.get(self.ghe_api_route('/user/teams'),
-                                  token=(ghe_token, ''))
+        resp = self.ghe_oauth.get(
+            self.ghe_api_route('/user/teams'), token=(ghe_token, ''))
 
         if not resp or resp.status != 200:
-            raise AuthenticationError(
-                'Bad response from GHE ({0})'.format(
-                    resp.status if resp else 'None'))
+            raise AuthenticationError('Bad response from GHE ({0})'.format(
+                resp.status if resp else 'None'))
 
         for team in resp.data:
             # mylons: previously this line used to be if team['slug'] in teams
@@ -177,8 +167,7 @@ class GHEAuthBackend(object):
                 return True
 
         log.debug('Denying access for user "%s", not a member of "%s"',
-                  username,
-                  str(allowed_teams))
+                  username, str(allowed_teams))
 
         return False
 
@@ -187,8 +176,8 @@ class GHEAuthBackend(object):
         if not userid or userid == 'None':
             return None
 
-        user = session.query(models.User).filter(
-            models.User.id == int(userid)).first()
+        user = session.query(
+            models.User).filter(models.User.id == int(userid)).first()
         return GHEUser(user)
 
     @provide_session
@@ -202,8 +191,7 @@ class GHEAuthBackend(object):
         try:
             if resp is None:
                 raise AuthenticationError(
-                    'Null response from GHE, denying access.'
-                )
+                    'Null response from GHE, denying access.')
 
             ghe_token = resp['access_token']
 
@@ -216,14 +204,12 @@ class GHEAuthBackend(object):
             log.exception('')
             return redirect(url_for('airflow.noaccess'))
 
-        user = session.query(models.User).filter(
-            models.User.username == username).first()
+        user = session.query(
+            models.User).filter(models.User.username == username).first()
 
         if not user:
             user = models.User(
-                username=username,
-                email=email,
-                is_superuser=False)
+                username=username, email=email, is_superuser=False)
 
         session.merge(user)
         session.commit()

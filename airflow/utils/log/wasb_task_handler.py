@@ -35,7 +35,8 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
 
     def __init__(self, base_log_folder, wasb_log_folder, wasb_container,
                  filename_template, delete_local_copy):
-        super(WasbTaskHandler, self).__init__(base_log_folder, filename_template)
+        super(WasbTaskHandler, self).__init__(base_log_folder,
+                                              filename_template)
         self.wasb_container = wasb_container
         self.remote_base = wasb_log_folder
         self.log_relative_path = ''
@@ -52,8 +53,7 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
             self.log.error(
                 'Could not create an WasbHook with connection id "%s". '
                 'Please make sure that airflow[azure] is installed and '
-                'the Wasb connection exists.', remote_conn_id
-            )
+                'the Wasb connection exists.', remote_conn_id)
 
     @property
     def hook(self):
@@ -130,7 +130,8 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
         :return: True if location exists else False
         """
         try:
-            return self.hook.check_for_blob(self.wasb_container, remote_log_location)
+            return self.hook.check_for_blob(self.wasb_container,
+                                            remote_log_location)
         except Exception:
             pass
         return False
@@ -146,7 +147,8 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
         :type return_error: bool
         """
         try:
-            return self.hook.read_file(self.wasb_container, remote_log_location)
+            return self.hook.read_file(self.wasb_container,
+                                       remote_log_location)
         except AzureHttpError:
             msg = 'Could not read logs from {}'.format(remote_log_location)
             self.log.exception(msg)

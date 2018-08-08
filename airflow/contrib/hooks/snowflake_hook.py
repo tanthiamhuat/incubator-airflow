@@ -67,8 +67,7 @@ class SnowflakeHook(DbApiHook):
         conn_config = self._get_conn_params()
         uri = 'snowflake://{user}:{password}@{account}/{database}/'
         uri += '{schema}?warehouse={warehouse}'
-        return uri.format(
-            **conn_config)
+        return uri.format(**conn_config)
 
     def get_conn(self):
         """

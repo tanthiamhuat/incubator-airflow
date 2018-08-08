@@ -40,7 +40,7 @@ class BigQueryTableDeleteOperator(BaseOperator):
         requested table does not exist.
     :type ignore_if_missing: boolean
     """
-    template_fields = ('deletion_dataset_table',)
+    template_fields = ('deletion_dataset_table', )
     ui_color = '#ffd1dc'
 
     @apply_defaults
@@ -59,8 +59,10 @@ class BigQueryTableDeleteOperator(BaseOperator):
 
     def execute(self, context):
         self.log.info('Deleting: %s', self.deletion_dataset_table)
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
         conn = hook.get_conn()
         cursor = conn.cursor()
-        cursor.run_table_delete(self.deletion_dataset_table, self.ignore_if_missing)
+        cursor.run_table_delete(self.deletion_dataset_table,
+                                self.ignore_if_missing)

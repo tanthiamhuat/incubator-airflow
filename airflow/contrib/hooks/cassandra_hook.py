@@ -70,6 +70,7 @@ class CassandraHook(BaseHook, LoggingMixin):
 
     For details of the Cluster config, see cassandra.cluster.
     """
+
     def __init__(self, cassandra_conn_id='cassandra_default'):
         conn = self.get_connection(cassandra_conn_id)
 
@@ -135,27 +136,32 @@ class CassandraHook(BaseHook, LoggingMixin):
 
         if policy_name == 'DCAwareRoundRobinPolicy':
             local_dc = policy_args.get('local_dc', '')
-            used_hosts_per_remote_dc = int(policy_args.get('used_hosts_per_remote_dc', 0))
+            used_hosts_per_remote_dc = int(
+                policy_args.get('used_hosts_per_remote_dc', 0))
             return DCAwareRoundRobinPolicy(local_dc, used_hosts_per_remote_dc)
 
         if policy_name == 'WhiteListRoundRobinPolicy':
             hosts = policy_args.get('hosts')
             if not hosts:
-                raise Exception('Hosts must be specified for WhiteListRoundRobinPolicy')
+                raise Exception(
+                    'Hosts must be specified for WhiteListRoundRobinPolicy')
             return WhiteListRoundRobinPolicy(hosts)
 
         if policy_name == 'TokenAwarePolicy':
-            allowed_child_policies = ('RoundRobinPolicy',
-                                      'DCAwareRoundRobinPolicy',
-                                      'WhiteListRoundRobinPolicy',)
+            allowed_child_policies = (
+                'RoundRobinPolicy',
+                'DCAwareRoundRobinPolicy',
+                'WhiteListRoundRobinPolicy',
+            )
             child_policy_name = policy_args.get('child_load_balancing_policy',
                                                 'RoundRobinPolicy')
-            child_policy_args = policy_args.get('child_load_balancing_policy_args', {})
+            child_policy_args = policy_args.get(
+                'child_load_balancing_policy_args', {})
             if child_policy_name not in allowed_child_policies:
                 return TokenAwarePolicy(RoundRobinPolicy())
             else:
-                child_policy = CassandraHook.get_lb_policy(child_policy_name,
-                                                           child_policy_args)
+                child_policy = CassandraHook.get_lb_policy(
+                    child_policy_name, child_policy_args)
                 return TokenAwarePolicy(child_policy)
 
     def table_exists(self, table):
@@ -170,8 +176,8 @@ class CassandraHook(BaseHook, LoggingMixin):
         if '.' in table:
             keyspace, table = table.split('.', 1)
         cluster_metadata = self.get_conn().cluster.metadata
-        return (keyspace in cluster_metadata.keyspaces and
-                table in cluster_metadata.keyspaces[keyspace].tables)
+        return (keyspace in cluster_metadata.keyspaces
+                and table in cluster_metadata.keyspaces[keyspace].tables)
 
     def record_exists(self, table, keys):
         """

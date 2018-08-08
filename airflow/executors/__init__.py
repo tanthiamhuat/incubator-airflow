@@ -21,7 +21,7 @@ import sys
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow import configuration
 from airflow.exceptions import AirflowException
-from airflow.executors.base_executor import BaseExecutor # noqa
+from airflow.executors.base_executor import BaseExecutor  # noqa
 from airflow.executors.local_executor import LocalExecutor
 from airflow.executors.sequential_executor import SequentialExecutor
 
@@ -91,9 +91,11 @@ def _get_executor(executor_name):
         if len(executor_path) != 2:
             raise AirflowException(
                 "Executor {0} not supported: "
-                "please specify in format plugin_module.executor".format(executor_name))
+                "please specify in format plugin_module.executor".format(
+                    executor_name))
 
         if executor_path[0] in globals():
             return globals()[executor_path[0]].__dict__[executor_path[1]]()
         else:
-            raise AirflowException("Executor {0} not supported.".format(executor_name))
+            raise AirflowException(
+                "Executor {0} not supported.".format(executor_name))

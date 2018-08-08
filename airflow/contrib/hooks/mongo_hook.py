@@ -54,14 +54,11 @@ class MongoHook(BaseHook):
         conn = self.connection
 
         uri = 'mongodb://{creds}{host}{port}/{database}'.format(
-            creds='{}:{}@'.format(
-                conn.login, conn.password
-            ) if conn.login is not None else '',
-
+            creds='{}:{}@'.format(conn.login, conn.password)
+            if conn.login is not None else '',
             host=conn.host,
             port='' if conn.port is None else ':{}'.format(conn.port),
-            database='' if conn.schema is None else conn.schema
-        )
+            database='' if conn.schema is None else conn.schema)
 
         # Mongo Connection Options dict that is unpacked when passed to MongoClient
         options = self.extras
@@ -89,9 +86,14 @@ class MongoHook(BaseHook):
         mongo_db = mongo_db if mongo_db is not None else self.connection.schema
         mongo_conn = self.get_conn()
 
-        return mongo_conn.get_database(mongo_db).get_collection(mongo_collection)
+        return mongo_conn.get_database(mongo_db).get_collection(
+            mongo_collection)
 
-    def aggregate(self, mongo_collection, aggregate_query, mongo_db=None, **kwargs):
+    def aggregate(self,
+                  mongo_collection,
+                  aggregate_query,
+                  mongo_db=None,
+                  **kwargs):
         """
         Runs an aggregation pipeline and returns the results
         https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.aggregate
@@ -101,7 +103,12 @@ class MongoHook(BaseHook):
 
         return collection.aggregate(aggregate_query, **kwargs)
 
-    def find(self, mongo_collection, query, find_one=False, mongo_db=None, **kwargs):
+    def find(self,
+             mongo_collection,
+             query,
+             find_one=False,
+             mongo_db=None,
+             **kwargs):
         """
         Runs a mongo find query and returns the results
         https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.find

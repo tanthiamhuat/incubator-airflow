@@ -42,8 +42,13 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
 
     Note: Arrays of arrays are not supported.
     """
-    template_fields = ('cql', 'bucket', 'filename', 'schema_filename',)
-    template_ext = ('.cql',)
+    template_fields = (
+        'cql',
+        'bucket',
+        'filename',
+        'schema_filename',
+    )
+    template_ext = ('.cql', )
     ui_color = '#a0e08c'
 
     @apply_defaults
@@ -88,7 +93,8 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
             delegation enabled.
         :type delegate_to: string
         """
-        super(CassandraToGoogleCloudStorageOperator, self).__init__(*args, **kwargs)
+        super(CassandraToGoogleCloudStorageOperator, self).__init__(
+            *args, **kwargs)
         self.cql = cql
         self.bucket = bucket
         self.filename = filename
@@ -180,7 +186,8 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
             if tmp_file_handle.tell() >= self.approx_max_file_size_bytes:
                 file_no += 1
                 tmp_file_handle = NamedTemporaryFile(delete=True)
-                tmp_file_handles[self.filename.format(file_no)] = tmp_file_handle
+                tmp_file_handles[self.filename.format(
+                    file_no)] = tmp_file_handle
 
         return tmp_file_handles
 
@@ -210,7 +217,8 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
             delegate_to=self.delegate_to)
         for object, tmp_file_handle in files_to_upload.items():
-            hook.upload(self.bucket, object, tmp_file_handle.name, 'application/json')
+            hook.upload(self.bucket, object, tmp_file_handle.name,
+                        'application/json')
 
     @classmethod
     def generate_data_dict(cls, names, values):
@@ -248,7 +256,9 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
 
     @classmethod
     def convert_array_types(cls, name, value):
-        return [cls.convert_value(name, nested_value) for nested_value in value]
+        return [
+            cls.convert_value(name, nested_value) for nested_value in value
+        ]
 
     @classmethod
     def convert_user_type(cls, name, value):
@@ -258,7 +268,9 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
         corresponding data type in BQ.
         """
         names = value._fields
-        values = [cls.convert_value(name, getattr(value, name)) for name in names]
+        values = [
+            cls.convert_value(name, getattr(value, name)) for name in names
+        ]
         return cls.generate_data_dict(names, values)
 
     @classmethod
@@ -269,7 +281,10 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
         index is determined by the order of the tuple elments defined in cassandra.
         """
         names = ['field_' + str(i) for i in range(len(value))]
-        values = [cls.convert_value(name, value) for name, value in zip(names, value)]
+        values = [
+            cls.convert_value(name, value)
+            for name, value in zip(names, value)
+        ]
         return cls.generate_data_dict(names, values)
 
     @classmethod
@@ -304,7 +319,8 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
         if not cls.is_simple_type(type):
             names, types = [], []
 
-            if cls.is_array_type(type) and cls.is_record_type(type.subtypes[0]):
+            if cls.is_array_type(type) and cls.is_record_type(
+                    type.subtypes[0]):
                 names = type.subtypes[0].fieldnames
                 types = type.subtypes[0].subtypes
             elif cls.is_record_type(type):
@@ -337,7 +353,8 @@ class CassandraToGoogleCloudStorageOperator(BaseOperator):
     @classmethod
     def get_bq_type(cls, type):
         if cls.is_simple_type(type):
-            return CassandraToGoogleCloudStorageOperator.CQL_TYPE_MAP[type.cassname]
+            return CassandraToGoogleCloudStorageOperator.CQL_TYPE_MAP[
+                type.cassname]
         elif cls.is_record_type(type):
             return 'RECORD'
         elif cls.is_array_type(type):

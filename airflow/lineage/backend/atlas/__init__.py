@@ -36,7 +36,8 @@ _host = conf.get("atlas", "host")
 
 class AtlasBackend(LineageBackend):
     def send_lineage(self, operator, inlets, outlets, context):
-        client = Atlas(_host, port=_port, username=_username, password=_password)
+        client = Atlas(
+            _host, port=_port, username=_username, password=_password)
         try:
             client.typedefs.create(data=operator_typedef)
         except HttpError:
@@ -54,10 +55,12 @@ class AtlasBackend(LineageBackend):
 
                 entity.set_context(context)
                 client.entity_post.create(data={"entity": entity.as_dict()})
-                inlet_list.append({"typeName": entity.type_name,
-                                   "uniqueAttributes": {
-                                       "qualifiedName": entity.qualified_name
-                                   }})
+                inlet_list.append({
+                    "typeName": entity.type_name,
+                    "uniqueAttributes": {
+                        "qualifiedName": entity.qualified_name
+                    }
+                })
 
         outlet_list = []
         if outlets:
@@ -67,30 +70,39 @@ class AtlasBackend(LineageBackend):
 
                 entity.set_context(context)
                 client.entity_post.create(data={"entity": entity.as_dict()})
-                outlet_list.append({"typeName": entity.type_name,
-                                    "uniqueAttributes": {
-                                        "qualifiedName": entity.qualified_name
-                                    }})
+                outlet_list.append({
+                    "typeName": entity.type_name,
+                    "uniqueAttributes": {
+                        "qualifiedName": entity.qualified_name
+                    }
+                })
 
         operator_name = operator.__class__.__name__
-        name = "{} {} ({})".format(operator.dag_id, operator.task_id, operator_name)
-        qualified_name = "{}_{}_{}@{}".format(operator.dag_id,
-                                              operator.task_id,
-                                              _execution_date,
-                                              operator_name)
+        name = "{} {} ({})".format(operator.dag_id, operator.task_id,
+                                   operator_name)
+        qualified_name = "{}_{}_{}@{}".format(
+            operator.dag_id, operator.task_id, _execution_date, operator_name)
 
         data = {
-            "dag_id": operator.dag_id,
-            "task_id": operator.task_id,
-            "execution_date": _execution_date.strftime(SERIALIZED_DATE_FORMAT_STR),
-            "name": name,
-            "inputs": inlet_list,
-            "outputs": outlet_list,
-            "command": operator.lineage_data,
+            "dag_id":
+            operator.dag_id,
+            "task_id":
+            operator.task_id,
+            "execution_date":
+            _execution_date.strftime(SERIALIZED_DATE_FORMAT_STR),
+            "name":
+            name,
+            "inputs":
+            inlet_list,
+            "outputs":
+            outlet_list,
+            "command":
+            operator.lineage_data,
         }
 
         if _start_date:
-            data["start_date"] = _start_date.strftime(SERIALIZED_DATE_FORMAT_STR)
+            data["start_date"] = _start_date.strftime(
+                SERIALIZED_DATE_FORMAT_STR)
         if _end_date:
             data["end_date"] = _end_date.strftime(SERIALIZED_DATE_FORMAT_STR)
 

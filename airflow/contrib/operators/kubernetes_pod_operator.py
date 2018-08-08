@@ -25,7 +25,7 @@ from airflow.contrib.kubernetes.volume_mount import VolumeMount  # noqa
 from airflow.contrib.kubernetes.volume import Volume  # noqa
 from airflow.contrib.kubernetes.secret import Secret  # noqa
 
-template_fields = ('templates_dict',)
+template_fields = ('templates_dict', )
 template_ext = tuple()
 ui_color = '#ffefeb'
 
@@ -83,9 +83,10 @@ class KubernetesPodOperator(BaseOperator):
 
     def execute(self, context):
         try:
-            client = kube_client.get_kube_client(in_cluster=self.in_cluster,
-                                                 cluster_context=self.cluster_context,
-                                                 config_file=self.config_file)
+            client = kube_client.get_kube_client(
+                in_cluster=self.in_cluster,
+                cluster_context=self.cluster_context,
+                config_file=self.config_file)
             gen = pod_generator.PodGenerator()
 
             for mount in self.volume_mounts:
@@ -110,20 +111,21 @@ class KubernetesPodOperator(BaseOperator):
             pod.affinity = self.affinity
             pod.node_selectors = self.node_selectors
 
-            launcher = pod_launcher.PodLauncher(kube_client=client,
-                                                extract_xcom=self.xcom_push)
+            launcher = pod_launcher.PodLauncher(
+                kube_client=client, extract_xcom=self.xcom_push)
             (final_state, result) = launcher.run_pod(
                 pod,
                 startup_timeout=self.startup_timeout_seconds,
                 get_logs=self.get_logs)
             if final_state != State.SUCCESS:
                 raise AirflowException(
-                    'Pod returned a failure: {state}'.format(state=final_state)
-                )
+                    'Pod returned a failure: {state}'.format(
+                        state=final_state))
             if self.xcom_push:
                 return result
         except AirflowException as ex:
-            raise AirflowException('Pod Launching failed: {error}'.format(error=ex))
+            raise AirflowException(
+                'Pod Launching failed: {error}'.format(error=ex))
 
     @apply_defaults
     def __init__(self,

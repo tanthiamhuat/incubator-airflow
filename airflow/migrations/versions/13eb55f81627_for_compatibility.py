@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """maintain history for compatibility with earlier migrations
 
 Revision ID: 13eb55f81627

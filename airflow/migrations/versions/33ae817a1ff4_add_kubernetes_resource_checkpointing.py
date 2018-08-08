@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """kubernetes_resource_checkpointing
 
 Revision ID: 33ae817a1ff4
@@ -29,22 +28,21 @@ depends_on = None
 from alembic import op
 import sqlalchemy as sa
 
-
 RESOURCE_TABLE = "kube_resource_version"
 
 
 def upgrade():
     table = op.create_table(
         RESOURCE_TABLE,
-        sa.Column("one_row_id", sa.Boolean, server_default=sa.true(), primary_key=True),
-        sa.Column("resource_version", sa.String(255)),
-        sa.CheckConstraint("one_row_id", name="kube_resource_version_one_row_id")
-    )
-    op.bulk_insert(table, [
-        {"resource_version": ""}
-    ])
+        sa.Column(
+            "one_row_id",
+            sa.Boolean,
+            server_default=sa.true(),
+            primary_key=True), sa.Column("resource_version", sa.String(255)),
+        sa.CheckConstraint(
+            "one_row_id", name="kube_resource_version_one_row_id"))
+    op.bulk_insert(table, [{"resource_version": ""}])
 
 
 def downgrade():
     op.drop_table(RESOURCE_TABLE)
-

@@ -229,8 +229,7 @@ def create_evaluate_ops(task_prefix,
         if scheme != "gs" or not bucket or not obj:
             raise ValueError("Wrong format prediction_path: %s",
                              prediction_path)
-        summary = os.path.join(obj.strip("/"),
-                               "prediction.summary.json")
+        summary = os.path.join(obj.strip("/"), "prediction.summary.json")
         gcs_hook = GoogleCloudStorageHook()
         summary = json.loads(gcs_hook.download(bucket, summary))
         return validate_fn(summary)

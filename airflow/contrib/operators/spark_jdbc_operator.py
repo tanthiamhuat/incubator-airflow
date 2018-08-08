@@ -206,8 +206,7 @@ class SparkJDBCOperator(SparkSubmitOperator):
             partition_column=self._partition_column,
             lower_bound=self._lower_bound,
             upper_bound=self._upper_bound,
-            create_table_column_types=self._create_table_column_types
-        )
+            create_table_column_types=self._create_table_column_types)
         self._hook.submit_jdbc_job()
 
     def on_kill(self):

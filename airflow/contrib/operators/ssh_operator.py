@@ -45,8 +45,8 @@ class SSHOperator(BaseOperator):
     :type do_xcom_push: bool
     """
 
-    template_fields = ('command',)
-    template_ext = ('.sh',)
+    template_fields = ('command', )
+    template_ext = ('.sh', )
 
     @apply_defaults
     def __init__(self,
@@ -69,11 +69,12 @@ class SSHOperator(BaseOperator):
     def execute(self, context):
         try:
             if self.ssh_conn_id and not self.ssh_hook:
-                self.ssh_hook = SSHHook(ssh_conn_id=self.ssh_conn_id,
-                                        timeout=self.timeout)
+                self.ssh_hook = SSHHook(
+                    ssh_conn_id=self.ssh_conn_id, timeout=self.timeout)
 
             if not self.ssh_hook:
-                raise AirflowException("Cannot operate without ssh_hook or ssh_conn_id.")
+                raise AirflowException(
+                    "Cannot operate without ssh_hook or ssh_conn_id.")
 
             if self.remote_host is not None:
                 self.ssh_hook.remote_host = self.remote_host
@@ -88,10 +89,10 @@ class SSHOperator(BaseOperator):
                     get_pty = True
 
                 # set timeout taken as params
-                stdin, stdout, stderr = ssh_client.exec_command(command=self.command,
-                                                                get_pty=get_pty,
-                                                                timeout=self.timeout
-                                                                )
+                stdin, stdout, stderr = ssh_client.exec_command(
+                    command=self.command,
+                    get_pty=get_pty,
+                    timeout=self.timeout)
                 # get channels
                 channel = stdout.channel
 
@@ -120,7 +121,8 @@ class SSHOperator(BaseOperator):
                             agg_stdout += line
                             self.log.info(line.decode('utf-8').strip('\n'))
                         if c.recv_stderr_ready():
-                            line = stderr.channel.recv_stderr(len(c.in_stderr_buffer))
+                            line = stderr.channel.recv_stderr(
+                                len(c.in_stderr_buffer))
                             line = line
                             agg_stderr += line
                             self.log.warning(line.decode('utf-8').strip('\n'))
@@ -139,8 +141,7 @@ class SSHOperator(BaseOperator):
                     # returning output if do_xcom_push is set
                     if self.do_xcom_push:
                         enable_pickling = configuration.conf.getboolean(
-                            'core', 'enable_xcom_pickling'
-                        )
+                            'core', 'enable_xcom_pickling')
                         if enable_pickling:
                             return agg_stdout
                         else:

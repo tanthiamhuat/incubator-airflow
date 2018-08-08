@@ -57,10 +57,7 @@ class DbApiHook(BaseHook):
         """
         db = self.get_connection(getattr(self, self.conn_name_attr))
         return self.connector.connect(
-            host=db.host,
-            port=db.port,
-            username=db.login,
-            schema=db.schema)
+            host=db.host, port=db.port, username=db.login, schema=db.schema)
 
     def get_uri(self):
         conn = self.get_connection(getattr(self, self.conn_name_attr))
@@ -179,10 +176,9 @@ class DbApiHook(BaseHook):
         Sets the autocommit flag on the connection
         """
         if not self.supports_autocommit and autocommit:
-            self.log.warn(
-                ("%s connection doesn't support "
-                 "autocommit but autocommit activated."),
-                getattr(self, self.conn_name_attr))
+            self.log.warn(("%s connection doesn't support "
+                           "autocommit but autocommit activated."),
+                          getattr(self, self.conn_name_attr))
         conn.autocommit = autocommit
 
     def get_autocommit(self, conn):
@@ -205,7 +201,11 @@ class DbApiHook(BaseHook):
         """
         return self.get_conn().cursor()
 
-    def insert_rows(self, table, rows, target_fields=None, commit_every=1000,
+    def insert_rows(self,
+                    table,
+                    rows,
+                    target_fields=None,
+                    commit_every=1000,
                     replace=False):
         """
         A generic way to insert a set of tuples into a table,
@@ -241,21 +241,21 @@ class DbApiHook(BaseHook):
                     for cell in row:
                         lst.append(self._serialize_cell(cell, conn))
                     values = tuple(lst)
-                    placeholders = ["%s", ] * len(values)
+                    placeholders = [
+                        "%s",
+                    ] * len(values)
                     if not replace:
                         sql = "INSERT INTO "
                     else:
                         sql = "REPLACE INTO "
                     sql += "{0} {1} VALUES ({2})".format(
-                        table,
-                        target_fields,
-                        ",".join(placeholders))
+                        table, target_fields, ",".join(placeholders))
                     cur.execute(sql, values)
                     if commit_every and i % commit_every == 0:
                         conn.commit()
                         self.log.info(
-                            "Loaded {i} into {table} rows so far".format(**locals())
-                        )
+                            "Loaded {i} into {table} rows so far".format(
+                                **locals()))
 
             conn.commit()
         self.log.info(

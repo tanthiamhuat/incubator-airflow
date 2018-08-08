@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
 """
 Authentication is implemented using flask_login and different environments can
 implement their own login mechanisms by providing an `airflow_login` module
@@ -66,8 +65,7 @@ def load_login():
         log.critical(
             "Cannot import authentication module %s. "
             "Please correct your authentication backend or disable authentication: %s",
-            auth_backend, err
-        )
+            auth_backend, err)
         if conf.getboolean('webserver', 'AUTHENTICATE'):
             raise AirflowException("Failed to import authentication backend")
 

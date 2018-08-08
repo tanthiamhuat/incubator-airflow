@@ -175,7 +175,8 @@ class FTPHook(BaseHook, LoggingMixin):
         conn.cwd(remote_path)
         self.log.info('Retrieving file from FTP: %s', remote_full_path)
         conn.retrbinary('RETR %s' % remote_file_name, output_handle.write)
-        self.log.info('Finished retrieving file from FTP: %s', remote_full_path)
+        self.log.info('Finished retrieving file from FTP: %s',
+                      remote_full_path)
 
         if is_path:
             output_handle.close()
@@ -241,7 +242,6 @@ class FTPHook(BaseHook, LoggingMixin):
 
 
 class FTPSHook(FTPHook):
-
     def get_conn(self):
         """
         Returns a FTPS connection object.
@@ -252,8 +252,7 @@ class FTPSHook(FTPHook):
             if params.port:
                 ftplib.FTP_TLS.port = params.port
 
-            self.conn = ftplib.FTP_TLS(
-                params.host, params.login, params.password
-            )
+            self.conn = ftplib.FTP_TLS(params.host, params.login,
+                                       params.password)
 
         return self.conn

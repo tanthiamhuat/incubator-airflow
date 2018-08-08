@@ -55,7 +55,7 @@ class BigQueryToBigQueryOperator(BaseOperator):
     """
     template_fields = ('source_project_dataset_tables',
                        'destination_project_dataset_table', 'labels')
-    template_ext = ('.sql',)
+    template_ext = ('.sql', )
     ui_color = '#e6f0e4'
 
     @apply_defaults
@@ -79,17 +79,15 @@ class BigQueryToBigQueryOperator(BaseOperator):
         self.labels = labels
 
     def execute(self, context):
-        self.log.info(
-            'Executing copy of %s into: %s',
-            self.source_project_dataset_tables, self.destination_project_dataset_table
-        )
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        self.log.info('Executing copy of %s into: %s',
+                      self.source_project_dataset_tables,
+                      self.destination_project_dataset_table)
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
         conn = hook.get_conn()
         cursor = conn.cursor()
-        cursor.run_copy(
-            self.source_project_dataset_tables,
-            self.destination_project_dataset_table,
-            self.write_disposition,
-            self.create_disposition,
-            self.labels)
+        cursor.run_copy(self.source_project_dataset_tables,
+                        self.destination_project_dataset_table,
+                        self.write_disposition, self.create_disposition,
+                        self.labels)

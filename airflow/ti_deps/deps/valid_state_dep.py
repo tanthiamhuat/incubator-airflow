@@ -25,7 +25,6 @@ from airflow.utils.db import provide_session
 class ValidStateDep(BaseTIDep):
     NAME = "Task Instance State"
     IGNOREABLE = True
-
     """
     Ensures that the task instance's state is in a given set of valid states.
 
@@ -34,6 +33,7 @@ class ValidStateDep(BaseTIDep):
     :type valid_states: set(str)
     :return: whether or not the task instance's state is valid
     """
+
     def __init__(self, valid_states):
         super(ValidStateDep, self).__init__()
 
@@ -43,7 +43,8 @@ class ValidStateDep(BaseTIDep):
         self._valid_states = valid_states
 
     def __eq__(self, other):
-        return type(self) == type(other) and self._valid_states == other._valid_states
+        return type(self) == type(
+            other) and self._valid_states == other._valid_states
 
     def __hash__(self):
         return hash((type(self), tuple(self._valid_states)))
@@ -56,10 +57,11 @@ class ValidStateDep(BaseTIDep):
             return
 
         if ti.state in self._valid_states:
-            yield self._passing_status(reason="Task state {} was valid.".format(ti.state))
+            yield self._passing_status(
+                reason="Task state {} was valid.".format(ti.state))
             return
 
         yield self._failing_status(
             reason="Task is in the '{0}' state which is not a valid state for "
-                   "execution. The task must be cleared in order to be run.".format(
-                       ti.state))
+            "execution. The task must be cleared in order to be run.".format(
+                ti.state))

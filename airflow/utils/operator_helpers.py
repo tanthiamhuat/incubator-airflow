@@ -19,14 +19,22 @@
 #
 
 AIRFLOW_VAR_NAME_FORMAT_MAPPING = {
-    'AIRFLOW_CONTEXT_DAG_ID': {'default': 'airflow.ctx.dag_id',
-                               'env_var_format': 'AIRFLOW_CTX_DAG_ID'},
-    'AIRFLOW_CONTEXT_TASK_ID': {'default': 'airflow.ctx.task_id',
-                                'env_var_format': 'AIRFLOW_CTX_TASK_ID'},
-    'AIRFLOW_CONTEXT_EXECUTION_DATE': {'default': 'airflow.ctx.execution_date',
-                                       'env_var_format': 'AIRFLOW_CTX_EXECUTION_DATE'},
-    'AIRFLOW_CONTEXT_DAG_RUN_ID': {'default': 'airflow.ctx.dag_run_id',
-                                   'env_var_format': 'AIRFLOW_CTX_DAG_RUN_ID'}
+    'AIRFLOW_CONTEXT_DAG_ID': {
+        'default': 'airflow.ctx.dag_id',
+        'env_var_format': 'AIRFLOW_CTX_DAG_ID'
+    },
+    'AIRFLOW_CONTEXT_TASK_ID': {
+        'default': 'airflow.ctx.task_id',
+        'env_var_format': 'AIRFLOW_CTX_TASK_ID'
+    },
+    'AIRFLOW_CONTEXT_EXECUTION_DATE': {
+        'default': 'airflow.ctx.execution_date',
+        'env_var_format': 'AIRFLOW_CTX_EXECUTION_DATE'
+    },
+    'AIRFLOW_CONTEXT_DAG_RUN_ID': {
+        'default': 'airflow.ctx.dag_run_id',
+        'env_var_format': 'AIRFLOW_CTX_DAG_RUN_ID'
+    }
 }
 
 
@@ -56,8 +64,8 @@ def context_to_airflow_vars(context, in_env_var_format=False):
         params[AIRFLOW_VAR_NAME_FORMAT_MAPPING['AIRFLOW_CONTEXT_TASK_ID'][
             name_format]] = task_instance.task_id
     if task_instance and task_instance.execution_date:
-        params[
-            AIRFLOW_VAR_NAME_FORMAT_MAPPING['AIRFLOW_CONTEXT_EXECUTION_DATE'][
+        params[AIRFLOW_VAR_NAME_FORMAT_MAPPING[
+            'AIRFLOW_CONTEXT_EXECUTION_DATE'][
                 name_format]] = task_instance.execution_date.isoformat()
     dag_run = context.get('dag_run')
     if dag_run and dag_run.run_id:

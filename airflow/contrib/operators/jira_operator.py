@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 from airflow.contrib.hooks.jira_hook import JIRAError
 from airflow.contrib.hooks.jira_hook import JiraHook
 from airflow.exceptions import AirflowException
@@ -43,7 +42,7 @@ class JiraOperator(BaseOperator):
     :type get_jira_resource_method: function
     """
 
-    template_fields = ("jira_method_args",)
+    template_fields = ("jira_method_args", )
 
     @apply_defaults
     def __init__(self,
@@ -81,14 +80,15 @@ class JiraOperator(BaseOperator):
             # Current Jira-Python SDK (1.0.7) has issue with pickling the jira response.
             # ex: self.xcom_push(context, key='operator_response', value=jira_response)
             # This could potentially throw error if jira_result is not picklable
-            jira_result = getattr(resource, self.method_name)(**self.jira_method_args)
+            jira_result = getattr(resource,
+                                  self.method_name)(**self.jira_method_args)
             if self.result_processor:
                 return self.result_processor(context, jira_result)
 
             return jira_result
 
         except JIRAError as jira_error:
-            raise AirflowException("Failed to execute jiraOperator, error: %s"
-                                   % str(jira_error))
+            raise AirflowException(
+                "Failed to execute jiraOperator, error: %s" % str(jira_error))
         except Exception as e:
             raise AirflowException("Jira operator error: %s" % str(e))

@@ -23,6 +23,5 @@ from airflow import settings
 
 
 def post_worker_init(dummy_worker):
-    setproctitle.setproctitle(
-        settings.GUNICORN_WORKER_READY_PREFIX + setproctitle.getproctitle()
-    )
+    setproctitle.setproctitle(settings.GUNICORN_WORKER_READY_PREFIX +
+                              setproctitle.getproctitle())

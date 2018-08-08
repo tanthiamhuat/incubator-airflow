@@ -117,14 +117,16 @@ class QuboleOperator(BaseOperator):
         handler in task definition.
     """
 
-    template_fields = ('query', 'script_location', 'sub_command', 'script', 'files',
-                       'archives', 'program', 'cmdline', 'sql', 'where_clause', 'tags',
-                       'extract_query', 'boundary_query', 'macros', 'name', 'parameters',
-                       'dbtap_id', 'hive_table', 'db_table', 'split_column', 'note_id',
-                       'db_update_keys', 'export_dir', 'partition_spec', 'qubole_conn_id',
-                       'arguments', 'user_program_arguments', 'cluster_label')
+    template_fields = ('query', 'script_location', 'sub_command', 'script',
+                       'files', 'archives', 'program', 'cmdline', 'sql',
+                       'where_clause', 'tags', 'extract_query',
+                       'boundary_query', 'macros', 'name', 'parameters',
+                       'dbtap_id', 'hive_table', 'db_table', 'split_column',
+                       'note_id', 'db_update_keys', 'export_dir',
+                       'partition_spec', 'qubole_conn_id', 'arguments',
+                       'user_program_arguments', 'cluster_label')
 
-    template_ext = ('.txt',)
+    template_ext = ('.txt', )
     ui_color = '#3064A1'
     ui_fgcolor = '#fff'
 
@@ -147,7 +149,12 @@ class QuboleOperator(BaseOperator):
     def on_kill(self, ti=None):
         self.get_hook().kill(ti)
 
-    def get_results(self, ti=None, fp=None, inline=True, delim=None, fetch=True):
+    def get_results(self,
+                    ti=None,
+                    fp=None,
+                    inline=True,
+                    delim=None,
+                    fetch=True):
         return self.get_hook().get_results(ti, fp, inline, delim, fetch)
 
     def get_log(self, ti):

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """add kubernetes scheduler uniqueness
 
 Revision ID: 86770d1215c0
@@ -29,20 +28,19 @@ depends_on = None
 from alembic import op
 import sqlalchemy as sa
 
-
 RESOURCE_TABLE = "kube_worker_uuid"
 
 
 def upgrade():
     table = op.create_table(
         RESOURCE_TABLE,
-        sa.Column("one_row_id", sa.Boolean, server_default=sa.true(), primary_key=True),
-        sa.Column("worker_uuid", sa.String(255)),
-        sa.CheckConstraint("one_row_id", name="kube_worker_one_row_id")
-    )
-    op.bulk_insert(table, [
-        {"worker_uuid": ""}
-    ])
+        sa.Column(
+            "one_row_id",
+            sa.Boolean,
+            server_default=sa.true(),
+            primary_key=True), sa.Column("worker_uuid", sa.String(255)),
+        sa.CheckConstraint("one_row_id", name="kube_worker_one_row_id"))
+    op.bulk_insert(table, [{"worker_uuid": ""}])
 
 
 def downgrade():

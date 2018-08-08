@@ -45,18 +45,21 @@ class GenericTransfer(BaseOperator):
     """
 
     template_fields = ('sql', 'destination_table', 'preoperator')
-    template_ext = ('.sql', '.hql',)
+    template_ext = (
+        '.sql',
+        '.hql',
+    )
     ui_color = '#b0f07c'
 
     @apply_defaults
-    def __init__(
-            self,
-            sql,
-            destination_table,
-            source_conn_id,
-            destination_conn_id,
-            preoperator=None,
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 destination_table,
+                 source_conn_id,
+                 destination_conn_id,
+                 preoperator=None,
+                 *args,
+                 **kwargs):
         super(GenericTransfer, self).__init__(*args, **kwargs)
         self.sql = sql
         self.destination_table = destination_table
@@ -78,4 +81,5 @@ class GenericTransfer(BaseOperator):
             destination_hook.run(self.preoperator)
 
         self.log.info("Inserting rows into %s", self.destination_conn_id)
-        destination_hook.insert_rows(table=self.destination_table, rows=results)
+        destination_hook.insert_rows(
+            table=self.destination_table, rows=results)

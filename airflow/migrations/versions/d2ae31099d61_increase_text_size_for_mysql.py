@@ -15,7 +15,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """Increase text size for MySQL (not relevant for other DBs' text types)
 
 Revision ID: d2ae31099d61
@@ -38,9 +37,11 @@ from alembic import context
 
 def upgrade():
     if context.config.get_main_option('sqlalchemy.url').startswith('mysql'):
-        op.alter_column(table_name='variable', column_name='val', type_=mysql.MEDIUMTEXT)
+        op.alter_column(
+            table_name='variable', column_name='val', type_=mysql.MEDIUMTEXT)
 
 
 def downgrade():
     if context.config.get_main_option('sqlalchemy.url').startswith('mysql'):
-        op.alter_column(table_name='variable', column_name='val', type_=mysql.TEXT)
+        op.alter_column(
+            table_name='variable', column_name='val', type_=mysql.TEXT)

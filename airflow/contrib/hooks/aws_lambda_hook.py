@@ -36,9 +36,14 @@ class AwsLambdaHook(AwsHook):
     :type invocation_type: str
     """
 
-    def __init__(self, function_name, region_name=None,
-                 log_type='None', qualifier='$LATEST',
-                 invocation_type='RequestResponse', *args, **kwargs):
+    def __init__(self,
+                 function_name,
+                 region_name=None,
+                 log_type='None',
+                 qualifier='$LATEST',
+                 invocation_type='RequestResponse',
+                 *args,
+                 **kwargs):
         self.function_name = function_name
         self.region_name = region_name
         self.log_type = log_type
@@ -62,7 +67,6 @@ class AwsLambdaHook(AwsHook):
             InvocationType=self.invocation_type,
             LogType=self.log_type,
             Payload=payload,
-            Qualifier=self.qualifier
-        )
+            Qualifier=self.qualifier)
 
         return response

@@ -31,7 +31,8 @@ from airflow.utils.decorators import apply_defaults
 # Hide the following error message in urllib3 when making WinRM connections:
 # requests.packages.urllib3.exceptions.HeaderParsingError: [StartBoundaryNotFoundDefect(),
 #   MultipartInvariantViolationDefect()], unparsed data: ''
-logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.CRITICAL)
+logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(
+    logging.CRITICAL)
 
 
 class WinRMOperator(BaseOperator):
@@ -51,7 +52,7 @@ class WinRMOperator(BaseOperator):
     :param do_xcom_push: return the stdout which also get set in xcom by airflow platform
     :type do_xcom_push: bool
     """
-    template_fields = ('command',)
+    template_fields = ('command', )
 
     @apply_defaults
     def __init__(self,
@@ -77,22 +78,23 @@ class WinRMOperator(BaseOperator):
             self.winrm_hook = WinRMHook(ssh_conn_id=self.ssh_conn_id)
 
         if not self.winrm_hook:
-            raise AirflowException("Cannot operate without winrm_hook or ssh_conn_id.")
+            raise AirflowException(
+                "Cannot operate without winrm_hook or ssh_conn_id.")
 
         if self.remote_host is not None:
             self.winrm_hook.remote_host = self.remote_host
 
         if not self.command:
-            raise AirflowException("No command specified so nothing to execute here.")
+            raise AirflowException(
+                "No command specified so nothing to execute here.")
 
         winrm_client = self.winrm_hook.get_conn()
 
         try:
-            self.log.info("Running command: '{command}'...".format(command=self.command))
+            self.log.info(
+                "Running command: '{command}'...".format(command=self.command))
             command_id = self.winrm_hook.winrm_protocol.run_command(
-                winrm_client,
-                self.command
-            )
+                winrm_client, self.command)
 
             # See: https://github.com/diyan/pywinrm/blob/master/winrm/protocol.py
             stdout_buffer = []
@@ -120,7 +122,8 @@ class WinRMOperator(BaseOperator):
                     # long-running process, just silently retry
                     pass
 
-            self.winrm_hook.winrm_protocol.cleanup_command(winrm_client, command_id)
+            self.winrm_hook.winrm_protocol.cleanup_command(
+                winrm_client, command_id)
             self.winrm_hook.winrm_protocol.close_shell(winrm_client)
 
         except Exception as e:
@@ -130,18 +133,15 @@ class WinRMOperator(BaseOperator):
             # returning output if do_xcom_push is set
             if self.do_xcom_push:
                 enable_pickling = configuration.conf.getboolean(
-                    'core', 'enable_xcom_pickling'
-                )
+                    'core', 'enable_xcom_pickling')
                 if enable_pickling:
                     return stdout_buffer
                 else:
                     return b64encode(b''.join(stdout_buffer)).decode('utf-8')
         else:
             error_msg = "Error running cmd: {0}, return code: {1}, error: {2}".format(
-                self.command,
-                return_code,
-                b''.join(stderr_buffer).decode('utf-8')
-            )
+                self.command, return_code,
+                b''.join(stderr_buffer).decode('utf-8'))
             raise AirflowException(error_msg)
 
         self.log.info("Finished!")

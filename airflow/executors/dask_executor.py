@@ -29,6 +29,7 @@ class DaskExecutor(BaseExecutor):
     """
     DaskExecutor submits tasks to a Dask Distributed cluster.
     """
+
     def __init__(self, cluster_address=None):
         if cluster_address is None:
             cluster_address = configuration.conf.get('dask', 'cluster_address')
@@ -53,15 +54,14 @@ class DaskExecutor(BaseExecutor):
         else:
             security = None
 
-        self.client = distributed.Client(self.cluster_address, security=security)
+        self.client = distributed.Client(
+            self.cluster_address, security=security)
         self.futures = {}
 
     def execute_async(self, key, command, queue=None, executor_config=None):
         if queue is not None:
-            warnings.warn(
-                'DaskExecutor does not support queues. '
-                'All tasks will be run in the same cluster'
-            )
+            warnings.warn('DaskExecutor does not support queues. '
+                          'All tasks will be run in the same cluster')
 
         def airflow_run():
             return subprocess.check_call(command, shell=True, close_fds=True)
@@ -73,7 +73,8 @@ class DaskExecutor(BaseExecutor):
         if future.done():
             key = self.futures[future]
             if future.exception():
-                self.log.error("Failed to execute task: %s", repr(future.exception()))
+                self.log.error("Failed to execute task: %s",
+                               repr(future.exception()))
                 self.fail(key)
             elif future.cancelled():
                 self.log.error("Failed to execute task")

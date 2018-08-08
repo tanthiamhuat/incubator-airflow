@@ -22,11 +22,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 from airflow.exceptions import AirflowSkipException
 
-
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {'owner': 'airflow', 'start_date': airflow.utils.dates.days_ago(2)}
 
 
 # Create some placeholder operators
@@ -42,11 +38,14 @@ dag = DAG(dag_id='example_skip_dag', default_args=args)
 
 def create_test_pipeline(suffix, trigger_rule, dag):
 
-    skip_operator = DummySkipOperator(task_id='skip_operator_{}'.format(suffix), dag=dag)
+    skip_operator = DummySkipOperator(
+        task_id='skip_operator_{}'.format(suffix), dag=dag)
 
-    always_true = DummyOperator(task_id='always_true_{}'.format(suffix), dag=dag)
+    always_true = DummyOperator(
+        task_id='always_true_{}'.format(suffix), dag=dag)
 
-    join = DummyOperator(task_id=trigger_rule, dag=dag, trigger_rule=trigger_rule)
+    join = DummyOperator(
+        task_id=trigger_rule, dag=dag, trigger_rule=trigger_rule)
 
     join.set_upstream(skip_operator)
     join.set_upstream(always_true)

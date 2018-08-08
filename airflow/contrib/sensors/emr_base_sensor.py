@@ -30,10 +30,7 @@ class EmrBaseSensor(BaseSensorOperator):
     ui_color = '#66c3ff'
 
     @apply_defaults
-    def __init__(
-            self,
-            aws_conn_id='aws_default',
-            *args, **kwargs):
+    def __init__(self, aws_conn_id='aws_default', *args, **kwargs):
         super(EmrBaseSensor, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
 

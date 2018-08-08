@@ -41,17 +41,15 @@ class BaseHook(LoggingMixin):
     instances of these systems, and expose consistent methods to interact
     with them.
     """
+
     def __init__(self, source):
         pass
 
     @classmethod
     @provide_session
     def _get_connections_from_db(cls, conn_id, session=None):
-        db = (
-            session.query(Connection)
-            .filter(Connection.conn_id == conn_id)
-            .all()
-        )
+        db = (session.query(Connection).filter(Connection.conn_id == conn_id)
+              .all())
         session.expunge_all()
         if not db:
             raise AirflowException(

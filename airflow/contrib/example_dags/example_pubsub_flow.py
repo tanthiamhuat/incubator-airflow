@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """
 This example DAG demonstrates how the PubSub*Operators and PubSubPullSensor
 can be used to trigger dependant tasks upon receipt of a Pub/Sub message.
@@ -34,8 +33,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.contrib.operators.pubsub_operator import (
     PubSubTopicCreateOperator, PubSubSubscriptionCreateOperator,
     PubSubPublishOperator, PubSubTopicDeleteOperator,
-    PubSubSubscriptionDeleteOperator
-)
+    PubSubSubscriptionDeleteOperator)
 from airflow.contrib.sensors.pubsub_sensor import PubSubPullSensor
 from airflow.utils import dates
 
@@ -43,11 +41,13 @@ project = 'your-project-id'  # Change this to your own GCP project_id
 topic = 'example-topic'  # Cloud Pub/Sub topic
 subscription = 'subscription-to-example-topic'  # Cloud Pub/Sub subscription
 # Sample messages to push/pull
-messages = [
-    {'data': b64encode(b'Hello World')},
-    {'data': b64encode(b'Another message')},
-    {'data': b64encode(b'A final message')}
-]
+messages = [{
+    'data': b64encode(b'Hello World')
+}, {
+    'data': b64encode(b'Another message')
+}, {
+    'data': b64encode(b'A final message')
+}]
 
 default_args = {
     'owner': 'airflow',
@@ -61,24 +61,25 @@ default_args = {
     'subscription': subscription,
 }
 
-
 echo_template = '''
 {% for m in task_instance.xcom_pull(task_ids='pull-messages') %}
     echo "AckID: {{ m.get('ackId') }}, Base64-Encoded: {{ m.get('message') }}"
 {% endfor %}
 '''
 
-with DAG('pubsub-end-to-end', default_args=default_args,
-         schedule_interval=datetime.timedelta(days=1)) as dag:
+with DAG(
+        'pubsub-end-to-end',
+        default_args=default_args,
+        schedule_interval=datetime.timedelta(days=1)) as dag:
     t1 = PubSubTopicCreateOperator(task_id='create-topic')
     t2 = PubSubSubscriptionCreateOperator(
-        task_id='create-subscription', topic_project=project,
+        task_id='create-subscription',
+        topic_project=project,
         subscription=subscription)
-    t3 = PubSubPublishOperator(
-        task_id='publish-messages', messages=messages)
+    t3 = PubSubPublishOperator(task_id='publish-messages', messages=messages)
     t4 = PubSubPullSensor(task_id='pull-messages', ack_messages=True)
-    t5 = BashOperator(task_id='echo-pulled-messages',
-                      bash_command=echo_template)
+    t5 = BashOperator(
+        task_id='echo-pulled-messages', bash_command=echo_template)
     t6 = PubSubSubscriptionDeleteOperator(task_id='delete-subscription')
     t7 = PubSubTopicDeleteOperator(task_id='delete-topic')
 

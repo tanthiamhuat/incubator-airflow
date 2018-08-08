@@ -109,6 +109,7 @@ class SparkJDBCHook(SparkSubmitHook):
                                       The specified types should be valid spark sql data
                                       types.
     """
+
     def __init__(self,
                  spark_app_name='airflow-spark-jdbc',
                  spark_conn_id='spark-default',
@@ -139,8 +140,7 @@ class SparkJDBCHook(SparkSubmitHook):
                  upper_bound=None,
                  create_table_column_types=None,
                  *args,
-                 **kwargs
-                 ):
+                 **kwargs):
         super(SparkJDBCHook, self).__init__(*args, **kwargs)
         self._name = spark_app_name
         self._conn_id = spark_conn_id
@@ -173,12 +173,13 @@ class SparkJDBCHook(SparkSubmitHook):
         self._jdbc_connection = self._resolve_jdbc_connection()
 
     def _resolve_jdbc_connection(self):
-        conn_data = {'url': '',
-                     'schema': '',
-                     'conn_prefix': '',
-                     'user': '',
-                     'password': ''
-                     }
+        conn_data = {
+            'url': '',
+            'schema': '',
+            'conn_prefix': '',
+            'user': '',
+            'password': ''
+        }
         try:
             conn = self.get_connection(self._jdbc_conn_id)
             if conn.port:
@@ -193,17 +194,18 @@ class SparkJDBCHook(SparkSubmitHook):
         except AirflowException:
             self.log.debug(
                 "Could not load jdbc connection string %s, defaulting to %s",
-                self._jdbc_conn_id, ""
-            )
+                self._jdbc_conn_id, "")
         return conn_data
 
     def _build_jdbc_application_arguments(self, jdbc_conn):
         arguments = []
         arguments += ["-cmdType", self._cmd_type]
         if self._jdbc_connection['url']:
-            arguments += ['-url', "{0}{1}/{2}".format(
-                jdbc_conn['conn_prefix'], jdbc_conn['url'], jdbc_conn['schema']
-            )]
+            arguments += [
+                '-url',
+                "{0}{1}/{2}".format(jdbc_conn['conn_prefix'], jdbc_conn['url'],
+                                    jdbc_conn['schema'])
+            ]
         if self._jdbc_connection['user']:
             arguments += ['-user', self._jdbc_connection['user']]
         if self._jdbc_connection['password']:
@@ -222,25 +224,29 @@ class SparkJDBCHook(SparkSubmitHook):
             arguments += ['-fetchsize', str(self._fetch_size)]
         if self._num_partitions:
             arguments += ['-numPartitions', str(self._num_partitions)]
-        if (self._partition_column and self._lower_bound and
-                self._upper_bound and self._num_partitions):
+        if (self._partition_column and self._lower_bound and self._upper_bound
+                and self._num_partitions):
             # these 3 parameters need to be used all together to take effect.
-            arguments += ['-partitionColumn', self._partition_column,
-                          '-lowerBound', self._lower_bound,
-                          '-upperBound', self._upper_bound]
+            arguments += [
+                '-partitionColumn', self._partition_column, '-lowerBound',
+                self._lower_bound, '-upperBound', self._upper_bound
+            ]
         if self._save_mode:
             arguments += ['-saveMode', self._save_mode]
         if self._save_format:
             arguments += ['-saveFormat', self._save_format]
         if self._create_table_column_types:
-            arguments += ['-createTableColumnTypes', self._create_table_column_types]
+            arguments += [
+                '-createTableColumnTypes', self._create_table_column_types
+            ]
         return arguments
 
     def submit_jdbc_job(self):
         self._application_args = \
             self._build_jdbc_application_arguments(self._jdbc_connection)
-        self.submit(application=os.path.dirname(os.path.abspath(__file__)) +
-                    "/spark_jdbc_script.py")
+        self.submit(
+            application=os.path.dirname(os.path.abspath(__file__)) +
+            "/spark_jdbc_script.py")
 
     def get_conn(self):
         pass

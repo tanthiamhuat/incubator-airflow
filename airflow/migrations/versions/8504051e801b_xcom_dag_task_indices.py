@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """xcom dag task indices
 
 Revision ID: 8504051e801b
@@ -36,7 +35,10 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_index('idx_xcom_dag_task_date', 'xcom', ['dag_id', 'task_id', 'execution_date'], unique=False)
+    op.create_index(
+        'idx_xcom_dag_task_date',
+        'xcom', ['dag_id', 'task_id', 'execution_date'],
+        unique=False)
 
 
 def downgrade():

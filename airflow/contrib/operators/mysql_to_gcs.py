@@ -39,8 +39,9 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
     """
     Copy data from MySQL to Google cloud storage in JSON format.
     """
-    template_fields = ('sql', 'bucket', 'filename', 'schema_filename', 'schema')
-    template_ext = ('.sql',)
+    template_fields = ('sql', 'bucket', 'filename', 'schema_filename',
+                       'schema')
+    template_ext = ('.sql', )
     ui_color = '#a0e08c'
 
     @apply_defaults
@@ -90,7 +91,8 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             work, the service account making the request must have domain-wide
             delegation enabled.
         """
-        super(MySqlToGoogleCloudStorageOperator, self).__init__(*args, **kwargs)
+        super(MySqlToGoogleCloudStorageOperator, self).__init__(
+            *args, **kwargs)
         self.sql = sql
         self.bucket = bucket
         self.filename = filename
@@ -137,7 +139,8 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             names in GCS, and values are file handles to local files that
             contain the data for the GCS objects.
         """
-        schema = list(map(lambda schema_tuple: schema_tuple[0], cursor.description))
+        schema = list(
+            map(lambda schema_tuple: schema_tuple[0], cursor.description))
         col_type_dict = self._get_col_type_dict()
         file_no = 0
         tmp_file_handle = NamedTemporaryFile(delete=True)
@@ -162,7 +165,8 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             if tmp_file_handle.tell() >= self.approx_max_file_size_bytes:
                 file_no += 1
                 tmp_file_handle = NamedTemporaryFile(delete=True)
-                tmp_file_handles[self.filename.format(file_no)] = tmp_file_handle
+                tmp_file_handles[self.filename.format(
+                    file_no)] = tmp_file_handle
 
         return tmp_file_handles
 
@@ -204,7 +208,8 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             schema_str = schema_str.encode('utf-8')
         tmp_schema_file_handle.write(schema_str)
 
-        self.log.info('Using schema for %s: %s', self.schema_filename, schema_str)
+        self.log.info('Using schema for %s: %s', self.schema_filename,
+                      schema_str)
         return {self.schema_filename: tmp_schema_file_handle}
 
     def _upload_to_gcs(self, files_to_upload):
@@ -216,7 +221,8 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
             delegate_to=self.delegate_to)
         for object, tmp_file_handle in files_to_upload.items():
-            hook.upload(self.bucket, object, tmp_file_handle.name, 'application/json')
+            hook.upload(self.bucket, object, tmp_file_handle.name,
+                        'application/json')
 
     @staticmethod
     def _convert_types(schema, col_type_dict, row):
@@ -259,9 +265,10 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
         try:
             col_type_dict = {col['name']: col['type'] for col in schema}
         except KeyError:
-            self.log.warn('Using default schema due to missing name or type. Please '
-                          'refer to: https://cloud.google.com/bigquery/docs/schemas'
-                          '#specifying_a_json_schema_file')
+            self.log.warn(
+                'Using default schema due to missing name or type. Please '
+                'refer to: https://cloud.google.com/bigquery/docs/schemas'
+                '#specifying_a_json_schema_file')
         return col_type_dict
 
     @classmethod

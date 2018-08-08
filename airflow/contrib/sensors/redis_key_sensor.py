@@ -25,7 +25,7 @@ class RedisKeySensor(BaseSensorOperator):
     """
     Checks for the existence of a key in a Redis database
     """
-    template_fields = ('key',)
+    template_fields = ('key', )
     ui_color = '#f0eee4'
 
     @apply_defaults

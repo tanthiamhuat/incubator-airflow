@@ -61,12 +61,10 @@ class PrestoHook(DbApiHook):
         """
         Parses some DatabaseError to provide a better error message
         """
-        if (hasattr(e, 'message') and
-            'errorName' in e.message and
-                'message' in e.message):
+        if (hasattr(e, 'message') and 'errorName' in e.message
+                and 'message' in e.message):
             return ('{name}: {message}'.format(
-                    name=e.message['errorName'],
-                    message=e.message['message']))
+                name=e.message['errorName'], message=e.message['message']))
         else:
             return str(e)
 

@@ -37,17 +37,16 @@ class DatadogSensor(BaseSensorOperator):
     ui_color = '#66c3dd'
 
     @apply_defaults
-    def __init__(
-            self,
-            datadog_conn_id='datadog_default',
-            from_seconds_ago=3600,
-            up_to_seconds_from_now=0,
-            priority=None,
-            sources=None,
-            tags=None,
-            response_check=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 datadog_conn_id='datadog_default',
+                 from_seconds_ago=3600,
+                 up_to_seconds_from_now=0,
+                 priority=None,
+                 sources=None,
+                 tags=None,
+                 response_check=None,
+                 *args,
+                 **kwargs):
         super(DatadogSensor, self).__init__(*args, **kwargs)
         self.datadog_conn_id = datadog_conn_id
         self.from_seconds_ago = from_seconds_ago

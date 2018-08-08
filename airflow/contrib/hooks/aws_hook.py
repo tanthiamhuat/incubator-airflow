@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 import boto3
 import configparser
 import logging
@@ -113,12 +112,15 @@ class AwsHook(BaseHook):
                             connection_object.extra_dejson.get('s3_config_format'))
 
                 if region_name is None:
-                    region_name = connection_object.extra_dejson.get('region_name')
+                    region_name = connection_object.extra_dejson.get(
+                        'region_name')
 
                 role_arn = connection_object.extra_dejson.get('role_arn')
                 external_id = connection_object.extra_dejson.get('external_id')
-                aws_account_id = connection_object.extra_dejson.get('aws_account_id')
-                aws_iam_role = connection_object.extra_dejson.get('aws_iam_role')
+                aws_account_id = connection_object.extra_dejson.get(
+                    'aws_account_id')
+                aws_iam_role = connection_object.extra_dejson.get(
+                    'aws_iam_role')
 
                 if role_arn is None and aws_account_id is not None and \
                         aws_iam_role is not None:
@@ -142,9 +144,12 @@ class AwsHook(BaseHook):
                             RoleSessionName='Airflow_' + self.aws_conn_id,
                             ExternalId=external_id)
 
-                    aws_access_key_id = sts_response['Credentials']['AccessKeyId']
-                    aws_secret_access_key = sts_response['Credentials']['SecretAccessKey']
-                    aws_session_token = sts_response['Credentials']['SessionToken']
+                    aws_access_key_id = sts_response['Credentials'][
+                        'AccessKeyId']
+                    aws_secret_access_key = sts_response['Credentials'][
+                        'SecretAccessKey']
+                    aws_session_token = sts_response['Credentials'][
+                        'SessionToken']
 
                 endpoint_url = connection_object.extra_dejson.get('host')
 

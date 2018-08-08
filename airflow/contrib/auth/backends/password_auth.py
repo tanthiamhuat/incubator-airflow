@@ -103,7 +103,8 @@ def load_user(userid, session=None):
     if not userid or userid == 'None':
         return None
 
-    user = session.query(models.User).filter(models.User.id == int(userid)).first()
+    user = session.query(
+        models.User).filter(models.User.id == int(userid)).first()
     return PasswordUser(user)
 
 
@@ -157,9 +158,8 @@ def login(self, request, session=None):
         return redirect(request.args.get("next") or url_for("admin.index"))
     except AuthenticationError:
         flash("Incorrect login details")
-        return self.render('airflow/login.html',
-                           title="Airflow - Login",
-                           form=form)
+        return self.render(
+            'airflow/login.html', title="Airflow - Login", form=form)
     finally:
         session.commit()
         session.close()
@@ -194,7 +194,8 @@ def requires_authentication(function):
         header = request.headers.get("Authorization")
         if header:
             userpass = ''.join(header.split()[1:])
-            username, password = base64.b64decode(userpass).decode("utf-8").split(":", 1)
+            username, password = base64.b64decode(userpass).decode(
+                "utf-8").split(":", 1)
 
             session = settings.Session()
             try:
@@ -211,4 +212,5 @@ def requires_authentication(function):
                 session.commit()
                 session.close()
         return _unauthorized()
+
     return decorated

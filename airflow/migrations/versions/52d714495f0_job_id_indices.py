@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """job_id indices
 
 Revision ID: 52d714495f0
@@ -36,7 +35,10 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_index('idx_job_state_heartbeat', 'job', ['state', 'latest_heartbeat'], unique=False)
+    op.create_index(
+        'idx_job_state_heartbeat',
+        'job', ['state', 'latest_heartbeat'],
+        unique=False)
 
 
 def downgrade():

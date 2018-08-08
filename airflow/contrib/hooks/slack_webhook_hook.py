@@ -50,6 +50,7 @@ class SlackWebhookHook(HttpHook):
     :param proxy: Proxy to use to make the Slack webhook call
     :type proxy: str
     """
+
     def __init__(self,
                  http_conn_id=None,
                  webhook_token=None,
@@ -60,8 +61,7 @@ class SlackWebhookHook(HttpHook):
                  link_names=False,
                  proxy=None,
                  *args,
-                 **kwargs
-                 ):
+                 **kwargs):
         super(SlackWebhookHook, self).__init__(*args, **kwargs)
         self.http_conn_id = http_conn_id
         self.webhook_token = self._get_token(webhook_token, http_conn_id)
@@ -123,7 +123,8 @@ class SlackWebhookHook(HttpHook):
             proxies = {'https': self.proxy}
 
         slack_message = self._build_slack_message()
-        self.run(endpoint=self.webhook_token,
-                 data=slack_message,
-                 headers={'Content-type': 'application/json'},
-                 extra_options={'proxies': proxies})
+        self.run(
+            endpoint=self.webhook_token,
+            data=slack_message,
+            headers={'Content-type': 'application/json'},
+            extra_options={'proxies': proxies})

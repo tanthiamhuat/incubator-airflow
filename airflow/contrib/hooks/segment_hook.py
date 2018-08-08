@@ -33,13 +33,11 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 class SegmentHook(BaseHook, LoggingMixin):
-    def __init__(
-            self,
-            segment_conn_id='segment_default',
-            segment_debug_mode=False,
-            *args,
-            **kwargs
-    ):
+    def __init__(self,
+                 segment_conn_id='segment_default',
+                 segment_debug_mode=False,
+                 *args,
+                 **kwargs):
         """
         Create new connection to Segment
         and allows you to pull data out of Segment or write to it.
@@ -87,6 +85,6 @@ class SegmentHook(BaseHook, LoggingMixin):
         Handles error callbacks when using Segment with segment_debug_mode set to True
         """
         self.log.error('Encountered Segment error: {segment_error} with '
-                       'items: {with_items}'.format(segment_error=error,
-                                                    with_items=items))
+                       'items: {with_items}'.format(
+                           segment_error=error, with_items=items))
         raise AirflowException('Segment error: {}'.format(error))

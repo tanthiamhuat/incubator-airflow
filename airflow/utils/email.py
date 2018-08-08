@@ -39,23 +39,45 @@ from airflow.exceptions import AirflowConfigException
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
-def send_email(to, subject, html_content,
-               files=None, dryrun=False, cc=None, bcc=None,
-               mime_subtype='mixed', mime_charset='utf-8', **kwargs):
+def send_email(to,
+               subject,
+               html_content,
+               files=None,
+               dryrun=False,
+               cc=None,
+               bcc=None,
+               mime_subtype='mixed',
+               mime_charset='utf-8',
+               **kwargs):
     """
     Send email using backend specified in EMAIL_BACKEND.
     """
-    path, attr = configuration.conf.get('email', 'EMAIL_BACKEND').rsplit('.', 1)
+    path, attr = configuration.conf.get('email', 'EMAIL_BACKEND').rsplit(
+        '.', 1)
     module = importlib.import_module(path)
     backend = getattr(module, attr)
-    return backend(to, subject, html_content, files=files,
-                   dryrun=dryrun, cc=cc, bcc=bcc,
-                   mime_subtype=mime_subtype, mime_charset=mime_charset, **kwargs)
+    return backend(
+        to,
+        subject,
+        html_content,
+        files=files,
+        dryrun=dryrun,
+        cc=cc,
+        bcc=bcc,
+        mime_subtype=mime_subtype,
+        mime_charset=mime_charset,
+        **kwargs)
 
 
-def send_email_smtp(to, subject, html_content, files=None,
-                    dryrun=False, cc=None, bcc=None,
-                    mime_subtype='mixed', mime_charset='utf-8',
+def send_email_smtp(to,
+                    subject,
+                    html_content,
+                    files=None,
+                    dryrun=False,
+                    cc=None,
+                    bcc=None,
+                    mime_subtype='mixed',
+                    mime_charset='utf-8',
                     **kwargs):
     """
     Send an email with html content
@@ -88,11 +110,9 @@ def send_email_smtp(to, subject, html_content, files=None,
     for fname in files or []:
         basename = os.path.basename(fname)
         with open(fname, "rb") as f:
-            part = MIMEApplication(
-                f.read(),
-                Name=basename
-            )
-            part['Content-Disposition'] = 'attachment; filename="%s"' % basename
+            part = MIMEApplication(f.read(), Name=basename)
+            part[
+                'Content-Disposition'] = 'attachment; filename="%s"' % basename
             part['Content-ID'] = '<%s>' % basename
             msg.attach(part)
 
@@ -113,10 +133,14 @@ def send_MIME_email(e_from, e_to, mime_msg, dryrun=False):
         SMTP_USER = configuration.conf.get('smtp', 'SMTP_USER')
         SMTP_PASSWORD = configuration.conf.get('smtp', 'SMTP_PASSWORD')
     except AirflowConfigException:
-        log.debug("No user/password found for SMTP, so logging in with no authentication.")
+        log.debug(
+            "No user/password found for SMTP, so logging in with no authentication."
+        )
 
     if not dryrun:
-        s = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) if SMTP_SSL else smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+        s = smtplib.SMTP_SSL(SMTP_HOST,
+                             SMTP_PORT) if SMTP_SSL else smtplib.SMTP(
+                                 SMTP_HOST, SMTP_PORT)
         if SMTP_STARTTLS:
             s.starttls()
         if SMTP_USER and SMTP_PASSWORD:

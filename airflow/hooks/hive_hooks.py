@@ -51,8 +51,10 @@ def get_context_from_env_var():
     so that they can be used inside BashOperator and PythonOperator.
     :return: The context of interest.
     """
-    return {format_map['default']: os.environ.get(format_map['env_var_format'], '')
-            for format_map in AIRFLOW_VAR_NAME_FORMAT_MAPPING.values()}
+    return {
+        format_map['default']: os.environ.get(format_map['env_var_format'], '')
+        for format_map in AIRFLOW_VAR_NAME_FORMAT_MAPPING.values()
+    }
 
 
 class HiveCliHook(BaseHook):
@@ -81,13 +83,12 @@ class HiveCliHook(BaseHook):
     :type  mapred_job_name: string
     """
 
-    def __init__(
-            self,
-            hive_cli_conn_id="hive_cli_default",
-            run_as=None,
-            mapred_queue=None,
-            mapred_queue_priority=None,
-            mapred_job_name=None):
+    def __init__(self,
+                 hive_cli_conn_id="hive_cli_default",
+                 run_as=None,
+                 mapred_queue=None,
+                 mapred_queue_priority=None,
+                 mapred_job_name=None):
         conn = self.get_connection(hive_cli_conn_id)
         self.hive_cli_params = conn.extra_dejson.get('hive_cli_params', '')
         self.use_beeline = conn.extra_dejson.get('use_beeline', False)
@@ -102,8 +103,8 @@ class HiveCliHook(BaseHook):
                     "Invalid Mapred Queue Priority.  Valid values are: "
                     "{}".format(', '.join(HIVE_QUEUE_PRIORITIES)))
 
-        self.mapred_queue = mapred_queue or configuration.get('hive',
-                                                              'default_hive_mapred_queue')
+        self.mapred_queue = mapred_queue or configuration.get(
+            'hive', 'default_hive_mapred_queue')
         self.mapred_queue_priority = mapred_queue_priority
         self.mapred_job_name = mapred_job_name
 
@@ -119,17 +120,21 @@ class HiveCliHook(BaseHook):
             hive_bin = 'beeline'
             jdbc_url = "jdbc:hive2://{conn.host}:{conn.port}/{conn.schema}"
             if configuration.conf.get('core', 'security') == 'kerberos':
-                template = conn.extra_dejson.get(
-                    'principal', "hive/_HOST@EXAMPLE.COM")
+                template = conn.extra_dejson.get('principal',
+                                                 "hive/_HOST@EXAMPLE.COM")
                 if "_HOST" in template:
                     template = utils.replace_hostname_pattern(
                         utils.get_components(template))
 
                 proxy_user = ""  # noqa
-                if conn.extra_dejson.get('proxy_user') == "login" and conn.login:
-                    proxy_user = "hive.server2.proxy.user={0}".format(conn.login)
-                elif conn.extra_dejson.get('proxy_user') == "owner" and self.run_as:
-                    proxy_user = "hive.server2.proxy.user={0}".format(self.run_as)
+                if conn.extra_dejson.get(
+                        'proxy_user') == "login" and conn.login:
+                    proxy_user = "hive.server2.proxy.user={0}".format(
+                        conn.login)
+                elif conn.extra_dejson.get(
+                        'proxy_user') == "owner" and self.run_as:
+                    proxy_user = "hive.server2.proxy.user={0}".format(
+                        self.run_as)
 
                 jdbc_url += ";principal={template};{proxy_user}"
             elif self.auth:
@@ -168,8 +173,7 @@ class HiveCliHook(BaseHook):
             return []
         return as_flattened_list(
             zip(["-hiveconf"] * len(d),
-                ["{}={}".format(k, v) for k, v in d.items()])
-        )
+                ["{}={}".format(k, v) for k, v in d.items()]))
 
     def run_cli(self, hql, schema=None, verbose=True, hive_conf=None):
         """
@@ -206,29 +210,25 @@ class HiveCliHook(BaseHook):
                     env_context.update(hive_conf)
                 hive_conf_params = self._prepare_hiveconf(env_context)
                 if self.mapred_queue:
-                    hive_conf_params.extend(
-                        ['-hiveconf',
-                         'mapreduce.job.queuename={}'
-                         .format(self.mapred_queue),
-                         '-hiveconf',
-                         'mapred.job.queue.name={}'
-                         .format(self.mapred_queue),
-                         '-hiveconf',
-                         'tez.job.queue.name={}'
-                         .format(self.mapred_queue)
-                         ])
+                    hive_conf_params.extend([
+                        '-hiveconf', 'mapreduce.job.queuename={}'.format(
+                            self.mapred_queue), '-hiveconf',
+                        'mapred.job.queue.name={}'.format(self.mapred_queue),
+                        '-hiveconf', 'tez.job.queue.name={}'.format(
+                            self.mapred_queue)
+                    ])
 
                 if self.mapred_queue_priority:
-                    hive_conf_params.extend(
-                        ['-hiveconf',
-                         'mapreduce.job.priority={}'
-                         .format(self.mapred_queue_priority)])
+                    hive_conf_params.extend([
+                        '-hiveconf', 'mapreduce.job.priority={}'
+                        .format(self.mapred_queue_priority)
+                    ])
 
                 if self.mapred_job_name:
-                    hive_conf_params.extend(
-                        ['-hiveconf',
-                         'mapred.job.name={}'
-                         .format(self.mapred_job_name)])
+                    hive_conf_params.extend([
+                        '-hiveconf', 'mapred.job.name={}'
+                        .format(self.mapred_job_name)
+                    ])
 
                 hive_cmd.extend(hive_conf_params)
                 hive_cmd.extend(['-f', f.name])
@@ -269,8 +269,7 @@ class HiveCliHook(BaseHook):
 
             if query.startswith('create table'):
                 create.append(query_original)
-            elif query.startswith(('set ',
-                                   'add jar ',
+            elif query.startswith(('set ', 'add jar ',
                                    'create temporary function')):
                 other.append(query_original)
             elif query.startswith('insert'):
@@ -300,14 +299,14 @@ class HiveCliHook(BaseHook):
                 else:
                     self.log.info("SUCCESS")
 
-    def load_df(
-            self,
-            df,
-            table,
-            field_dict=None,
-            delimiter=',',
-            encoding='utf8',
-            pandas_kwargs=None, **kwargs):
+    def load_df(self,
+                df,
+                table,
+                field_dict=None,
+                delimiter=',',
+                encoding='utf8',
+                pandas_kwargs=None,
+                **kwargs):
         """
         Loads a pandas DataFrame into hive.
 
@@ -333,16 +332,16 @@ class HiveCliHook(BaseHook):
 
         def _infer_field_types_from_df(df):
             DTYPE_KIND_HIVE_TYPE = {
-                'b': 'BOOLEAN',    # boolean
-                'i': 'BIGINT',     # signed integer
-                'u': 'BIGINT',     # unsigned integer
-                'f': 'DOUBLE',     # floating-point
-                'c': 'STRING',     # complex floating-point
+                'b': 'BOOLEAN',  # boolean
+                'i': 'BIGINT',  # signed integer
+                'u': 'BIGINT',  # unsigned integer
+                'f': 'DOUBLE',  # floating-point
+                'c': 'STRING',  # complex floating-point
                 'M': 'TIMESTAMP',  # datetime
-                'O': 'STRING',     # object
-                'S': 'STRING',     # (byte-)string
-                'U': 'STRING',     # Unicode
-                'V': 'STRING'      # void
+                'O': 'STRING',  # object
+                'S': 'STRING',  # (byte-)string
+                'U': 'STRING',  # Unicode
+                'V': 'STRING'  # void
             }
 
             d = OrderedDict()
@@ -359,34 +358,34 @@ class HiveCliHook(BaseHook):
                 if field_dict is None:
                     field_dict = _infer_field_types_from_df(df)
 
-                df.to_csv(path_or_buf=f,
-                          sep=(delimiter.encode(encoding)
-                               if six.PY2 and isinstance(delimiter, unicode)
-                               else delimiter),
-                          header=False,
-                          index=False,
-                          encoding=encoding,
-                          date_format="%Y-%m-%d %H:%M:%S",
-                          **pandas_kwargs)
+                df.to_csv(
+                    path_or_buf=f,
+                    sep=(delimiter.encode(encoding) if six.PY2
+                         and isinstance(delimiter, unicode) else delimiter),
+                    header=False,
+                    index=False,
+                    encoding=encoding,
+                    date_format="%Y-%m-%d %H:%M:%S",
+                    **pandas_kwargs)
                 f.flush()
 
-                return self.load_file(filepath=f.name,
-                                      table=table,
-                                      delimiter=delimiter,
-                                      field_dict=field_dict,
-                                      **kwargs)
+                return self.load_file(
+                    filepath=f.name,
+                    table=table,
+                    delimiter=delimiter,
+                    field_dict=field_dict,
+                    **kwargs)
 
-    def load_file(
-            self,
-            filepath,
-            table,
-            delimiter=",",
-            field_dict=None,
-            create=True,
-            overwrite=True,
-            partition=None,
-            recreate=False,
-            tblproperties=None):
+    def load_file(self,
+                  filepath,
+                  table,
+                  delimiter=",",
+                  field_dict=None,
+                  create=True,
+                  overwrite=True,
+                  partition=None,
+                  recreate=False,
+                  tblproperties=None):
         """
         Loads a local file into Hive
 
@@ -426,20 +425,22 @@ class HiveCliHook(BaseHook):
             hql += "DROP TABLE IF EXISTS {table};\n"
         if create or recreate:
             if field_dict is None:
-                raise ValueError("Must provide a field dict when creating a table")
+                raise ValueError(
+                    "Must provide a field dict when creating a table")
             fields = ",\n    ".join(
                 [k + ' ' + v for k, v in field_dict.items()])
             hql += "CREATE TABLE IF NOT EXISTS {table} (\n{fields})\n"
             if partition:
-                pfields = ",\n    ".join(
-                    [p + " STRING" for p in partition])
+                pfields = ",\n    ".join([p + " STRING" for p in partition])
                 hql += "PARTITIONED BY ({pfields})\n"
             hql += "ROW FORMAT DELIMITED\n"
             hql += "FIELDS TERMINATED BY '{delimiter}'\n"
             hql += "STORED AS textfile\n"
             if tblproperties is not None:
-                tprops = ", ".join(
-                    ["'{0}'='{1}'".format(k, v) for k, v in tblproperties.items()])
+                tprops = ", ".join([
+                    "'{0}'='{1}'".format(k, v)
+                    for k, v in tblproperties.items()
+                ])
                 hql += "TBLPROPERTIES({tprops})\n"
         hql += ";"
         hql = hql.format(**locals())
@@ -502,7 +503,8 @@ class HiveMetastoreHook(BaseHook):
         auth_mechanism = ms.extra_dejson.get('authMechanism', 'NOSASL')
         if configuration.conf.get('core', 'security') == 'kerberos':
             auth_mechanism = ms.extra_dejson.get('authMechanism', 'GSSAPI')
-            kerberos_service_name = ms.extra_dejson.get('kerberos_service_name', 'hive')
+            kerberos_service_name = ms.extra_dejson.get(
+                'kerberos_service_name', 'hive')
 
         socket = TSocket.TSocket(ms.host, ms.port)
         if configuration.conf.get('core', 'security') == 'kerberos' \
@@ -578,7 +580,8 @@ class HiveMetastoreHook(BaseHook):
         False
         """
         with self.metastore as client:
-            return client.check_for_named_partition(schema, table, partition_name)
+            return client.check_for_named_partition(schema, table,
+                                                    partition_name)
 
     def get_table(self, table_name, db='default'):
         """Get a metastore table object
@@ -610,8 +613,7 @@ class HiveMetastoreHook(BaseHook):
         with self.metastore as client:
             return client.get_databases(pattern)
 
-    def get_partitions(
-            self, schema, table_name, filter=None):
+    def get_partitions(self, schema, table_name, filter=None):
         """
         Returns a list of all partitions in a table. Works only
         for tables with less than 32767 (java short max val).
@@ -632,18 +634,22 @@ class HiveMetastoreHook(BaseHook):
             else:
                 if filter:
                     parts = client.get_partitions_by_filter(
-                        db_name=schema, tbl_name=table_name,
-                        filter=filter, max_parts=HiveMetastoreHook.MAX_PART_COUNT)
+                        db_name=schema,
+                        tbl_name=table_name,
+                        filter=filter,
+                        max_parts=HiveMetastoreHook.MAX_PART_COUNT)
                 else:
                     parts = client.get_partitions(
-                        db_name=schema, tbl_name=table_name,
+                        db_name=schema,
+                        tbl_name=table_name,
                         max_parts=HiveMetastoreHook.MAX_PART_COUNT)
 
                 pnames = [p.name for p in table.partitionKeys]
                 return [dict(zip(pnames, p.values)) for p in parts]
 
     @staticmethod
-    def _get_max_partition_from_part_specs(part_specs, partition_key, filter_map):
+    def _get_max_partition_from_part_specs(part_specs, partition_key,
+                                           filter_map):
         """
         Helper method to get max partition of partitions with partition_key
         from part specs. key:value pair in filter_map will be used to
@@ -665,19 +671,23 @@ class HiveMetastoreHook(BaseHook):
 
         # Assuming all specs have the same keys.
         if partition_key not in part_specs[0].keys():
-            raise AirflowException("Provided partition_key {} "
-                                   "is not in part_specs.".format(partition_key))
+            raise AirflowException(
+                "Provided partition_key {} "
+                "is not in part_specs.".format(partition_key))
         if filter_map:
-            is_subset = set(filter_map.keys()).issubset(set(part_specs[0].keys()))
+            is_subset = set(filter_map.keys()).issubset(
+                set(part_specs[0].keys()))
         if filter_map and not is_subset:
             raise AirflowException("Keys in provided filter_map {} "
                                    "are not subset of part_spec keys: {}"
                                    .format(', '.join(filter_map.keys()),
                                            ', '.join(part_specs[0].keys())))
 
-        candidates = [p_dict[partition_key] for p_dict in part_specs
-                      if filter_map is None or
-                      all(item in p_dict.items() for item in filter_map.items())]
+        candidates = [
+            p_dict[partition_key] for p_dict in part_specs
+            if filter_map is None
+            or all(item in p_dict.items() for item in filter_map.items())
+        ]
 
         if not candidates:
             return None
@@ -713,12 +723,15 @@ class HiveMetastoreHook(BaseHook):
             if len(table.partitionKeys) == 1:
                 field = table.partitionKeys[0].name
             elif not field:
-                raise AirflowException("Please specify the field you want the max "
-                                       "value for.")
+                raise AirflowException(
+                    "Please specify the field you want the max "
+                    "value for.")
             elif field not in key_name_set:
-                raise AirflowException("Provided field is not a partition key.")
+                raise AirflowException(
+                    "Provided field is not a partition key.")
 
-            if filter_map and not set(filter_map.keys()).issubset(key_name_set):
+            if filter_map and not set(
+                    filter_map.keys()).issubset(key_name_set):
                 raise AirflowException("Provided filter_map contains keys "
                                        "that are not partition key.")
 
@@ -726,12 +739,13 @@ class HiveMetastoreHook(BaseHook):
                 client.get_partition_names(schema,
                                            table_name,
                                            max_parts=HiveMetastoreHook.MAX_PART_COUNT)
-            part_specs = [client.partition_name_to_spec(part_name)
-                          for part_name in part_names]
+            part_specs = [
+                client.partition_name_to_spec(part_name)
+                for part_name in part_names
+            ]
 
-        return HiveMetastoreHook._get_max_partition_from_part_specs(part_specs,
-                                                                    field,
-                                                                    filter_map)
+        return HiveMetastoreHook._get_max_partition_from_part_specs(
+            part_specs, field, filter_map)
 
     def table_exists(self, table_name, db='default'):
         """
@@ -757,6 +771,7 @@ class HiveServer2Hook(BaseHook):
     Note that the default authMechanism is PLAIN, to override it you
     can specify it in the ``extra`` of your connection in the UI as in
     """
+
     def __init__(self, hiveserver2_conn_id='hiveserver2_default'):
         self.hiveserver2_conn_id = hiveserver2_conn_id
 
@@ -769,15 +784,15 @@ class HiveServer2Hook(BaseHook):
         kerberos_service_name = None
         if configuration.conf.get('core', 'security') == 'kerberos':
             auth_mechanism = db.extra_dejson.get('authMechanism', 'KERBEROS')
-            kerberos_service_name = db.extra_dejson.get('kerberos_service_name', 'hive')
+            kerberos_service_name = db.extra_dejson.get(
+                'kerberos_service_name', 'hive')
 
         # pyhive uses GSSAPI instead of KERBEROS as a auth_mechanism identifier
         if auth_mechanism == 'GSSAPI':
             self.log.warning(
                 "Detected deprecated 'GSSAPI' for authMechanism "
                 "for %s. Please use 'KERBEROS' instead",
-                self.hiveserver2_conn_id
-            )
+                self.hiveserver2_conn_id)
             auth_mechanism = 'KERBEROS'
 
         from pyhive.hive import connect
@@ -789,7 +804,11 @@ class HiveServer2Hook(BaseHook):
             username=db.login or username,
             database=schema or db.schema or 'default')
 
-    def _get_results(self, hql, schema='default', fetch_size=None, hive_conf=None):
+    def _get_results(self,
+                     hql,
+                     schema='default',
+                     fetch_size=None,
+                     hive_conf=None):
         from pyhive.exc import ProgrammingError
         if isinstance(hql, basestring):
             hql = [hql]
@@ -808,16 +827,16 @@ class HiveServer2Hook(BaseHook):
                 cur.execute(statement)
                 # we only get results of statements that returns
                 lowered_statement = statement.lower().strip()
-                if (lowered_statement.startswith('select') or
-                    lowered_statement.startswith('with') or
-                    (lowered_statement.startswith('set') and
-                     '=' not in lowered_statement)):
+                if (lowered_statement.startswith('select')
+                        or lowered_statement.startswith('with')
+                        or (lowered_statement.startswith('set')
+                            and '=' not in lowered_statement)):
                     description = [c for c in cur.description]
                     if previous_description and previous_description != description:
                         message = '''The statements are producing different descriptions:
                                      Current: {}
-                                     Previous: {}'''.format(repr(description),
-                                                            repr(previous_description))
+                                     Previous: {}'''.format(
+                            repr(description), repr(previous_description))
                         raise ValueError(message)
                     elif not previous_description:
                         previous_description = description
@@ -831,7 +850,11 @@ class HiveServer2Hook(BaseHook):
                     except ProgrammingError:
                         self.log.debug("get_results returned no records")
 
-    def get_results(self, hql, schema='default', fetch_size=None, hive_conf=None):
+    def get_results(self,
+                    hql,
+                    schema='default',
+                    fetch_size=None,
+                    hive_conf=None):
         """
         Get results of the provided hql in target schema.
         :param hql: hql to be executed.
@@ -840,25 +863,21 @@ class HiveServer2Hook(BaseHook):
         :param hive_conf: hive_conf to execute alone with the hql.
         :return: results of hql execution.
         """
-        results_iter = self._get_results(hql, schema,
-                                         fetch_size=fetch_size, hive_conf=hive_conf)
+        results_iter = self._get_results(
+            hql, schema, fetch_size=fetch_size, hive_conf=hive_conf)
         header = next(results_iter)
-        results = {
-            'data': list(results_iter),
-            'header': header
-        }
+        results = {'data': list(results_iter), 'header': header}
         return results
 
-    def to_csv(
-            self,
-            hql,
-            csv_filepath,
-            schema='default',
-            delimiter=',',
-            lineterminator='\r\n',
-            output_header=True,
-            fetch_size=1000,
-            hive_conf=None):
+    def to_csv(self,
+               hql,
+               csv_filepath,
+               schema='default',
+               delimiter=',',
+               lineterminator='\r\n',
+               output_header=True,
+               fetch_size=1000,
+               hive_conf=None):
         """
         Execute hql in target schema and write results to a csv file.
         :param hql: hql to be executed.
@@ -872,16 +891,17 @@ class HiveServer2Hook(BaseHook):
         :return:
         """
 
-        results_iter = self._get_results(hql, schema,
-                                         fetch_size=fetch_size, hive_conf=hive_conf)
+        results_iter = self._get_results(
+            hql, schema, fetch_size=fetch_size, hive_conf=hive_conf)
         header = next(results_iter)
         message = None
 
         with open(csv_filepath, 'wb') as f:
-            writer = csv.writer(f,
-                                delimiter=delimiter,
-                                lineterminator=lineterminator,
-                                encoding='utf-8')
+            writer = csv.writer(
+                f,
+                delimiter=delimiter,
+                lineterminator=lineterminator,
+                encoding='utf-8')
             try:
                 if output_header:
                     self.log.debug('Cursor description is %s', header)

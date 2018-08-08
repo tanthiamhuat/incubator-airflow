@@ -40,9 +40,11 @@ class JenkinsHook(BaseHook):
             # to avoid rising ValueError in strtobool
         if distutils.util.strtobool(connection.extra):
             connectionPrefix = 'https'
-        url = '%s://%s:%d' % (connectionPrefix, connection.host, connection.port)
+        url = '%s://%s:%d' % (connectionPrefix, connection.host,
+                              connection.port)
         self.log.info('Trying to connect to %s', url)
-        self.jenkins_server = jenkins.Jenkins(url, connection.login, connection.password)
+        self.jenkins_server = jenkins.Jenkins(url, connection.login,
+                                              connection.password)
 
     def get_jenkins_server(self):
         return self.jenkins_server

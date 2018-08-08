@@ -29,7 +29,6 @@ import six
 
 from croniter import croniter
 
-
 cron_presets = {
     '@hourly': '0 * * * *',
     '@daily': '0 0 * * *',
@@ -39,11 +38,7 @@ cron_presets = {
 }
 
 
-def date_range(
-        start_date,
-        end_date=None,
-        num=None,
-        delta=None):
+def date_range(start_date, end_date=None, num=None, delta=None):
     """
     Get a set of dates as a list based on a start, end and delta, delta
     can be something that can be added to ``datetime.datetime``
@@ -180,8 +175,7 @@ def round_time(dt, delta, start_date=timezone.make_aware(datetime.min)):
         if start_date + (lower + 1) * delta >= dt:
             # Check if start_date + (lower + 1)*delta or
             # start_date + lower*delta is closer to dt and return the solution
-            if (
-                    (start_date + (lower + 1) * delta) - dt <=
+            if ((start_date + (lower + 1) * delta) - dt <=
                     dt - (start_date + lower * delta)):
                 return start_date + (lower + 1) * delta
             else:
@@ -238,10 +232,7 @@ def days_ago(n, hour=0, minute=0, second=0, microsecond=0):
     set to midnight.
     """
     today = timezone.utcnow().replace(
-        hour=hour,
-        minute=minute,
-        second=second,
-        microsecond=microsecond)
+        hour=hour, minute=minute, second=second, microsecond=microsecond)
     return today - timedelta(days=n)
 
 

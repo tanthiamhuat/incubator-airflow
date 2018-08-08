@@ -25,7 +25,6 @@ from airflow.exceptions import AirflowException
 from airflow.contrib.hooks.databricks_hook import DatabricksHook
 from airflow.models import BaseOperator
 
-
 XCOM_RUN_ID_KEY = 'run_id'
 XCOM_RUN_PAGE_URL_KEY = 'run_page_url'
 
@@ -150,26 +149,25 @@ class DatabricksSubmitRunOperator(BaseOperator):
     :type do_xcom_push: boolean
     """
     # Used in airflow.models.BaseOperator
-    template_fields = ('json',)
+    template_fields = ('json', )
     # Databricks brand color (blue) under white text
     ui_color = '#1CB1C2'
     ui_fgcolor = '#fff'
 
-    def __init__(
-            self,
-            json=None,
-            spark_jar_task=None,
-            notebook_task=None,
-            new_cluster=None,
-            existing_cluster_id=None,
-            libraries=None,
-            run_name=None,
-            timeout_seconds=None,
-            databricks_conn_id='databricks_default',
-            polling_period_seconds=30,
-            databricks_retry_limit=3,
-            do_xcom_push=False,
-            **kwargs):
+    def __init__(self,
+                 json=None,
+                 spark_jar_task=None,
+                 notebook_task=None,
+                 new_cluster=None,
+                 existing_cluster_id=None,
+                 libraries=None,
+                 run_name=None,
+                 timeout_seconds=None,
+                 databricks_conn_id='databricks_default',
+                 polling_period_seconds=30,
+                 databricks_retry_limit=3,
+                 do_xcom_push=False,
+                 **kwargs):
         """
         Creates a new ``DatabricksSubmitRunOperator``.
         """
@@ -212,14 +210,19 @@ class DatabricksSubmitRunOperator(BaseOperator):
         c = self._deep_string_coerce
         if isinstance(content, six.string_types):
             return content
-        elif isinstance(content, six.integer_types + (float,)):
+        elif isinstance(content, six.integer_types + (float, )):
             # Databricks can tolerate either numeric or string types in the API backend.
             return str(content)
         elif isinstance(content, (list, tuple)):
-            return [c(e, '{0}[{1}]'.format(json_path, i)) for i, e in enumerate(content)]
+            return [
+                c(e, '{0}[{1}]'.format(json_path, i))
+                for i, e in enumerate(content)
+            ]
         elif isinstance(content, dict):
-            return {k: c(v, '{0}[{1}]'.format(json_path, k))
-                    for k, v in list(content.items())}
+            return {
+                k: c(v, '{0}[{1}]'.format(json_path, k))
+                for k, v in list(content.items())
+            }
         else:
             param_type = type(content)
             msg = 'Type {0} used for parameter {1} is not a number or a string'\
@@ -231,8 +234,7 @@ class DatabricksSubmitRunOperator(BaseOperator):
 
     def get_hook(self):
         return DatabricksHook(
-            self.databricks_conn_id,
-            retry_limit=self.databricks_retry_limit)
+            self.databricks_conn_id, retry_limit=self.databricks_retry_limit)
 
     def execute(self, context):
         hook = self.get_hook()
@@ -242,7 +244,8 @@ class DatabricksSubmitRunOperator(BaseOperator):
         self.log.info('Run submitted with run_id: %s', self.run_id)
         run_page_url = hook.get_run_page_url(self.run_id)
         if self.do_xcom_push:
-            context['ti'].xcom_push(key=XCOM_RUN_PAGE_URL_KEY, value=run_page_url)
+            context['ti'].xcom_push(
+                key=XCOM_RUN_PAGE_URL_KEY, value=run_page_url)
         self._log_run_page_url(run_page_url)
         while True:
             run_state = hook.get_run_state(self.run_id)
@@ -253,13 +256,13 @@ class DatabricksSubmitRunOperator(BaseOperator):
                     return
                 else:
                     error_message = '{t} failed with terminal state: {s}'.format(
-                        t=self.task_id,
-                        s=run_state)
+                        t=self.task_id, s=run_state)
                     raise AirflowException(error_message)
             else:
                 self.log.info('%s in run state: %s', self.task_id, run_state)
                 self._log_run_page_url(run_page_url)
-                self.log.info('Sleeping for %s seconds.', self.polling_period_seconds)
+                self.log.info('Sleeping for %s seconds.',
+                              self.polling_period_seconds)
                 time.sleep(self.polling_period_seconds)
 
     def on_kill(self):
@@ -267,5 +270,4 @@ class DatabricksSubmitRunOperator(BaseOperator):
         hook.cancel_run(self.run_id)
         self.log.info(
             'Task: %s with run_id: %s was requested to be cancelled.',
-            self.task_id, self.run_id
-        )
+            self.task_id, self.run_id)

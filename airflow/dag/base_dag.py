@@ -84,6 +84,7 @@ class BaseDagBag(object):
     """
     Base object that both the SimpleDagBag and DagBag inherit.
     """
+
     @abstractproperty
     def dag_ids(self):
         """

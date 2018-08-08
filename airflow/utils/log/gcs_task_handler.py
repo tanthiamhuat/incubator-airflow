@@ -31,8 +31,10 @@ class GCSTaskHandler(FileTaskHandler, LoggingMixin):
     uploads to and reads from GCS remote storage. Upon log reading
     failure, it reads from host machine's local disk.
     """
+
     def __init__(self, base_log_folder, gcs_log_folder, filename_template):
-        super(GCSTaskHandler, self).__init__(base_log_folder, filename_template)
+        super(GCSTaskHandler, self).__init__(base_log_folder,
+                                             filename_template)
         self.remote_base = gcs_log_folder
         self.log_relative_path = ''
         self._hook = None
@@ -44,14 +46,13 @@ class GCSTaskHandler(FileTaskHandler, LoggingMixin):
         try:
             from airflow.contrib.hooks.gcs_hook import GoogleCloudStorageHook
             return GoogleCloudStorageHook(
-                google_cloud_storage_conn_id=remote_conn_id
-            )
+                google_cloud_storage_conn_id=remote_conn_id)
         except Exception as e:
             self.log.error(
                 'Could not create a GoogleCloudStorageHook with connection id '
                 '"{}". {}\n\nPlease make sure that airflow[gcp_api] is installed '
-                'and the GCS connection exists.'.format(remote_conn_id, str(e))
-            )
+                'and the GCS connection exists.'.format(
+                    remote_conn_id, str(e)))
 
     @property
     def hook(self):
@@ -118,7 +119,8 @@ class GCSTaskHandler(FileTaskHandler, LoggingMixin):
             log = '*** Unable to read remote log from {}\n*** {}\n\n'.format(
                 remote_loc, str(e))
             self.log.error(log)
-            local_log, metadata = super(GCSTaskHandler, self)._read(ti, try_number)
+            local_log, metadata = super(GCSTaskHandler, self)._read(
+                ti, try_number)
             log += local_log
             return log, metadata
 
@@ -149,7 +151,8 @@ class GCSTaskHandler(FileTaskHandler, LoggingMixin):
                 log = '\n'.join([old_log, log]) if old_log else log
             except Exception as e:
                 if not hasattr(e, 'resp') or e.resp.get('status') != '404':
-                    log = '*** Previous log discarded: {}\n\n'.format(str(e)) + log
+                    log = '*** Previous log discarded: {}\n\n'.format(
+                        str(e)) + log
 
         try:
             bkt, blob = self.parse_gcs_url(remote_log_location)
@@ -162,7 +165,8 @@ class GCSTaskHandler(FileTaskHandler, LoggingMixin):
                 tmpfile.flush()
                 self.hook.upload(bkt, blob, tmpfile.name)
         except Exception as e:
-            self.log.error('Could not write logs to %s: %s', remote_log_location, e)
+            self.log.error('Could not write logs to %s: %s',
+                           remote_log_location, e)
 
     @staticmethod
     def parse_gcs_url(gsurl):

@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """
 RedisHook module
 """
@@ -31,6 +30,7 @@ class RedisHook(BaseHook, LoggingMixin):
     """
     Hook to interact with Redis database
     """
+
     def __init__(self, redis_conn_id='redis_default'):
         """
         Prepares hook to connect to a Redis database.
@@ -46,18 +46,15 @@ class RedisHook(BaseHook, LoggingMixin):
         self.password = conn.password
         self.db = int(conn.extra_dejson.get('db', 0))
 
-        self.log.debug(
-            '''Connection "{conn}":
+        self.log.debug('''Connection "{conn}":
             \thost: {host}
             \tport: {port}
             \textra: {extra}
             '''.format(
-                conn=self.redis_conn_id,
-                host=self.host,
-                port=self.port,
-                extra=conn.extra_dejson
-            )
-        )
+            conn=self.redis_conn_id,
+            host=self.host,
+            port=self.port,
+            extra=conn.extra_dejson))
 
     def get_conn(self):
         """
@@ -66,8 +63,7 @@ class RedisHook(BaseHook, LoggingMixin):
         if not self.client:
             self.log.debug(
                 'generating Redis client for conn_id "%s" on %s:%s:%s',
-                self.redis_conn_id, self.host, self.port, self.db
-            )
+                self.redis_conn_id, self.host, self.port, self.db)
             try:
                 self.client = StrictRedis(
                     host=self.host,
@@ -77,9 +73,7 @@ class RedisHook(BaseHook, LoggingMixin):
             except Exception as general_error:
                 raise AirflowException(
                     'Failed to create Redis client, error: {error}'.format(
-                        error=str(general_error)
-                    )
-                )
+                        error=str(general_error)))
 
         return self.client
 

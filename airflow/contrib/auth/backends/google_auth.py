@@ -20,10 +20,7 @@ import flask_login
 
 # Need to expose these downstream
 # pylint: disable=unused-import
-from flask_login import (current_user,
-                         logout_user,
-                         login_required,
-                         login_user)
+from flask_login import (current_user, logout_user, login_required, login_user)
 # pylint: enable=unused-import
 
 from flask import url_for, redirect, request
@@ -42,7 +39,6 @@ def get_config_param(param):
 
 
 class GoogleUser(models.User):
-
     def __init__(self, user):
         self.user = user
 
@@ -76,7 +72,6 @@ class AuthenticationError(Exception):
 
 
 class GoogleAuthBackend(object):
-
     def __init__(self):
         # self.google_host = get_config_param('host')
         self.login_manager = flask_login.LoginManager()
@@ -94,9 +89,12 @@ class GoogleAuthBackend(object):
             'google',
             consumer_key=get_config_param('client_id'),
             consumer_secret=get_config_param('client_secret'),
-            request_token_params={'scope': [
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'https://www.googleapis.com/auth/userinfo.email']},
+            request_token_params={
+                'scope': [
+                    'https://www.googleapis.com/auth/userinfo.profile',
+                    'https://www.googleapis.com/auth/userinfo.email'
+                ]
+            },
             base_url='https://www.google.com/accounts/',
             request_token_url=None,
             access_token_method='POST',
@@ -105,16 +103,15 @@ class GoogleAuthBackend(object):
 
         self.login_manager.user_loader(self.load_user)
 
-        self.flask_app.add_url_rule(get_config_param('oauth_callback_route'),
-                                    'google_oauth_callback',
-                                    self.oauth_callback)
+        self.flask_app.add_url_rule(
+            get_config_param('oauth_callback_route'), 'google_oauth_callback',
+            self.oauth_callback)
 
     def login(self, request):
         log.debug('Redirecting user to Google login')
-        return self.google_oauth.authorize(callback=url_for(
-            'google_oauth_callback',
-            _external=True,
-            _scheme='https'),
+        return self.google_oauth.authorize(
+            callback=url_for(
+                'google_oauth_callback', _external=True, _scheme='https'),
             state=request.args.get('next') or request.referrer or None)
 
     def get_google_user_profile_info(self, google_token):
@@ -141,8 +138,8 @@ class GoogleAuthBackend(object):
         if not userid or userid == 'None':
             return None
 
-        user = session.query(models.User).filter(
-            models.User.id == int(userid)).first()
+        user = session.query(
+            models.User).filter(models.User.id == int(userid)).first()
         return GoogleUser(user)
 
     @provide_session
@@ -156,8 +153,7 @@ class GoogleAuthBackend(object):
         try:
             if resp is None:
                 raise AuthenticationError(
-                    'Null response from Google, denying access.'
-                )
+                    'Null response from Google, denying access.')
 
             google_token = resp['access_token']
 
@@ -169,14 +165,12 @@ class GoogleAuthBackend(object):
         except AuthenticationError:
             return redirect(url_for('airflow.noaccess'))
 
-        user = session.query(models.User).filter(
-            models.User.username == username).first()
+        user = session.query(
+            models.User).filter(models.User.username == username).first()
 
         if not user:
             user = models.User(
-                username=username,
-                email=email,
-                is_superuser=False)
+                username=username, email=email, is_superuser=False)
 
         session.merge(user)
         session.commit()

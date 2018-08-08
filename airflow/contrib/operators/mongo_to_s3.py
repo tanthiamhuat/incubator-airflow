@@ -32,6 +32,7 @@ class MongoToS3Operator(BaseOperator):
     """
 
     template_fields = ['s3_key', 'mongo_query']
+
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self,
@@ -42,7 +43,8 @@ class MongoToS3Operator(BaseOperator):
                  s3_bucket,
                  s3_key,
                  mongo_db=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
         super(MongoToS3Operator, self).__init__(*args, **kwargs)
         # Conn Ids
         self.mongo_conn_id = mongo_conn_id
@@ -52,8 +54,8 @@ class MongoToS3Operator(BaseOperator):
         self.mongo_collection = mongo_collection
         # Grab query and determine if we need to run an aggregate pipeline
         self.mongo_query = mongo_query
-        self.is_pipeline = True if isinstance(
-            self.mongo_query, list) else False
+        self.is_pipeline = True if isinstance(self.mongo_query,
+                                              list) else False
 
         # S3 Settings
         self.s3_bucket = s3_bucket
@@ -73,15 +75,13 @@ class MongoToS3Operator(BaseOperator):
             results = MongoHook(self.mongo_conn_id).aggregate(
                 mongo_collection=self.mongo_collection,
                 aggregate_query=self.mongo_query,
-                mongo_db=self.mongo_db
-            )
+                mongo_db=self.mongo_db)
 
         else:
             results = MongoHook(self.mongo_conn_id).find(
                 mongo_collection=self.mongo_collection,
                 query=self.mongo_query,
-                mongo_db=self.mongo_db
-            )
+                mongo_db=self.mongo_db)
 
         # Performs transform then stringifies the docs results into json format
         docs_str = self._stringify(self.transform(results))
@@ -91,8 +91,7 @@ class MongoToS3Operator(BaseOperator):
             string_data=docs_str,
             key=self.s3_key,
             bucket_name=self.s3_bucket,
-            replace=self.replace
-        )
+            replace=self.replace)
 
         return True
 
@@ -103,8 +102,7 @@ class MongoToS3Operator(BaseOperator):
         returns a stringified version using python join
         """
         return joinable.join(
-            [json.dumps(doc, default=json_util.default) for doc in iterable]
-        )
+            [json.dumps(doc, default=json_util.default) for doc in iterable])
 
     @staticmethod
     def transform(docs):

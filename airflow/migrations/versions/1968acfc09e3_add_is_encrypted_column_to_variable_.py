@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """add is_encrypted column to variable table
 
 Revision ID: 1968acfc09e3
@@ -36,7 +35,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('variable', sa.Column('is_encrypted', sa.Boolean,default=False))
+    op.add_column('variable',
+                  sa.Column('is_encrypted', sa.Boolean, default=False))
 
 
 def downgrade():

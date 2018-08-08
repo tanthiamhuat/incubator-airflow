@@ -159,14 +159,21 @@ class QuboleValueCheckOperator(ValueCheckOperator, QuboleOperator):
     ui_fgcolor = '#000'
 
     @apply_defaults
-    def __init__(self, pass_value, tolerance=None,
-                 qubole_conn_id="qubole_default", *args, **kwargs):
+    def __init__(self,
+                 pass_value,
+                 tolerance=None,
+                 qubole_conn_id="qubole_default",
+                 *args,
+                 **kwargs):
 
         sql = get_sql_from_qbol_cmd(kwargs)
         super(QuboleValueCheckOperator, self).__init__(
             qubole_conn_id=qubole_conn_id,
-            sql=sql, pass_value=pass_value, tolerance=tolerance,
-            *args, **kwargs)
+            sql=sql,
+            pass_value=pass_value,
+            tolerance=tolerance,
+            *args,
+            **kwargs)
 
         self.on_failure_callback = QuboleCheckHook.handle_failure_retry
         self.on_retry_callback = QuboleCheckHook.handle_failure_retry

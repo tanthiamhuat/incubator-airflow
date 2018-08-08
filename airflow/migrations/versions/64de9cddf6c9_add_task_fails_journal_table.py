@@ -15,7 +15,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """add task fails journal table
 
 Revision ID: 64de9cddf6c9
@@ -46,6 +45,7 @@ def upgrade():
         sa.Column('duration', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
     )
+
 
 def downgrade():
     op.drop_table('task_fail')

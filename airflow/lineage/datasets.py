@@ -23,8 +23,7 @@ from jinja2 import Environment
 
 def _inherited(cls):
     return set(cls.__subclasses__()).union(
-        [s for c in cls.__subclasses__() for s in _inherited(c)]
-    )
+        [s for c in cls.__subclasses__() for s in _inherited(c)])
 
 
 class DataSet(object):
@@ -36,14 +35,16 @@ class DataSet(object):
         self.context = None
         self._data = dict()
 
-        self._data.update(dict((key, value) for key, value in six.iteritems(kwargs)
-                               if key in set(self.attributes)))
+        self._data.update(
+            dict((key, value) for key, value in six.iteritems(kwargs)
+                 if key in set(self.attributes)))
 
         if data:
             if "qualifiedName" in data:
                 self._qualified_name = data.pop("qualifiedName")
 
-            self._data = dict((key, value) for key, value in six.iteritems(data)
+            self._data = dict((key, value)
+                              for key, value in six.iteritems(data)
                               if key in set(self.attributes))
 
     def set_context(self, context):
@@ -61,7 +62,8 @@ class DataSet(object):
         if attr in self.attributes:
             if self.context:
                 env = Environment()
-                return env.from_string(self._data.get(attr)).render(**self.context)
+                return env.from_string(
+                    self._data.get(attr)).render(**self.context)
 
             return self._data.get(attr)
 
@@ -101,9 +103,11 @@ class DataSet(object):
 
 class DataBase(DataSet):
     type_name = "dbStore"
-    attributes = ["dbStoreType", "storeUse", "source", "description", "userName",
-                  "storeUri", "operation", "startTime", "endTime", "commandlineOpts",
-                  "attribute_db"]
+    attributes = [
+        "dbStoreType", "storeUse", "source", "description", "userName",
+        "storeUri", "operation", "startTime", "endTime", "commandlineOpts",
+        "attribute_db"
+    ]
 
 
 class File(DataSet):
@@ -136,5 +140,7 @@ class Operator(DataSet):
     type_name = "airflow_operator"
 
     # todo we can derive this from the spec
-    attributes = ["dag_id", "task_id", "command", "conn_id", "name", "execution_date",
-                  "start_date", "end_date", "inputs", "outputs"]
+    attributes = [
+        "dag_id", "task_id", "command", "conn_id", "name", "execution_date",
+        "start_date", "end_date", "inputs", "outputs"
+    ]

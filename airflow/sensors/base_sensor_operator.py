@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 from time import sleep
 
 from airflow.exceptions import AirflowException, AirflowSensorTimeout, \
@@ -82,4 +81,5 @@ class BaseSensorOperator(BaseOperator, SkipMixin):
         downstream_tasks = context['task'].get_flat_relatives(upstream=False)
         self.log.debug("Downstream task_ids %s", downstream_tasks)
         if downstream_tasks:
-            self.skip(context['dag_run'], context['ti'].execution_date, downstream_tasks)
+            self.skip(context['dag_run'], context['ti'].execution_date,
+                      downstream_tasks)

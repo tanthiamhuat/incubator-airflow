@@ -43,7 +43,8 @@ class KubernetesRequestFactory:
     @staticmethod
     def extract_image_pull_policy(pod, req):
         if pod.image_pull_policy:
-            req['spec']['containers'][0]['imagePullPolicy'] = pod.image_pull_policy
+            req['spec']['containers'][0][
+                'imagePullPolicy'] = pod.image_pull_policy
 
     @staticmethod
     def add_secret_to_env(env, secret):
@@ -91,8 +92,7 @@ class KubernetesRequestFactory:
 
     @staticmethod
     def attach_volumes(pod, req):
-        req['spec']['volumes'] = (
-            req['spec'].get('volumes', []))
+        req['spec']['volumes'] = (req['spec'].get('volumes', []))
         if len(pod.volumes) > 0:
             req['spec']['volumes'].extend(pod.volumes)
 
@@ -101,7 +101,8 @@ class KubernetesRequestFactory:
         if len(pod.volume_mounts) > 0:
             req['spec']['containers'][0]['volumeMounts'] = (
                 req['spec']['containers'][0].get('volumeMounts', []))
-            req['spec']['containers'][0]['volumeMounts'].extend(pod.volume_mounts)
+            req['spec']['containers'][0]['volumeMounts'].extend(
+                pod.volume_mounts)
 
     @staticmethod
     def extract_name(pod, req):
@@ -113,14 +114,16 @@ class KubernetesRequestFactory:
         if any(vol_secrets):
             req['spec']['containers'][0]['volumeMounts'] = (
                 req['spec']['containers'][0].get('volumeMounts', []))
-            req['spec']['volumes'] = (
-                req['spec'].get('volumes', []))
+            req['spec']['volumes'] = (req['spec'].get('volumes', []))
         for idx, vol in enumerate(vol_secrets):
             vol_id = 'secretvol' + str(idx)
             req['spec']['containers'][0]['volumeMounts'].append({
-                'mountPath': vol.deploy_target,
-                'name': vol_id,
-                'readOnly': True
+                'mountPath':
+                vol.deploy_target,
+                'name':
+                vol_id,
+                'readOnly':
+                True
             })
             req['spec']['volumes'].append({
                 'name': vol_id,

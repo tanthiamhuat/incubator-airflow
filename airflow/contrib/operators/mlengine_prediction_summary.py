@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A template called by DataFlowPythonOperator to summarize BatchPrediction.
 
 It accepts a user function to calculate the metric(s) per instance in
@@ -114,34 +113,34 @@ class JsonCoder(object):
 @beam.ptransform_fn
 def MakeSummary(pcoll, metric_fn, metric_keys):  # pylint: disable=invalid-name
     return (
-        pcoll |
-        "ApplyMetricFnPerInstance" >> beam.Map(metric_fn) |
-        "PairWith1" >> beam.Map(lambda tup: tup + (1,)) |
-        "SumTuple" >> beam.CombineGlobally(beam.combiners.TupleCombineFn(
-            *([sum] * (len(metric_keys) + 1)))) |
-        "AverageAndMakeDict" >> beam.Map(
-            lambda tup: dict(
-                [(name, tup[i] / tup[-1]) for i, name in enumerate(metric_keys)] +
-                [("count", tup[-1])])))
+        pcoll | "ApplyMetricFnPerInstance" >> beam.Map(metric_fn)
+        | "PairWith1" >> beam.Map(lambda tup: tup + (1, ))
+        | "SumTuple" >> beam.CombineGlobally(
+            beam.combiners.TupleCombineFn(*([sum] * (len(metric_keys) + 1))))
+        | "AverageAndMakeDict" >> beam.Map(
+            lambda tup: dict([(name, tup[i] / tup[-1]) for i, name in enumerate(metric_keys)] + [("count", tup[-1])])
+        ))
 
 
 def run(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--prediction_path", required=True,
+        "--prediction_path",
+        required=True,
         help=(
             "The GCS folder that contains BatchPrediction results, containing "
             "prediction.results-NNNNN-of-NNNNN files in the json format. "
             "Output will be also stored in this folder, as a file"
             "'prediction.summary.json'."))
     parser.add_argument(
-        "--metric_fn_encoded", required=True,
-        help=(
-            "An encoded function that calculates and returns a tuple of "
-            "metric(s) for a given instance (as a dictionary). It should be "
-            "encoded via base64.b64encode(dill.dumps(fn, recurse=True))."))
+        "--metric_fn_encoded",
+        required=True,
+        help=("An encoded function that calculates and returns a tuple of "
+              "metric(s) for a given instance (as a dictionary). It should be "
+              "encoded via base64.b64encode(dill.dumps(fn, recurse=True))."))
     parser.add_argument(
-        "--metric_keys", required=True,
+        "--metric_keys",
+        required=True,
         help=(
             "A comma-separated keys of the aggregated metric(s) in the summary "
             "output. The order and the size of the keys must match to the "
@@ -156,20 +155,21 @@ def run(argv=None):
     metric_keys = known_args.metric_keys.split(",")
 
     with beam.Pipeline(
-        options=beam.pipeline.PipelineOptions(pipeline_args)) as p:
+            options=beam.pipeline.PipelineOptions(pipeline_args)) as p:
         # This is apache-beam ptransform's convention
         # pylint: disable=no-value-for-parameter
-        _ = (p
-             | "ReadPredictionResult" >> beam.io.ReadFromText(
-                 os.path.join(known_args.prediction_path,
-                              "prediction.results-*-of-*"),
-                 coder=JsonCoder())
-             | "Summary" >> MakeSummary(metric_fn, metric_keys)
-             | "Write" >> beam.io.WriteToText(
-                 os.path.join(known_args.prediction_path,
-                              "prediction.summary.json"),
-                 shard_name_template='',  # without trailing -NNNNN-of-NNNNN.
-                 coder=JsonCoder()))
+        _ = (
+            p
+            | "ReadPredictionResult" >> beam.io.ReadFromText(
+                os.path.join(known_args.prediction_path,
+                             "prediction.results-*-of-*"),
+                coder=JsonCoder())
+            | "Summary" >> MakeSummary(metric_fn, metric_keys)
+            | "Write" >> beam.io.WriteToText(
+                os.path.join(known_args.prediction_path,
+                             "prediction.summary.json"),
+                shard_name_template='',  # without trailing -NNNNN-of-NNNNN.
+                coder=JsonCoder()))
         # pylint: enable=no-value-for-parameter
 
 

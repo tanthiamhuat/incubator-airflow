@@ -36,4 +36,5 @@ def skipUnlessImported(module, obj):
 def assertEqualIgnoreMultipleSpaces(case, first, second, msg=None):
     def _trim(s):
         re.sub("\s+", " ", s.strip())
+
     return case.assertEqual(_trim(first), _trim(second), msg)

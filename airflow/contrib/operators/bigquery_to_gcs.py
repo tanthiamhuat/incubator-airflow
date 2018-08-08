@@ -60,7 +60,7 @@ class BigQueryToCloudStorageOperator(BaseOperator):
     """
     template_fields = ('source_project_dataset_table',
                        'destination_cloud_storage_uris', 'labels')
-    template_ext = ('.sql',)
+    template_ext = ('.sql', )
     ui_color = '#e4e6f0'
 
     @apply_defaults
@@ -91,15 +91,13 @@ class BigQueryToCloudStorageOperator(BaseOperator):
         self.log.info('Executing extract of %s into: %s',
                       self.source_project_dataset_table,
                       self.destination_cloud_storage_uris)
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
         conn = hook.get_conn()
         cursor = conn.cursor()
-        cursor.run_extract(
-            self.source_project_dataset_table,
-            self.destination_cloud_storage_uris,
-            self.compression,
-            self.export_format,
-            self.field_delimiter,
-            self.print_header,
-            self.labels)
+        cursor.run_extract(self.source_project_dataset_table,
+                           self.destination_cloud_storage_uris,
+                           self.compression, self.export_format,
+                           self.field_delimiter, self.print_header,
+                           self.labels)

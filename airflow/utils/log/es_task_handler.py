@@ -31,7 +31,6 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
     PAGE = 0
     MAX_LINE_PER_PAGE = 1000
-
     """
     ElasticsearchTaskHandler is a python log handler that
     reads logs from Elasticsearch. Note logs are not directly
@@ -48,16 +47,19 @@ class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
     might have the same timestamp.
     """
 
-    def __init__(self, base_log_folder, filename_template,
-                 log_id_template, end_of_log_mark,
+    def __init__(self,
+                 base_log_folder,
+                 filename_template,
+                 log_id_template,
+                 end_of_log_mark,
                  host='localhost:9200'):
         """
         :param base_log_folder: base folder to store logs locally
         :param log_id_template: log id template
         :param host: Elasticsearch host name
         """
-        super(ElasticsearchTaskHandler, self).__init__(
-            base_log_folder, filename_template)
+        super(ElasticsearchTaskHandler, self).__init__(base_log_folder,
+                                                       filename_template)
         self.closed = False
 
         self.log_id_template, self.log_id_jinja_template = \
@@ -74,11 +76,11 @@ class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
             jinja_context['try_number'] = try_number
             return self.log_id_jinja_template.render(**jinja_context)
 
-        return self.log_id_template.format(dag_id=ti.dag_id,
-                                           task_id=ti.task_id,
-                                           execution_date=ti
-                                           .execution_date.isoformat(),
-                                           try_number=try_number)
+        return self.log_id_template.format(
+            dag_id=ti.dag_id,
+            task_id=ti.task_id,
+            execution_date=ti.execution_date.isoformat(),
+            try_number=try_number)
 
     def _read(self, ti, try_number, metadata=None):
         """

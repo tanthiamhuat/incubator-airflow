@@ -58,7 +58,8 @@ class AirflowPlugin(object):
 
 plugins_folder = configuration.conf.get('core', 'plugins_folder')
 if not plugins_folder:
-    plugins_folder = configuration.conf.get('core', 'airflow_home') + '/plugins'
+    plugins_folder = configuration.conf.get('core',
+                                            'airflow_home') + '/plugins'
 plugins_folder = os.path.expanduser(plugins_folder)
 
 if plugins_folder not in sys.path:
@@ -75,8 +76,7 @@ for root, dirs, files in os.walk(plugins_folder, followlinks=True):
             filepath = os.path.join(root, f)
             if not os.path.isfile(filepath):
                 continue
-            mod_name, file_ext = os.path.splitext(
-                os.path.split(filepath)[-1])
+            mod_name, file_ext = os.path.splitext(os.path.split(filepath)[-1])
             if file_ext != '.py':
                 continue
 
@@ -86,10 +86,8 @@ for root, dirs, files in os.walk(plugins_folder, followlinks=True):
 
             m = imp.load_source(namespace, filepath)
             for obj in list(m.__dict__.values()):
-                if (
-                        inspect.isclass(obj) and
-                        issubclass(obj, AirflowPlugin) and
-                        obj is not AirflowPlugin):
+                if (inspect.isclass(obj) and issubclass(obj, AirflowPlugin)
+                        and obj is not AirflowPlugin):
                     obj.validate()
                     if obj not in plugins:
                         plugins.append(obj)
@@ -124,9 +122,7 @@ menu_links = []
 for p in plugins:
     operators_modules.append(
         make_module('airflow.operators.' + p.name, p.operators + p.sensors))
-    sensors_modules.append(
-        make_module('airflow.sensors.' + p.name, p.sensors)
-    )
+    sensors_modules.append(make_module('airflow.sensors.' + p.name, p.sensors))
     hooks_modules.append(make_module('airflow.hooks.' + p.name, p.hooks))
     executors_modules.append(
         make_module('airflow.executors.' + p.name, p.executors))

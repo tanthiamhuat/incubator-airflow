@@ -51,7 +51,8 @@ class BashSensor(BaseSensorOperator):
                  bash_command,
                  env=None,
                  output_encoding='utf-8',
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
         super(BashSensor, self).__init__(*args, **kwargs)
         self.bash_command = bash_command
         self.env = env
@@ -70,16 +71,16 @@ class BashSensor(BaseSensorOperator):
                 f.flush()
                 fname = f.name
                 script_location = tmp_dir + "/" + fname
-                self.log.info(
-                    "Temporary script location: %s",
-                    script_location
-                )
+                self.log.info("Temporary script location: %s", script_location)
                 self.log.info("Running command: %s", bash_command)
                 sp = Popen(
                     ['bash', fname],
-                    stdout=PIPE, stderr=STDOUT,
-                    close_fds=True, cwd=tmp_dir,
-                    env=self.env, preexec_fn=os.setsid)
+                    stdout=PIPE,
+                    stderr=STDOUT,
+                    close_fds=True,
+                    cwd=tmp_dir,
+                    env=self.env,
+                    preexec_fn=os.setsid)
 
                 self.sp = sp
 

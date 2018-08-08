@@ -60,27 +60,27 @@ class HiveToDruidTransfer(BaseOperator):
     """
 
     template_fields = ('sql', 'intervals')
-    template_ext = ('.sql',)
+    template_ext = ('.sql', )
 
     @apply_defaults
-    def __init__(
-            self,
-            sql,
-            druid_datasource,
-            ts_dim,
-            metric_spec=None,
-            hive_cli_conn_id='hive_cli_default',
-            druid_ingest_conn_id='druid_ingest_default',
-            metastore_conn_id='metastore_default',
-            hadoop_dependency_coordinates=None,
-            intervals=None,
-            num_shards=-1,
-            target_partition_size=-1,
-            query_granularity="NONE",
-            segment_granularity="DAY",
-            hive_tblproperties=None,
-            job_properties=None,
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 druid_datasource,
+                 ts_dim,
+                 metric_spec=None,
+                 hive_cli_conn_id='hive_cli_default',
+                 druid_ingest_conn_id='druid_ingest_default',
+                 metastore_conn_id='metastore_default',
+                 hadoop_dependency_coordinates=None,
+                 intervals=None,
+                 num_shards=-1,
+                 target_partition_size=-1,
+                 query_granularity="NONE",
+                 segment_granularity="DAY",
+                 hive_tblproperties=None,
+                 job_properties=None,
+                 *args,
+                 **kwargs):
         super(HiveToDruidTransfer, self).__init__(*args, **kwargs)
         self.sql = sql
         self.druid_datasource = druid_datasource
@@ -90,9 +90,7 @@ class HiveToDruidTransfer(BaseOperator):
         self.target_partition_size = target_partition_size
         self.query_granularity = query_granularity
         self.segment_granularity = segment_granularity
-        self.metric_spec = metric_spec or [{
-            "name": "count",
-            "type": "count"}]
+        self.metric_spec = metric_spec or [{"name": "count", "type": "count"}]
         self.hive_cli_conn_id = hive_cli_conn_id
         self.hadoop_dependency_coordinates = hadoop_dependency_coordinates
         self.druid_ingest_conn_id = druid_ingest_conn_id
@@ -103,11 +101,13 @@ class HiveToDruidTransfer(BaseOperator):
     def execute(self, context):
         hive = HiveCliHook(hive_cli_conn_id=self.hive_cli_conn_id)
         self.log.info("Extracting data from Hive")
-        hive_table = 'druid.' + context['task_instance_key_str'].replace('.', '_')
+        hive_table = 'druid.' + context['task_instance_key_str'].replace(
+            '.', '_')
         sql = self.sql.strip().strip(';')
-        tblproperties = ''.join([", '{}' = '{}'"
-                                .format(k, v)
-                                 for k, v in self.hive_tblproperties.items()])
+        tblproperties = ''.join([
+            ", '{}' = '{}'".format(k, v)
+            for k, v in self.hive_tblproperties.items()
+        ])
         hql = """\
         SET mapred.output.compress=false;
         SET hive.exec.compress.output=false;
@@ -141,16 +141,15 @@ class HiveToDruidTransfer(BaseOperator):
                 columns=columns,
             )
 
-            self.log.info("Inserting rows into Druid, hdfs path: %s", static_path)
+            self.log.info("Inserting rows into Druid, hdfs path: %s",
+                          static_path)
 
             druid.submit_indexing_job(index_spec)
 
             self.log.info("Load seems to have succeeded!")
         finally:
-            self.log.info(
-                "Cleaning up by dropping the temp Hive table %s",
-                hive_table
-            )
+            self.log.info("Cleaning up by dropping the temp Hive table %s",
+                          hive_table)
             hql = "DROP TABLE IF EXISTS {}".format(hive_table)
             hive.run_cli(hql)
 
@@ -175,11 +174,15 @@ class HiveToDruidTransfer(BaseOperator):
         else:
             num_shards = -1
 
-        metric_names = [m['fieldName'] for m in self.metric_spec if m['type'] != 'count']
+        metric_names = [
+            m['fieldName'] for m in self.metric_spec if m['type'] != 'count'
+        ]
 
         # Take all the columns, which are not the time dimension
         # or a metric, as the dimension columns
-        dimensions = [c for c in columns if c not in metric_names and c != self.ts_dim]
+        dimensions = [
+            c for c in columns if c not in metric_names and c != self.ts_dim
+        ]
 
         ingest_query_dict = {
             "type": "index_hadoop",

@@ -32,7 +32,7 @@ class HdfsSensor(BaseSensorOperator):
     """
     Waits for a file or folder to land in HDFS
     """
-    template_fields = ('filepath',)
+    template_fields = ('filepath', )
     ui_color = settings.WEB_COLORS['LIGHTBLUE']
 
     @apply_defaults
@@ -66,13 +66,12 @@ class HdfsSensor(BaseSensorOperator):
         """
         if size:
             log = LoggingMixin().log
-            log.debug(
-                'Filtering for file size >= %s in files: %s',
-                size, map(lambda x: x['path'], result)
-            )
+            log.debug('Filtering for file size >= %s in files: %s', size,
+                      map(lambda x: x['path'], result))
             size *= settings.MEGABYTE
             result = [x for x in result if x['length'] >= size]
-            log.debug('HdfsSensor.poke: after size filter result is %s', result)
+            log.debug('HdfsSensor.poke: after size filter result is %s',
+                      result)
         return result
 
     @staticmethod
@@ -91,9 +90,12 @@ class HdfsSensor(BaseSensorOperator):
             ignored_extentions_regex = re.compile(regex_builder)
             log.debug(
                 'Filtering result for ignored extensions: %s in files %s',
-                ignored_extentions_regex.pattern, map(lambda x: x['path'], result)
-            )
-            result = [x for x in result if not ignored_extentions_regex.match(x['path'])]
+                ignored_extentions_regex.pattern,
+                map(lambda x: x['path'], result))
+            result = [
+                x for x in result
+                if not ignored_extentions_regex.match(x['path'])
+            ]
             log.debug('HdfsSensor.poke: after ext filter result is %s', result)
         return result
 
@@ -106,11 +108,12 @@ class HdfsSensor(BaseSensorOperator):
             # it's correct but if it is '/data/mydirectory/*',
             # it's not correct as the directory exists and sb does not raise any error
             # here is a quick fix
-            result = [f for f in sb.ls([self.filepath], include_toplevel=False)]
+            result = [
+                f for f in sb.ls([self.filepath], include_toplevel=False)
+            ]
             self.log.debug('HdfsSensor.poke: result is %s', result)
-            result = self.filter_for_ignored_ext(
-                result, self.ignored_ext, self.ignore_copying
-            )
+            result = self.filter_for_ignored_ext(result, self.ignored_ext,
+                                                 self.ignore_copying)
             result = self.filter_for_filesize(result, self.file_size)
             return bool(result)
         except Exception:

@@ -90,28 +90,30 @@ class WinRMHook(BaseHook, LoggingMixin):
     :param send_cbt: Will send the channel bindings over a HTTPS channel (Default: True)
     :type send_cbt: bool
     """
-    def __init__(self,
-                 ssh_conn_id=None,
-                 endpoint=None,
-                 remote_host=None,
-                 remote_port=5985,
-                 transport='plaintext',
-                 username=None,
-                 password=None,
-                 service='HTTP',
-                 keytab=None,
-                 ca_trust_path=None,
-                 cert_pem=None,
-                 cert_key_pem=None,
-                 server_cert_validation='validate',
-                 kerberos_delegation=False,
-                 read_timeout_sec=30,
-                 operation_timeout_sec=20,
-                 kerberos_hostname_override=None,
-                 message_encryption='auto',
-                 credssp_disable_tlsv1_2=False,
-                 send_cbt=True,
-                 ):
+
+    def __init__(
+            self,
+            ssh_conn_id=None,
+            endpoint=None,
+            remote_host=None,
+            remote_port=5985,
+            transport='plaintext',
+            username=None,
+            password=None,
+            service='HTTP',
+            keytab=None,
+            ca_trust_path=None,
+            cert_pem=None,
+            cert_key_pem=None,
+            server_cert_validation='validate',
+            kerberos_delegation=False,
+            read_timeout_sec=30,
+            operation_timeout_sec=20,
+            kerberos_hostname_override=None,
+            message_encryption='auto',
+            credssp_disable_tlsv1_2=False,
+            send_cbt=True,
+    ):
         super(WinRMHook, self).__init__(ssh_conn_id)
         self.ssh_conn_id = ssh_conn_id
         self.endpoint = endpoint
@@ -141,7 +143,8 @@ class WinRMHook(BaseHook, LoggingMixin):
         if self.client:
             return self.client
 
-        self.log.debug('Creating WinRM client for conn_id: %s', self.ssh_conn_id)
+        self.log.debug('Creating WinRM client for conn_id: %s',
+                       self.ssh_conn_id)
         if self.ssh_conn_id is not None:
             conn = self.get_connection(self.ssh_conn_id)
 
@@ -178,7 +181,8 @@ class WinRMHook(BaseHook, LoggingMixin):
                     self.kerberos_delegation = \
                         str(extra_options["kerberos_delegation"]).lower() == 'true'
                 if "read_timeout_sec" in extra_options:
-                    self.read_timeout_sec = int(extra_options["read_timeout_sec"])
+                    self.read_timeout_sec = int(
+                        extra_options["read_timeout_sec"])
                 if "operation_timeout_sec" in extra_options:
                     self.operation_timeout_sec = \
                         int(extra_options["operation_timeout_sec"])
@@ -186,12 +190,14 @@ class WinRMHook(BaseHook, LoggingMixin):
                     self.kerberos_hostname_override = \
                         str(extra_options["kerberos_hostname_override"])
                 if "message_encryption" in extra_options:
-                    self.message_encryption = str(extra_options["message_encryption"])
+                    self.message_encryption = str(
+                        extra_options["message_encryption"])
                 if "credssp_disable_tlsv1_2" in extra_options:
                     self.credssp_disable_tlsv1_2 = \
                         str(extra_options["credssp_disable_tlsv1_2"]).lower() == 'true'
                 if "send_cbt" in extra_options:
-                    self.send_cbt = str(extra_options["send_cbt"]).lower() == 'true'
+                    self.send_cbt = str(
+                        extra_options["send_cbt"]).lower() == 'true'
 
         if not self.remote_host:
             raise AirflowException("Missing required param: remote_host")
@@ -201,16 +207,13 @@ class WinRMHook(BaseHook, LoggingMixin):
             self.log.debug(
                 "username to WinRM to host: %s is not specified for connection id"
                 " %s. Using system's default provided by getpass.getuser()",
-                self.remote_host, self.ssh_conn_id
-            )
+                self.remote_host, self.ssh_conn_id)
             self.username = getpass.getuser()
 
         # If endpoint is not set, then build a standard wsman endpoint from host and port.
         if not self.endpoint:
             self.endpoint = 'http://{0}:{1}/wsman'.format(
-                self.remote_host,
-                self.remote_port
-            )
+                self.remote_host, self.remote_port)
 
         try:
             if self.password and self.password.strip():
@@ -231,20 +234,15 @@ class WinRMHook(BaseHook, LoggingMixin):
                     kerberos_hostname_override=self.kerberos_hostname_override,
                     message_encryption=self.message_encryption,
                     credssp_disable_tlsv1_2=self.credssp_disable_tlsv1_2,
-                    send_cbt=self.send_cbt
-                )
+                    send_cbt=self.send_cbt)
 
-            self.log.info(
-                "Establishing WinRM connection to host: %s",
-                self.remote_host
-            )
+            self.log.info("Establishing WinRM connection to host: %s",
+                          self.remote_host)
             self.client = self.winrm_protocol.open_shell()
 
         except Exception as error:
             error_msg = "Error connecting to host: {0}, error: {1}".format(
-                self.remote_host,
-                error
-            )
+                self.remote_host, error)
             self.log.error(error_msg)
             raise AirflowException(error_msg)
 

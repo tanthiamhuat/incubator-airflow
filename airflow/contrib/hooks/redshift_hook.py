@@ -24,6 +24,7 @@ class RedshiftHook(AwsHook):
     """
     Interact with AWS Redshift, using the boto3 library
     """
+
     def get_conn(self):
         return self.get_client_type('redshift')
 
@@ -43,11 +44,10 @@ class RedshiftHook(AwsHook):
         except conn.exceptions.ClusterNotFoundFault:
             return 'cluster_not_found'
 
-    def delete_cluster(
-            self,
-            cluster_identifier,
-            skip_final_cluster_snapshot=True,
-            final_cluster_snapshot_identifier=''):
+    def delete_cluster(self,
+                       cluster_identifier,
+                       skip_final_cluster_snapshot=True,
+                       final_cluster_snapshot_identifier=''):
         """
         Delete a cluster and optionally create a snapshot
 
@@ -61,8 +61,7 @@ class RedshiftHook(AwsHook):
         response = self.get_conn().delete_cluster(
             ClusterIdentifier=cluster_identifier,
             SkipFinalClusterSnapshot=skip_final_cluster_snapshot,
-            FinalClusterSnapshotIdentifier=final_cluster_snapshot_identifier
-        )
+            FinalClusterSnapshotIdentifier=final_cluster_snapshot_identifier)
         return response['Cluster'] if response['Cluster'] else None
 
     def describe_cluster_snapshots(self, cluster_identifier):
@@ -73,8 +72,7 @@ class RedshiftHook(AwsHook):
         :type cluster_identifier: str
         """
         response = self.get_conn().describe_cluster_snapshots(
-            ClusterIdentifier=cluster_identifier
-        )
+            ClusterIdentifier=cluster_identifier)
         if 'Snapshots' not in response:
             return None
         snapshots = response['Snapshots']
@@ -82,7 +80,8 @@ class RedshiftHook(AwsHook):
         snapshots.sort(key=lambda x: x['SnapshotCreateTime'], reverse=True)
         return snapshots
 
-    def restore_from_cluster_snapshot(self, cluster_identifier, snapshot_identifier):
+    def restore_from_cluster_snapshot(self, cluster_identifier,
+                                      snapshot_identifier):
         """
         Restores a cluster from its snapshot
 
@@ -93,8 +92,7 @@ class RedshiftHook(AwsHook):
         """
         response = self.get_conn().restore_from_cluster_snapshot(
             ClusterIdentifier=cluster_identifier,
-            SnapshotIdentifier=snapshot_identifier
-        )
+            SnapshotIdentifier=snapshot_identifier)
         return response['Cluster'] if response['Cluster'] else None
 
     def create_cluster_snapshot(self, snapshot_identifier, cluster_identifier):

@@ -37,6 +37,7 @@ class DatadogHook(BaseHook, LoggingMixin):
     :param datadog_conn_id: The connection to datadog, containing metadata for api keys.
     :param datadog_conn_id: string
     """
+
     def __init__(self, datadog_conn_id='datadog_default'):
         conn = self.get_connection(datadog_conn_id)
         self.api_key = conn.extra_dejson.get('api_key', None)
@@ -55,10 +56,7 @@ class DatadogHook(BaseHook, LoggingMixin):
                                    "Datadog connection details")
 
         self.log.info("Setting up api keys for Datadog")
-        options = {
-            'api_key': self.api_key,
-            'app_key': self.app_key
-        }
+        options = {'api_key': self.api_key, 'app_key': self.app_key}
         initialize(**options)
 
     def validate_response(self, response):
@@ -78,18 +76,12 @@ class DatadogHook(BaseHook, LoggingMixin):
         :type tags: list
         """
         response = api.Metric.send(
-            metric=metric_name,
-            points=datapoint,
-            host=self.host,
-            tags=tags)
+            metric=metric_name, points=datapoint, host=self.host, tags=tags)
 
         self.validate_response(response)
         return response
 
-    def query_metric(self,
-                     query,
-                     from_seconds_ago,
-                     to_seconds_ago):
+    def query_metric(self, query, from_seconds_ago, to_seconds_ago):
         """
         Queries datadog for a specific metric, potentially with some
         function applied to it and returns the results.
@@ -111,7 +103,12 @@ class DatadogHook(BaseHook, LoggingMixin):
         self.validate_response(response)
         return response
 
-    def post_event(self, title, text, tags=None, alert_type=None, aggregation_key=None):
+    def post_event(self,
+                   title,
+                   text,
+                   tags=None,
+                   alert_type=None,
+                   aggregation_key=None):
         """
         Posts an event to datadog (processing finished, potentially alerts, other issues)
         Think about this as a means to maintain persistence of alerts, rather than

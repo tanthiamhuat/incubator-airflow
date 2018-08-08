@@ -41,8 +41,6 @@ def load_auth():
         global api_auth
         api_auth = import_module(auth_backend)
     except ImportError as err:
-        log.critical(
-            "Cannot import %s for API authentication due to: %s",
-            auth_backend, err
-        )
+        log.critical("Cannot import %s for API authentication due to: %s",
+                     auth_backend, err)
         raise AirflowException(err)

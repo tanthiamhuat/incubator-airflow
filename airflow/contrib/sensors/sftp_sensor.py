@@ -32,7 +32,7 @@ class SFTPSensor(BaseSensorOperator):
     :param sftp_conn_id: The connection to run the sensor against
     :type sftp_conn_id: str
     """
-    template_fields = ('path',)
+    template_fields = ('path', )
 
     @apply_defaults
     def __init__(self, path, sftp_conn_id='sftp_default', *args, **kwargs):

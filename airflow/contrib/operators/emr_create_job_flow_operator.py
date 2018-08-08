@@ -41,12 +41,12 @@ class EmrCreateJobFlowOperator(BaseOperator):
     ui_color = '#f9c915'
 
     @apply_defaults
-    def __init__(
-            self,
-            aws_conn_id='s3_default',
-            emr_conn_id='emr_default',
-            job_flow_overrides=None,
-            *args, **kwargs):
+    def __init__(self,
+                 aws_conn_id='s3_default',
+                 emr_conn_id='emr_default',
+                 job_flow_overrides=None,
+                 *args,
+                 **kwargs):
         super(EmrCreateJobFlowOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
         self.emr_conn_id = emr_conn_id
@@ -55,12 +55,12 @@ class EmrCreateJobFlowOperator(BaseOperator):
         self.job_flow_overrides = job_flow_overrides
 
     def execute(self, context):
-        emr = EmrHook(aws_conn_id=self.aws_conn_id, emr_conn_id=self.emr_conn_id)
+        emr = EmrHook(
+            aws_conn_id=self.aws_conn_id, emr_conn_id=self.emr_conn_id)
 
         self.log.info(
             'Creating JobFlow using aws-conn-id: %s, emr-conn-id: %s',
-            self.aws_conn_id, self.emr_conn_id
-        )
+            self.aws_conn_id, self.emr_conn_id)
         response = emr.create_job_flow(self.job_flow_overrides)
 
         if not response['ResponseMetadata']['HTTPStatusCode'] == 200:

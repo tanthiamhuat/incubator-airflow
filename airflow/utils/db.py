@@ -57,6 +57,7 @@ def provide_session(func):
     database transaction, you pass it to the function, if not this wrapper
     will create one and close it for you.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         arg_session = 'session'
@@ -93,133 +94,182 @@ def initdb(rbac=False):
 
     merge_conn(
         models.Connection(
-            conn_id='airflow_db', conn_type='mysql',
-            host='localhost', login='root', password='',
+            conn_id='airflow_db',
+            conn_type='mysql',
+            host='localhost',
+            login='root',
+            password='',
             schema='airflow'))
     merge_conn(
         models.Connection(
-            conn_id='airflow_ci', conn_type='mysql',
-            host='localhost', login='root', extra="{\"local_infile\": true}",
+            conn_id='airflow_ci',
+            conn_type='mysql',
+            host='localhost',
+            login='root',
+            extra="{\"local_infile\": true}",
             schema='airflow_ci'))
     merge_conn(
         models.Connection(
-            conn_id='beeline_default', conn_type='beeline', port="10000",
-            host='localhost', extra="{\"use_beeline\": true, \"auth\": \"\"}",
+            conn_id='beeline_default',
+            conn_type='beeline',
+            port="10000",
+            host='localhost',
+            extra="{\"use_beeline\": true, \"auth\": \"\"}",
             schema='default'))
     merge_conn(
         models.Connection(
-            conn_id='bigquery_default', conn_type='google_cloud_platform',
+            conn_id='bigquery_default',
+            conn_type='google_cloud_platform',
             schema='default'))
     merge_conn(
         models.Connection(
-            conn_id='local_mysql', conn_type='mysql',
-            host='localhost', login='airflow', password='airflow',
+            conn_id='local_mysql',
+            conn_type='mysql',
+            host='localhost',
+            login='airflow',
+            password='airflow',
             schema='airflow'))
     merge_conn(
         models.Connection(
-            conn_id='presto_default', conn_type='presto',
+            conn_id='presto_default',
+            conn_type='presto',
             host='localhost',
-            schema='hive', port=3400))
+            schema='hive',
+            port=3400))
     merge_conn(
         models.Connection(
-            conn_id='google_cloud_default', conn_type='google_cloud_platform',
-            schema='default',))
+            conn_id='google_cloud_default',
+            conn_type='google_cloud_platform',
+            schema='default',
+        ))
     merge_conn(
         models.Connection(
-            conn_id='hive_cli_default', conn_type='hive_cli',
-            schema='default',))
+            conn_id='hive_cli_default',
+            conn_type='hive_cli',
+            schema='default',
+        ))
     merge_conn(
         models.Connection(
-            conn_id='hiveserver2_default', conn_type='hiveserver2',
+            conn_id='hiveserver2_default',
+            conn_type='hiveserver2',
             host='localhost',
-            schema='default', port=10000))
+            schema='default',
+            port=10000))
     merge_conn(
         models.Connection(
-            conn_id='metastore_default', conn_type='hive_metastore',
-            host='localhost', extra="{\"authMechanism\": \"PLAIN\"}",
+            conn_id='metastore_default',
+            conn_type='hive_metastore',
+            host='localhost',
+            extra="{\"authMechanism\": \"PLAIN\"}",
             port=9083))
     merge_conn(
         models.Connection(
-            conn_id='mongo_default', conn_type='mongo',
-            host='localhost', port=27017))
+            conn_id='mongo_default',
+            conn_type='mongo',
+            host='localhost',
+            port=27017))
     merge_conn(
         models.Connection(
-            conn_id='mysql_default', conn_type='mysql',
+            conn_id='mysql_default',
+            conn_type='mysql',
             login='root',
             host='localhost'))
     merge_conn(
         models.Connection(
-            conn_id='postgres_default', conn_type='postgres',
+            conn_id='postgres_default',
+            conn_type='postgres',
             login='postgres',
             schema='airflow',
             host='localhost'))
     merge_conn(
         models.Connection(
-            conn_id='sqlite_default', conn_type='sqlite',
+            conn_id='sqlite_default',
+            conn_type='sqlite',
             host='/tmp/sqlite_default.db'))
     merge_conn(
         models.Connection(
-            conn_id='http_default', conn_type='http',
+            conn_id='http_default',
+            conn_type='http',
             host='https://www.google.com/'))
     merge_conn(
         models.Connection(
-            conn_id='mssql_default', conn_type='mssql',
-            host='localhost', port=1433))
+            conn_id='mssql_default',
+            conn_type='mssql',
+            host='localhost',
+            port=1433))
     merge_conn(
         models.Connection(
-            conn_id='vertica_default', conn_type='vertica',
-            host='localhost', port=5433))
+            conn_id='vertica_default',
+            conn_type='vertica',
+            host='localhost',
+            port=5433))
     merge_conn(
         models.Connection(
-            conn_id='wasb_default', conn_type='wasb',
+            conn_id='wasb_default',
+            conn_type='wasb',
             extra='{"sas_token": null}'))
     merge_conn(
         models.Connection(
-            conn_id='webhdfs_default', conn_type='hdfs',
-            host='localhost', port=50070))
+            conn_id='webhdfs_default',
+            conn_type='hdfs',
+            host='localhost',
+            port=50070))
     merge_conn(
         models.Connection(
-            conn_id='ssh_default', conn_type='ssh',
-            host='localhost'))
+            conn_id='ssh_default', conn_type='ssh', host='localhost'))
     merge_conn(
         models.Connection(
-            conn_id='sftp_default', conn_type='sftp',
-            host='localhost', port=22, login='travis',
+            conn_id='sftp_default',
+            conn_type='sftp',
+            host='localhost',
+            port=22,
+            login='travis',
             extra='''
                 {"private_key": "~/.ssh/id_rsa", "ignore_hostkey_verification": true}
             '''))
     merge_conn(
         models.Connection(
-            conn_id='fs_default', conn_type='fs',
-            extra='{"path": "/"}'))
+            conn_id='fs_default', conn_type='fs', extra='{"path": "/"}'))
     merge_conn(
         models.Connection(
-            conn_id='aws_default', conn_type='aws',
+            conn_id='aws_default',
+            conn_type='aws',
             extra='{"region_name": "us-east-1"}'))
     merge_conn(
         models.Connection(
-            conn_id='spark_default', conn_type='spark',
-            host='yarn', extra='{"queue": "root.default"}'))
+            conn_id='spark_default',
+            conn_type='spark',
+            host='yarn',
+            extra='{"queue": "root.default"}'))
     merge_conn(
         models.Connection(
-            conn_id='druid_broker_default', conn_type='druid',
-            host='druid-broker', port=8082, extra='{"endpoint": "druid/v2/sql"}'))
+            conn_id='druid_broker_default',
+            conn_type='druid',
+            host='druid-broker',
+            port=8082,
+            extra='{"endpoint": "druid/v2/sql"}'))
     merge_conn(
         models.Connection(
-            conn_id='druid_ingest_default', conn_type='druid',
-            host='druid-overlord', port=8081, extra='{"endpoint": "druid/indexer/v1/task"}'))
+            conn_id='druid_ingest_default',
+            conn_type='druid',
+            host='druid-overlord',
+            port=8081,
+            extra='{"endpoint": "druid/indexer/v1/task"}'))
     merge_conn(
         models.Connection(
-            conn_id='redis_default', conn_type='redis',
-            host='localhost', port=6379,
+            conn_id='redis_default',
+            conn_type='redis',
+            host='localhost',
+            port=6379,
             extra='{"db": 0}'))
     merge_conn(
         models.Connection(
-            conn_id='sqoop_default', conn_type='sqoop',
-            host='rmdbs', extra=''))
+            conn_id='sqoop_default', conn_type='sqoop', host='rmdbs',
+            extra=''))
     merge_conn(
         models.Connection(
-            conn_id='emr_default', conn_type='emr',
+            conn_id='emr_default',
+            conn_type='emr',
             extra='''
                 {   "Name": "default_job_flow_name",
                     "LogUri": "s3://my-emr-log-bucket/default_job_flow_location",
@@ -266,24 +316,28 @@ def initdb(rbac=False):
             '''))
     merge_conn(
         models.Connection(
-            conn_id='databricks_default', conn_type='databricks',
+            conn_id='databricks_default',
+            conn_type='databricks',
             host='localhost'))
     merge_conn(
         models.Connection(
-            conn_id='qubole_default', conn_type='qubole',
-            host= 'localhost'))
+            conn_id='qubole_default', conn_type='qubole', host='localhost'))
     merge_conn(
         models.Connection(
-            conn_id='segment_default', conn_type='segment',
+            conn_id='segment_default',
+            conn_type='segment',
             extra='{"write_key": "my-segment-write-key"}')),
     merge_conn(
         models.Connection(
-            conn_id='azure_data_lake_default', conn_type='azure_data_lake',
+            conn_id='azure_data_lake_default',
+            conn_type='azure_data_lake',
             extra='{"tenant": "<TENANT>", "account_name": "<ACCOUNTNAME>" }'))
     merge_conn(
         models.Connection(
-            conn_id='cassandra_default', conn_type='cassandra',
-            host='localhost', port=9042))
+            conn_id='cassandra_default',
+            conn_type='cassandra',
+            host='localhost',
+            port=9042))
 
     # Known event types
     KET = models.KnownEventType
@@ -315,11 +369,10 @@ def initdb(rbac=False):
             conn_id='airflow_db',
             chart_type='bar',
             x_is_date=False,
-            sql=(
-                "SELECT state, COUNT(1) as number "
-                "FROM task_instance "
-                "WHERE dag_id LIKE 'example%' "
-                "GROUP BY state"),
+            sql=("SELECT state, COUNT(1) as number "
+                 "FROM task_instance "
+                 "WHERE dag_id LIKE 'example%' "
+                 "GROUP BY state"),
         )
         session.add(chart)
         session.commit()

@@ -37,20 +37,21 @@ class DagrunRunningDep(BaseTIDep):
                 dag_id=dag.dag_id,
                 state=State.RUNNING,
                 external_trigger=False,
-                session=session
-            )
+                session=session)
 
             if len(running_dagruns) >= dag.max_active_runs:
-                reason = ("The maximum number of active dag runs ({0}) for this task "
-                          "instance's DAG '{1}' has been reached.".format(
-                              dag.max_active_runs,
-                              ti.dag_id))
+                reason = (
+                    "The maximum number of active dag runs ({0}) for this task "
+                    "instance's DAG '{1}' has been reached.".format(
+                        dag.max_active_runs, ti.dag_id))
             else:
                 reason = "Unknown reason"
             yield self._failing_status(
-                reason="Task instance's dagrun did not exist: {0}.".format(reason))
+                reason="Task instance's dagrun did not exist: {0}.".format(
+                    reason))
         else:
             if dagrun.state != State.RUNNING:
                 yield self._failing_status(
-                    reason="Task instance's dagrun was not in the 'running' state but in "
-                           "the state '{}'.".format(dagrun.state))
+                    reason=
+                    "Task instance's dagrun was not in the 'running' state but in "
+                    "the state '{}'.".format(dagrun.state))

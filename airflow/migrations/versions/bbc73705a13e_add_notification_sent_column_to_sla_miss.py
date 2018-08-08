@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """Add notification_sent column to sla_miss
 
 Revision ID: bbc73705a13e
@@ -36,7 +35,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('sla_miss', sa.Column('notification_sent', sa.Boolean,default=False))
+    op.add_column('sla_miss',
+                  sa.Column('notification_sent', sa.Boolean, default=False))
 
 
 def downgrade():

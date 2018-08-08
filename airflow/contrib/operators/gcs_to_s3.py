@@ -71,8 +71,7 @@ class GoogleCloudStorageToS3Operator(GoogleCloudStorageListOperator):
             google_cloud_storage_conn_id=google_cloud_storage_conn_id,
             delegate_to=delegate_to,
             *args,
-            **kwargs
-        )
+            **kwargs)
         self.dest_aws_conn_id = dest_aws_conn_id
         self.dest_s3_key = dest_s3_key
         self.replace = replace
@@ -93,8 +92,7 @@ class GoogleCloudStorageToS3Operator(GoogleCloudStorageListOperator):
         if files:
             hook = GoogleCloudStorageHook(
                 google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-                delegate_to=self.delegate_to
-            )
+                delegate_to=self.delegate_to)
 
             for file in files:
                 file_bytes = hook.download(self.bucket, file)
@@ -102,9 +100,8 @@ class GoogleCloudStorageToS3Operator(GoogleCloudStorageListOperator):
                 dest_key = self.dest_s3_key + file
                 self.log.info("Saving file to %s", dest_key)
 
-                s3_hook.load_bytes(file_bytes,
-                                   key=dest_key,
-                                   replace=self.replace)
+                s3_hook.load_bytes(
+                    file_bytes, key=dest_key, replace=self.replace)
 
             self.log.info("All done, uploaded %d files to S3", len(files))
         else:

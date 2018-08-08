@@ -41,8 +41,10 @@ class AzureFileShareHook(BaseHook):
         """Return the FileService object."""
         conn = self.get_connection(self.conn_id)
         service_options = conn.extra_dejson
-        return FileService(account_name=conn.login,
-                           account_key=conn.password, **service_options)
+        return FileService(
+            account_name=conn.login,
+            account_key=conn.password,
+            **service_options)
 
     def check_for_directory(self, share_name, directory_name, **kwargs):
         """
@@ -58,8 +60,7 @@ class AzureFileShareHook(BaseHook):
         :return: True if the file exists, False otherwise.
         :rtype bool
         """
-        return self.connection.exists(share_name, directory_name,
-                                      **kwargs)
+        return self.connection.exists(share_name, directory_name, **kwargs)
 
     def check_for_file(self, share_name, directory_name, file_name, **kwargs):
         """
@@ -77,10 +78,13 @@ class AzureFileShareHook(BaseHook):
         :return: True if the file exists, False otherwise.
         :rtype bool
         """
-        return self.connection.exists(share_name, directory_name,
-                                      file_name, **kwargs)
+        return self.connection.exists(share_name, directory_name, file_name,
+                                      **kwargs)
 
-    def list_directories_and_files(self, share_name, directory_name=None, **kwargs):
+    def list_directories_and_files(self,
+                                   share_name,
+                                   directory_name=None,
+                                   **kwargs):
         """
         Return the list of directories and files stored on a Azure File Share.
 
@@ -94,9 +98,8 @@ class AzureFileShareHook(BaseHook):
         :return: A list of files and directories
         :rtype list
         """
-        return self.connection.list_directories_and_files(share_name,
-                                                          directory_name,
-                                                          **kwargs)
+        return self.connection.list_directories_and_files(
+            share_name, directory_name, **kwargs)
 
     def create_directory(self, share_name, directory_name, **kwargs):
         """
@@ -112,9 +115,11 @@ class AzureFileShareHook(BaseHook):
         :return: A list of files and directories
         :rtype list
         """
-        return self.connection.create_directory(share_name, directory_name, **kwargs)
+        return self.connection.create_directory(share_name, directory_name,
+                                                **kwargs)
 
-    def get_file(self, file_path, share_name, directory_name, file_name, **kwargs):
+    def get_file(self, file_path, share_name, directory_name, file_name,
+                 **kwargs):
         """
         Download a file from Azure File Share.
 
@@ -130,10 +135,11 @@ class AzureFileShareHook(BaseHook):
             `FileService.get_file_to_path()` takes.
         :type kwargs: object
         """
-        self.connection.get_file_to_path(share_name, directory_name,
-                                         file_name, file_path, **kwargs)
+        self.connection.get_file_to_path(share_name, directory_name, file_name,
+                                         file_path, **kwargs)
 
-    def get_file_to_stream(self, stream, share_name, directory_name, file_name, **kwargs):
+    def get_file_to_stream(self, stream, share_name, directory_name, file_name,
+                           **kwargs):
         """
         Download a file from Azure File Share.
 
@@ -152,7 +158,8 @@ class AzureFileShareHook(BaseHook):
         self.connection.get_file_to_stream(share_name, directory_name,
                                            file_name, stream, **kwargs)
 
-    def load_file(self, file_path, share_name, directory_name, file_name, **kwargs):
+    def load_file(self, file_path, share_name, directory_name, file_name,
+                  **kwargs):
         """
         Upload a file to Azure File Share.
 
@@ -171,7 +178,8 @@ class AzureFileShareHook(BaseHook):
         self.connection.create_file_from_path(share_name, directory_name,
                                               file_name, file_path, **kwargs)
 
-    def load_string(self, string_data, share_name, directory_name, file_name, **kwargs):
+    def load_string(self, string_data, share_name, directory_name, file_name,
+                    **kwargs):
         """
         Upload a string to Azure File Share.
 
@@ -190,7 +198,8 @@ class AzureFileShareHook(BaseHook):
         self.connection.create_file_from_text(share_name, directory_name,
                                               file_name, string_data, **kwargs)
 
-    def load_stream(self, stream, share_name, directory_name, file_name, count, **kwargs):
+    def load_stream(self, stream, share_name, directory_name, file_name, count,
+                    **kwargs):
         """
         Upload a stream to Azure File Share.
 
@@ -208,5 +217,5 @@ class AzureFileShareHook(BaseHook):
             `FileService.create_file_from_stream()` takes.
         :type kwargs: object
         """
-        self.connection.create_file_from_stream(share_name, directory_name,
-                                                file_name, stream, count, **kwargs)
+        self.connection.create_file_from_stream(
+            share_name, directory_name, file_name, stream, count, **kwargs)

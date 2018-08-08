@@ -38,12 +38,7 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 class SalesforceHook(BaseHook, LoggingMixin):
-    def __init__(
-            self,
-            conn_id,
-            *args,
-            **kwargs
-    ):
+    def __init__(self, conn_id, *args, **kwargs):
         """
         Create new connection to Salesforce
         and allows you to pull data out of SFDC and save it to a file.
@@ -85,8 +80,7 @@ class SalesforceHook(BaseHook, LoggingMixin):
             password=self.connection.password,
             security_token=self.extras['security_token'],
             instance_url=self.connection.host,
-            sandbox=self.extras.get('sandbox', False)
-        )
+            sandbox=self.extras.get('sandbox', False))
         self.sf = sf
         return sf
 
@@ -101,10 +95,8 @@ class SalesforceHook(BaseHook, LoggingMixin):
         self.log.info("Querying for all objects")
         query = self.sf.query_all(query)
 
-        self.log.info(
-            "Received results: Total size: %s; Done: %s",
-            query['totalSize'], query['done']
-        )
+        self.log.info("Received results: Total size: %s; Done: %s",
+                      query['totalSize'], query['done'])
 
         query = json.loads(json.dumps(query))
         return query
@@ -152,9 +144,8 @@ class SalesforceHook(BaseHook, LoggingMixin):
 
         query = "SELECT {0} FROM {1}".format(field_string, obj)
         self.log.info(
-            "Making query to Salesforce: %s",
-            query if len(query) < 30 else " ... ".join([query[:15], query[-15:]])
-        )
+            "Making query to Salesforce: %s", query
+            if len(query) < 30 else " ... ".join([query[:15], query[-15:]]))
         return self.make_query(query)
 
     @classmethod
@@ -177,9 +168,7 @@ class SalesforceHook(BaseHook, LoggingMixin):
             col = pd.to_datetime(col)
         except ValueError:
             log = LoggingMixin().log
-            log.warning(
-                "Could not convert field to timestamps: %s", col.name
-            )
+            log.warning("Could not convert field to timestamps: %s", col.name)
             return col
 
         # now convert the newly created datetimes into timestamps
@@ -198,14 +187,12 @@ class SalesforceHook(BaseHook, LoggingMixin):
         # return a new series that maintains the same index as the original
         return pd.Series(converted, index=col.index)
 
-    def write_object_to_file(
-        self,
-        query_results,
-        filename,
-        fmt="csv",
-        coerce_to_timestamp=False,
-        record_time_added=False
-    ):
+    def write_object_to_file(self,
+                             query_results,
+                             filename,
+                             fmt="csv",
+                             coerce_to_timestamp=False,
+                             record_time_added=False):
         """
         Write query results to file.
 
@@ -280,14 +267,12 @@ class SalesforceHook(BaseHook, LoggingMixin):
             # are the ones that are either date or datetime types
             # strings are too general and we risk unintentional conversion
             possible_timestamp_cols = [
-                i['name'].lower()
-                for i in schema['fields']
-                if i['type'] in ["date", "datetime"] and
-                i['name'].lower() in df.columns
+                i['name'].lower() for i in schema['fields']
+                if i['type'] in ["date", "datetime"]
+                and i['name'].lower() in df.columns
             ]
             df[possible_timestamp_cols] = df[possible_timestamp_cols].apply(
-                lambda x: self._to_timestamp(x)
-            )
+                lambda x: self._to_timestamp(x))
 
         if record_time_added:
             fetched_time = time.time()
@@ -309,11 +294,9 @@ class SalesforceHook(BaseHook, LoggingMixin):
             self.log.info("Cleaning data and writing to CSV")
             possible_strings = df.columns[df.dtypes == "object"]
             df[possible_strings] = df[possible_strings].apply(
-                lambda x: x.str.replace("\r\n", "")
-            )
+                lambda x: x.str.replace("\r\n", ""))
             df[possible_strings] = df[possible_strings].apply(
-                lambda x: x.str.replace("\n", "")
-            )
+                lambda x: x.str.replace("\n", ""))
 
             # write the dataframe
             df.to_csv(filename, index=False)

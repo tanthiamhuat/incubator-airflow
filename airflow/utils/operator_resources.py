@@ -41,6 +41,7 @@ class Resource(object):
         execution of the operator.
     :type qty: long
     """
+
     def __init__(self, name, units_str, qty):
         if qty < 0:
             raise AirflowException(
@@ -104,12 +105,12 @@ class Resources(object):
     :param gpus: The number of gpu units that are required
     :type gpus: long
     """
+
     def __init__(self,
                  cpus=configuration.conf.getint('operators', 'default_cpus'),
                  ram=configuration.conf.getint('operators', 'default_ram'),
                  disk=configuration.conf.getint('operators', 'default_disk'),
-                 gpus=configuration.conf.getint('operators', 'default_gpus')
-                 ):
+                 gpus=configuration.conf.getint('operators', 'default_gpus')):
         self.cpus = CpuResource(cpus)
         self.ram = RamResource(ram)
         self.disk = DiskResource(disk)

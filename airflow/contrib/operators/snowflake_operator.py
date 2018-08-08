@@ -38,14 +38,20 @@ class SnowflakeOperator(BaseOperator):
     :type database: string
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
+    template_fields = ('sql', )
+    template_ext = ('.sql', )
     ui_color = '#ededed'
 
     @apply_defaults
-    def __init__(
-            self, sql, snowflake_conn_id='snowflake_default', parameters=None,
-            autocommit=True, warehouse=None, database=None, *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 snowflake_conn_id='snowflake_default',
+                 parameters=None,
+                 autocommit=True,
+                 warehouse=None,
+                 database=None,
+                 *args,
+                 **kwargs):
         super(SnowflakeOperator, self).__init__(*args, **kwargs)
         self.snowflake_conn_id = snowflake_conn_id
         self.sql = sql
@@ -55,13 +61,13 @@ class SnowflakeOperator(BaseOperator):
         self.database = database
 
     def get_hook(self):
-        return SnowflakeHook(snowflake_conn_id=self.snowflake_conn_id,
-                             warehouse=self.warehouse, database=self.database)
+        return SnowflakeHook(
+            snowflake_conn_id=self.snowflake_conn_id,
+            warehouse=self.warehouse,
+            database=self.database)
 
     def execute(self, context):
         self.log.info('Executing: %s', self.sql)
         hook = self.get_hook()
         hook.run(
-            self.sql,
-            autocommit=self.autocommit,
-            parameters=self.parameters)
+            self.sql, autocommit=self.autocommit, parameters=self.parameters)

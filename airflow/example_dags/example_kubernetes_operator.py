@@ -28,10 +28,7 @@ try:
     # pip install airflow[kubernetes]
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
-    args = {
-        'owner': 'airflow',
-        'start_date': days_ago(2)
-    }
+    args = {'owner': 'airflow', 'start_date': days_ago(2)}
 
     dag = DAG(
         dag_id='example_kubernetes_operator',

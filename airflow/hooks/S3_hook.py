@@ -39,7 +39,8 @@ class S3Hook(AwsHook):
     def parse_s3_url(s3url):
         parsed_url = urlparse(s3url)
         if not parsed_url.netloc:
-            raise AirflowException('Please provide a bucket_name instead of "%s"' % s3url)
+            raise AirflowException(
+                'Please provide a bucket_name instead of "%s"' % s3url)
         else:
             bucket_name = parsed_url.netloc
             key = parsed_url.path.strip('/')
@@ -79,8 +80,12 @@ class S3Hook(AwsHook):
         plist = self.list_prefixes(bucket_name, previous_level, delimiter)
         return False if plist is None else prefix in plist
 
-    def list_prefixes(self, bucket_name, prefix='', delimiter='',
-                      page_size=None, max_items=None):
+    def list_prefixes(self,
+                      bucket_name,
+                      prefix='',
+                      delimiter='',
+                      page_size=None,
+                      max_items=None):
         """
         Lists prefixes in a bucket under prefix
 
@@ -101,10 +106,11 @@ class S3Hook(AwsHook):
         }
 
         paginator = self.get_conn().get_paginator('list_objects_v2')
-        response = paginator.paginate(Bucket=bucket_name,
-                                      Prefix=prefix,
-                                      Delimiter=delimiter,
-                                      PaginationConfig=config)
+        response = paginator.paginate(
+            Bucket=bucket_name,
+            Prefix=prefix,
+            Delimiter=delimiter,
+            PaginationConfig=config)
 
         has_results = False
         prefixes = []
@@ -117,8 +123,12 @@ class S3Hook(AwsHook):
         if has_results:
             return prefixes
 
-    def list_keys(self, bucket_name, prefix='', delimiter='',
-                  page_size=None, max_items=None):
+    def list_keys(self,
+                  bucket_name,
+                  prefix='',
+                  delimiter='',
+                  page_size=None,
+                  max_items=None):
         """
         Lists keys in a bucket under prefix and not containing delimiter
 
@@ -139,10 +149,11 @@ class S3Hook(AwsHook):
         }
 
         paginator = self.get_conn().get_paginator('list_objects_v2')
-        response = paginator.paginate(Bucket=bucket_name,
-                                      Prefix=prefix,
-                                      Delimiter=delimiter,
-                                      PaginationConfig=config)
+        response = paginator.paginate(
+            Bucket=bucket_name,
+            Prefix=prefix,
+            Delimiter=delimiter,
+            PaginationConfig=config)
 
         has_results = False
         keys = []
@@ -203,7 +214,9 @@ class S3Hook(AwsHook):
         obj = self.get_key(key, bucket_name)
         return obj.get()['Body'].read().decode('utf-8')
 
-    def select_key(self, key, bucket_name=None,
+    def select_key(self,
+                   key,
+                   bucket_name=None,
                    expression='SELECT * FROM S3Object',
                    expression_type='SQL',
                    input_serialization=None,
@@ -246,17 +259,19 @@ class S3Hook(AwsHook):
             OutputSerialization=output_serialization)
 
         return ''.join(event['Records']['Payload']
-                       for event in response['Payload']
-                       if 'Records' in event)
+                       for event in response['Payload'] if 'Records' in event)
 
     def check_for_wildcard_key(self,
-                               wildcard_key, bucket_name=None, delimiter=''):
+                               wildcard_key,
+                               bucket_name=None,
+                               delimiter=''):
         """
         Checks that a key matching a wildcard expression exists in a bucket
         """
-        return self.get_wildcard_key(wildcard_key=wildcard_key,
-                                     bucket_name=bucket_name,
-                                     delimiter=delimiter) is not None
+        return self.get_wildcard_key(
+            wildcard_key=wildcard_key,
+            bucket_name=bucket_name,
+            delimiter=delimiter) is not None
 
     def get_wildcard_key(self, wildcard_key, bucket_name=None, delimiter=''):
         """
@@ -273,7 +288,9 @@ class S3Hook(AwsHook):
         prefix = re.split(r'[*]', wildcard_key, 1)[0]
         klist = self.list_keys(bucket_name, prefix=prefix, delimiter=delimiter)
         if klist:
-            key_matches = [k for k in klist if fnmatch.fnmatch(k, wildcard_key)]
+            key_matches = [
+                k for k in klist if fnmatch.fnmatch(k, wildcard_key)
+            ]
             if key_matches:
                 return self.get_key(key_matches[0], bucket_name)
 
@@ -339,11 +356,12 @@ class S3Hook(AwsHook):
             by S3 and will be stored in an encrypted form while at rest in S3.
         :type encrypt: bool
         """
-        self.load_bytes(string_data.encode(encoding),
-                        key=key,
-                        bucket_name=bucket_name,
-                        replace=replace,
-                        encrypt=encrypt)
+        self.load_bytes(
+            string_data.encode(encoding),
+            key=key,
+            bucket_name=bucket_name,
+            replace=replace,
+            encrypt=encrypt)
 
     def load_bytes(self,
                    bytes_data,
@@ -383,4 +401,5 @@ class S3Hook(AwsHook):
         filelike_buffer = BytesIO(bytes_data)
 
         client = self.get_conn()
-        client.upload_fileobj(filelike_buffer, bucket_name, key, ExtraArgs=extra_args)
+        client.upload_fileobj(
+            filelike_buffer, bucket_name, key, ExtraArgs=extra_args)

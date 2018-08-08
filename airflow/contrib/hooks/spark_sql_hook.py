@@ -54,6 +54,7 @@ class SparkSqlHook(BaseHook):
     :param yarn_queue: The YARN queue to submit to (Default: "default")
     :type yarn_queue: str
     """
+
     def __init__(self,
                  sql,
                  conf=None,
@@ -67,8 +68,7 @@ class SparkSqlHook(BaseHook):
                  name='default-name',
                  num_executors=None,
                  verbose=True,
-                 yarn_queue='default'
-                 ):
+                 yarn_queue='default'):
         self._sql = sql
         self._conf = conf
         self._conn = self.get_connection(conn_id)
@@ -100,7 +100,10 @@ class SparkSqlHook(BaseHook):
             for conf_el in self._conf.split(","):
                 connection_cmd += ["--conf", conf_el]
         if self._total_executor_cores:
-            connection_cmd += ["--total-executor-cores", str(self._total_executor_cores)]
+            connection_cmd += [
+                "--total-executor-cores",
+                str(self._total_executor_cores)
+            ]
         if self._executor_cores:
             connection_cmd += ["--executor-cores", str(self._executor_cores)]
         if self._executor_memory:
@@ -139,10 +142,11 @@ class SparkSqlHook(BaseHook):
         :param kwargs: extra arguments to Popen (see subprocess.Popen)
         """
         spark_sql_cmd = self._prepare_command(cmd)
-        self._sp = subprocess.Popen(spark_sql_cmd,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT,
-                                    **kwargs)
+        self._sp = subprocess.Popen(
+            spark_sql_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            **kwargs)
 
         for line in iter(self._sp.stdout.readline, ''):
             self.log.info(line)
@@ -152,9 +156,7 @@ class SparkSqlHook(BaseHook):
         if returncode:
             raise AirflowException(
                 "Cannot execute {} on {}. Process exit code: {}.".format(
-                    cmd, self._conn.host, returncode
-                )
-            )
+                    cmd, self._conn.host, returncode))
 
     def kill(self):
         if self._sp and self._sp.poll() is None:

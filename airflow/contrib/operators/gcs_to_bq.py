@@ -115,9 +115,9 @@ class GoogleCloudStorageToBigQueryOperator(BaseOperator):
         dataset.table$partition.
     :type time_partitioning: dict
     """
-    template_fields = ('bucket', 'source_objects',
-                       'schema_object', 'destination_project_dataset_table')
-    template_ext = ('.sql',)
+    template_fields = ('bucket', 'source_objects', 'schema_object',
+                       'destination_project_dataset_table')
+    template_ext = ('.sql', )
     ui_color = '#f0eee4'
 
     @apply_defaults
@@ -146,9 +146,11 @@ class GoogleCloudStorageToBigQueryOperator(BaseOperator):
                  src_fmt_configs=None,
                  external_table=False,
                  time_partitioning=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
 
-        super(GoogleCloudStorageToBigQueryOperator, self).__init__(*args, **kwargs)
+        super(GoogleCloudStorageToBigQueryOperator, self).__init__(
+            *args, **kwargs)
 
         # GCS config
         if src_fmt_configs is None:
@@ -185,8 +187,9 @@ class GoogleCloudStorageToBigQueryOperator(BaseOperator):
         self.time_partitioning = time_partitioning
 
     def execute(self, context):
-        bq_hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                               delegate_to=self.delegate_to)
+        bq_hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
 
         if not self.schema_fields and \
                 self.schema_object and \
@@ -194,20 +197,23 @@ class GoogleCloudStorageToBigQueryOperator(BaseOperator):
             gcs_hook = GoogleCloudStorageHook(
                 google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
                 delegate_to=self.delegate_to)
-            schema_fields = json.loads(gcs_hook.download(
-                self.bucket,
-                self.schema_object).decode("utf-8"))
+            schema_fields = json.loads(
+                gcs_hook.download(self.bucket,
+                                  self.schema_object).decode("utf-8"))
         else:
             schema_fields = self.schema_fields
 
-        source_uris = ['gs://{}/{}'.format(self.bucket, source_object)
-                       for source_object in self.source_objects]
+        source_uris = [
+            'gs://{}/{}'.format(self.bucket, source_object)
+            for source_object in self.source_objects
+        ]
         conn = bq_hook.get_conn()
         cursor = conn.cursor()
 
         if self.external_table:
             cursor.create_external_table(
-                external_project_dataset_table=self.destination_project_dataset_table,
+                external_project_dataset_table=self.
+                destination_project_dataset_table,
                 schema_fields=schema_fields,
                 source_uris=source_uris,
                 source_format=self.source_format,
@@ -219,11 +225,11 @@ class GoogleCloudStorageToBigQueryOperator(BaseOperator):
                 ignore_unknown_values=self.ignore_unknown_values,
                 allow_quoted_newlines=self.allow_quoted_newlines,
                 allow_jagged_rows=self.allow_jagged_rows,
-                src_fmt_configs=self.src_fmt_configs
-            )
+                src_fmt_configs=self.src_fmt_configs)
         else:
             cursor.run_load(
-                destination_project_dataset_table=self.destination_project_dataset_table,
+                destination_project_dataset_table=self.
+                destination_project_dataset_table,
                 schema_fields=schema_fields,
                 source_uris=source_uris,
                 source_format=self.source_format,
@@ -242,12 +248,10 @@ class GoogleCloudStorageToBigQueryOperator(BaseOperator):
 
         if self.max_id_key:
             cursor.execute('SELECT MAX({}) FROM {}'.format(
-                self.max_id_key,
-                self.destination_project_dataset_table))
+                self.max_id_key, self.destination_project_dataset_table))
             row = cursor.fetchone()
             max_id = row[0] if row[0] else 0
-            self.log.info(
-                'Loaded BQ data with max %s.%s=%s',
-                self.destination_project_dataset_table, self.max_id_key, max_id
-            )
+            self.log.info('Loaded BQ data with max %s.%s=%s',
+                          self.destination_project_dataset_table,
+                          self.max_id_key, max_id)
             return max_id

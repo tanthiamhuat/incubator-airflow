@@ -43,6 +43,6 @@ task2 = DummyOperator(task_id='task2', dag=dag)
 task3 = DummyOperator(task_id='task3', dag=dag)
 task3.set_upstream([task1, task2])
 
-task4 = DummyOperator(task_id='task4', dag=dag,
-                      trigger_rule=TriggerRule.ALL_DONE)
+task4 = DummyOperator(
+    task_id='task4', dag=dag, trigger_rule=TriggerRule.ALL_DONE)
 task4.set_upstream([task1, task2])

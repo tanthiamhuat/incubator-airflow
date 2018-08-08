@@ -91,7 +91,9 @@ spec:
         - name: xcom
           mountPath: {xcomMountPath}
   restartPolicy: Never
-    """.format(xcomMountPath=XCOM_MOUNT_PATH, sidecarContainerName=SIDECAR_CONTAINER_NAME)
+    """.format(
+        xcomMountPath=XCOM_MOUNT_PATH,
+        sidecarContainerName=SIDECAR_CONTAINER_NAME)
 
     def __init__(self):
         pass

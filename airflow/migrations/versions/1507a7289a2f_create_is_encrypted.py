@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """create is_encrypted
 
 Revision ID: 1507a7289a2f
@@ -35,12 +34,9 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.engine.reflection import Inspector
 
-connectionhelper = sa.Table(
-    'connection',
-    sa.MetaData(),
-    sa.Column('id', sa.Integer, primary_key=True),
-    sa.Column('is_encrypted')
-)
+connectionhelper = sa.Table('connection', sa.MetaData(),
+                            sa.Column('id', sa.Integer, primary_key=True),
+                            sa.Column('is_encrypted'))
 
 
 def upgrade():
@@ -62,9 +58,7 @@ def upgrade():
         sa.Column('is_encrypted', sa.Boolean, unique=False, default=False))
 
     conn = op.get_bind()
-    conn.execute(
-        connectionhelper.update().values(is_encrypted=False)
-    )
+    conn.execute(connectionhelper.update().values(is_encrypted=False))
 
 
 def downgrade():

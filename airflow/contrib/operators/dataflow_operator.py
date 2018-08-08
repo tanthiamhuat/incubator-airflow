@@ -72,17 +72,16 @@ class DataFlowJavaOperator(BaseOperator):
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            jar,
-            dataflow_default_options=None,
-            options=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            poll_sleep=10,
-            job_class=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 jar,
+                 dataflow_default_options=None,
+                 options=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 poll_sleep=10,
+                 job_class=None,
+                 *args,
+                 **kwargs):
         """
         Create a new DataFlowJavaOperator. Note that both
         dataflow_default_options and options will be merged to specify pipeline
@@ -120,8 +119,10 @@ class DataFlowJavaOperator(BaseOperator):
 
         dataflow_default_options = dataflow_default_options or {}
         options = options or {}
-        options.setdefault('labels', {}).update(
-            {'airflow-version': 'v' + version.replace('.', '-').replace('+', '-')})
+        options.setdefault('labels', {}).update({
+            'airflow-version':
+            'v' + version.replace('.', '-').replace('+', '-')
+        })
         self.gcp_conn_id = gcp_conn_id
         self.delegate_to = delegate_to
         self.jar = jar
@@ -131,18 +132,19 @@ class DataFlowJavaOperator(BaseOperator):
         self.job_class = job_class
 
     def execute(self, context):
-        bucket_helper = GoogleCloudBucketHelper(
-            self.gcp_conn_id, self.delegate_to)
+        bucket_helper = GoogleCloudBucketHelper(self.gcp_conn_id,
+                                                self.delegate_to)
         self.jar = bucket_helper.google_cloud_to_local(self.jar)
-        hook = DataFlowHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to,
-                            poll_sleep=self.poll_sleep)
+        hook = DataFlowHook(
+            gcp_conn_id=self.gcp_conn_id,
+            delegate_to=self.delegate_to,
+            poll_sleep=self.poll_sleep)
 
         dataflow_options = copy.copy(self.dataflow_default_options)
         dataflow_options.update(self.options)
 
-        hook.start_java_dataflow(self.task_id, dataflow_options,
-                                 self.jar, self.job_class)
+        hook.start_java_dataflow(self.task_id, dataflow_options, self.jar,
+                                 self.job_class)
 
 
 class DataflowTemplateOperator(BaseOperator):
@@ -190,16 +192,15 @@ class DataflowTemplateOperator(BaseOperator):
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            template,
-            dataflow_default_options=None,
-            parameters=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            poll_sleep=10,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 template,
+                 dataflow_default_options=None,
+                 parameters=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 poll_sleep=10,
+                 *args,
+                 **kwargs):
         """
         Create a new DataflowTemplateOperator. Note that
         dataflow_default_options is expected to save high-level options
@@ -243,11 +244,13 @@ class DataflowTemplateOperator(BaseOperator):
         self.parameters = parameters
 
     def execute(self, context):
-        hook = DataFlowHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to,
-                            poll_sleep=self.poll_sleep)
+        hook = DataFlowHook(
+            gcp_conn_id=self.gcp_conn_id,
+            delegate_to=self.delegate_to,
+            poll_sleep=self.poll_sleep)
 
-        hook.start_template_dataflow(self.task_id, self.dataflow_default_options,
+        hook.start_template_dataflow(self.task_id,
+                                     self.dataflow_default_options,
                                      self.parameters, self.template)
 
 
@@ -256,17 +259,16 @@ class DataFlowPythonOperator(BaseOperator):
     template_fields = ['options', 'dataflow_default_options']
 
     @apply_defaults
-    def __init__(
-            self,
-            py_file,
-            py_options=None,
-            dataflow_default_options=None,
-            options=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            poll_sleep=10,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 py_file,
+                 py_options=None,
+                 dataflow_default_options=None,
+                 options=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 poll_sleep=10,
+                 *args,
+                 **kwargs):
         """
         Create a new DataFlowPythonOperator. Note that both
         dataflow_default_options and options will be merged to specify pipeline
@@ -305,39 +307,41 @@ class DataFlowPythonOperator(BaseOperator):
         self.py_options = py_options or []
         self.dataflow_default_options = dataflow_default_options or {}
         self.options = options or {}
-        self.options.setdefault('labels', {}).update(
-            {'airflow-version': 'v' + version.replace('.', '-').replace('+', '-')})
+        self.options.setdefault('labels', {}).update({
+            'airflow-version':
+            'v' + version.replace('.', '-').replace('+', '-')
+        })
         self.gcp_conn_id = gcp_conn_id
         self.delegate_to = delegate_to
         self.poll_sleep = poll_sleep
 
     def execute(self, context):
         """Execute the python dataflow job."""
-        bucket_helper = GoogleCloudBucketHelper(
-            self.gcp_conn_id, self.delegate_to)
+        bucket_helper = GoogleCloudBucketHelper(self.gcp_conn_id,
+                                                self.delegate_to)
         self.py_file = bucket_helper.google_cloud_to_local(self.py_file)
-        hook = DataFlowHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to,
-                            poll_sleep=self.poll_sleep)
+        hook = DataFlowHook(
+            gcp_conn_id=self.gcp_conn_id,
+            delegate_to=self.delegate_to,
+            poll_sleep=self.poll_sleep)
         dataflow_options = self.dataflow_default_options.copy()
         dataflow_options.update(self.options)
         # Convert argument names from lowerCamelCase to snake case.
         camel_to_snake = lambda name: re.sub(
             r'[A-Z]', lambda x: '_' + x.group(0).lower(), name)
-        formatted_options = {camel_to_snake(key): dataflow_options[key]
-                             for key in dataflow_options}
-        hook.start_python_dataflow(
-            self.task_id, formatted_options,
-            self.py_file, self.py_options)
+        formatted_options = {
+            camel_to_snake(key): dataflow_options[key]
+            for key in dataflow_options
+        }
+        hook.start_python_dataflow(self.task_id, formatted_options,
+                                   self.py_file, self.py_options)
 
 
 class GoogleCloudBucketHelper(object):
     """GoogleCloudStorageHook helper class to download GCS object."""
     GCS_PREFIX_LENGTH = 5
 
-    def __init__(self,
-                 gcp_conn_id='google_cloud_default',
-                 delegate_to=None):
+    def __init__(self, gcp_conn_id='google_cloud_default', delegate_to=None):
         self._gcs_hook = GoogleCloudStorageHook(gcp_conn_id, delegate_to)
 
     def google_cloud_to_local(self, file_name):
@@ -365,8 +369,8 @@ class GoogleCloudBucketHelper(object):
 
         bucket_id = path_components[0]
         object_id = '/'.join(path_components[1:])
-        local_file = '/tmp/dataflow{}-{}'.format(str(uuid.uuid1())[:8],
-                                                 path_components[-1])
+        local_file = '/tmp/dataflow{}-{}'.format(
+            str(uuid.uuid1())[:8], path_components[-1])
         file_size = self._gcs_hook.download(bucket_id, object_id, local_file)
 
         if file_size > 0:

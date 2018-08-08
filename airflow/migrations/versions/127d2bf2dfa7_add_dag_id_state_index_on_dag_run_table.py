@@ -15,7 +15,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """Add dag_id/state index on dag_run table
 
 Revision ID: 127d2bf2dfa7
@@ -33,8 +32,10 @@ depends_on = None
 from alembic import op
 import sqlalchemy as sa
 
+
 def upgrade():
-    op.create_index('dag_id_state', 'dag_run', ['dag_id', 'state'], unique=False)
+    op.create_index(
+        'dag_id_state', 'dag_run', ['dag_id', 'state'], unique=False)
 
 
 def downgrade():

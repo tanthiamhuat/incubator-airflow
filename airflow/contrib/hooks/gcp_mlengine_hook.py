@@ -30,8 +30,7 @@ def _poll_with_exponential_delay(request, max_n, is_done_func, is_error_func):
             response = request.execute()
             if is_error_func(response):
                 raise ValueError(
-                    'The response contained an error: {}'.format(response)
-                )
+                    'The response contained an error: {}'.format(response))
             elif is_done_func(response):
                 log.info('Operation is done: %s', response)
                 return response
@@ -90,8 +89,7 @@ class MLEngineHook(GoogleCloudBaseHook):
         :rtype: dict
         """
         request = self._mlengine.projects().jobs().create(
-            parent='projects/{}'.format(project_id),
-            body=job)
+            parent='projects/{}'.format(project_id), body=job)
         job_id = job['jobId']
 
         try:
@@ -104,14 +102,12 @@ class MLEngineHook(GoogleCloudBaseHook):
                     if not use_existing_job_fn(existing_job):
                         self.log.error(
                             'Job with job_id %s already exist, but it does '
-                            'not match our expectation: %s',
-                            job_id, existing_job
-                        )
+                            'not match our expectation: %s', job_id,
+                            existing_job)
                         raise
                 self.log.info(
                     'Job with job_id %s already exist. Will waiting for it to finish',
-                    job_id
-                )
+                    job_id)
             else:
                 self.log.error('Failed to create MLEngine job: {}'.format(e))
                 raise

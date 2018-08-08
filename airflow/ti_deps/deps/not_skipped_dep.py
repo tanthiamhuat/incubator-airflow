@@ -29,4 +29,5 @@ class NotSkippedDep(BaseTIDep):
     @provide_session
     def _get_dep_statuses(self, ti, session, dep_context):
         if ti.state == State.SKIPPED:
-            yield self._failing_status(reason="The task instance has been skipped.")
+            yield self._failing_status(
+                reason="The task instance has been skipped.")

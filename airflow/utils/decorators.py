@@ -52,10 +52,11 @@ def apply_defaults(func):
     # have a different sig_cache.
     sig_cache = signature(func)
     non_optional_args = {
-        name for (name, param) in sig_cache.parameters.items()
-        if param.default == param.empty and
-        param.name != 'self' and
-        param.kind not in (param.VAR_POSITIONAL, param.VAR_KEYWORD)}
+        name
+        for (name, param) in sig_cache.parameters.items()
+        if param.default == param.empty and param.name != 'self'
+        and param.kind not in (param.VAR_POSITIONAL, param.VAR_KEYWORD)
+    }
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -97,7 +98,9 @@ def apply_defaults(func):
 
         result = func(*args, **kwargs)
         return result
+
     return wrapper
+
 
 if 'BUILDING_AIRFLOW_DOCS' in os.environ:
     # Monkey patch hook to get good function headers while building docs

@@ -36,15 +36,18 @@ class JdbcOperator(BaseOperator):
         Template reference are recognized by str ending in '.sql'
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
+    template_fields = ('sql', )
+    template_ext = ('.sql', )
     ui_color = '#ededed'
 
     @apply_defaults
-    def __init__(
-            self, sql,
-            jdbc_conn_id='jdbc_default', autocommit=False, parameters=None,
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 jdbc_conn_id='jdbc_default',
+                 autocommit=False,
+                 parameters=None,
+                 *args,
+                 **kwargs):
         super(JdbcOperator, self).__init__(*args, **kwargs)
         self.parameters = parameters
 

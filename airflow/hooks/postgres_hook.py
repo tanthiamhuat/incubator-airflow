@@ -52,9 +52,10 @@ class PostgresHook(DbApiHook):
             port=conn.port)
         # check for ssl parameters in conn.extra
         for arg_name, arg_val in conn.extra_dejson.items():
-            if arg_name in ['sslmode', 'sslcert', 'sslkey',
-                            'sslrootcert', 'sslcrl', 'application_name',
-                            'keepalives_idle']:
+            if arg_name in [
+                    'sslmode', 'sslcert', 'sslkey', 'sslrootcert', 'sslcrl',
+                    'application_name', 'keepalives_idle'
+            ]:
                 conn_args[arg_name] = arg_val
 
         self.conn = psycopg2.connect(**conn_args)
@@ -86,13 +87,15 @@ class PostgresHook(DbApiHook):
         """
         Loads a tab-delimited file into a database table
         """
-        self.copy_expert("COPY {table} FROM STDIN".format(table=table), tmp_file)
+        self.copy_expert(
+            "COPY {table} FROM STDIN".format(table=table), tmp_file)
 
     def bulk_dump(self, table, tmp_file):
         """
         Dumps a database table into a tab-delimited file
         """
-        self.copy_expert("COPY {table} TO STDOUT".format(table=table), tmp_file)
+        self.copy_expert(
+            "COPY {table} TO STDOUT".format(table=table), tmp_file)
 
     @staticmethod
     def _serialize_cell(cell, conn):

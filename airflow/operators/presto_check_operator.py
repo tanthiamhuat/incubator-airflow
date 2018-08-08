@@ -58,10 +58,7 @@ class PrestoCheckOperator(CheckOperator):
     """
 
     @apply_defaults
-    def __init__(
-            self, sql,
-            presto_conn_id='presto_default',
-            *args, **kwargs):
+    def __init__(self, sql, presto_conn_id='presto_default', *args, **kwargs):
         super(PrestoCheckOperator, self).__init__(sql=sql, *args, **kwargs)
 
         self.presto_conn_id = presto_conn_id
@@ -82,13 +79,19 @@ class PrestoValueCheckOperator(ValueCheckOperator):
     """
 
     @apply_defaults
-    def __init__(
-            self, sql, pass_value, tolerance=None,
-            presto_conn_id='presto_default',
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 pass_value,
+                 tolerance=None,
+                 presto_conn_id='presto_default',
+                 *args,
+                 **kwargs):
         super(PrestoValueCheckOperator, self).__init__(
-            sql=sql, pass_value=pass_value, tolerance=tolerance,
-            *args, **kwargs)
+            sql=sql,
+            pass_value=pass_value,
+            tolerance=tolerance,
+            *args,
+            **kwargs)
         self.presto_conn_id = presto_conn_id
 
     def get_db_hook(self):
@@ -112,15 +115,21 @@ class PrestoIntervalCheckOperator(IntervalCheckOperator):
     """
 
     @apply_defaults
-    def __init__(
-            self, table, metrics_thresholds,
-            date_filter_column='ds', days_back=-7,
-            presto_conn_id='presto_default',
-            *args, **kwargs):
+    def __init__(self,
+                 table,
+                 metrics_thresholds,
+                 date_filter_column='ds',
+                 days_back=-7,
+                 presto_conn_id='presto_default',
+                 *args,
+                 **kwargs):
         super(PrestoIntervalCheckOperator, self).__init__(
-            table=table, metrics_thresholds=metrics_thresholds,
-            date_filter_column=date_filter_column, days_back=days_back,
-            *args, **kwargs)
+            table=table,
+            metrics_thresholds=metrics_thresholds,
+            date_filter_column=date_filter_column,
+            days_back=days_back,
+            *args,
+            **kwargs)
         self.presto_conn_id = presto_conn_id
 
     def get_db_hook(self):

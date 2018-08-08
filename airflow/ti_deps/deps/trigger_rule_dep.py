@@ -46,34 +46,34 @@ class TriggerRuleDep(BaseTIDep):
             return
 
         if ti.task.trigger_rule == TR.DUMMY:
-            yield self._passing_status(reason="The task had a dummy trigger rule set.")
+            yield self._passing_status(
+                reason="The task had a dummy trigger rule set.")
             return
 
         # TODO(unknown): this query becomes quite expensive with dags that have many
         # tasks. It should be refactored to let the task report to the dag run and get the
         # aggregates from there.
-        qry = (
-            session
-            .query(
-                func.coalesce(func.sum(
-                    case([(TI.state == State.SUCCESS, 1)], else_=0)), 0),
-                func.coalesce(func.sum(
-                    case([(TI.state == State.SKIPPED, 1)], else_=0)), 0),
-                func.coalesce(func.sum(
-                    case([(TI.state == State.FAILED, 1)], else_=0)), 0),
-                func.coalesce(func.sum(
-                    case([(TI.state == State.UPSTREAM_FAILED, 1)], else_=0)), 0),
-                func.count(TI.task_id),
-            )
-            .filter(
-                TI.dag_id == ti.dag_id,
-                TI.task_id.in_(ti.task.upstream_task_ids),
-                TI.execution_date == ti.execution_date,
-                TI.state.in_([
-                    State.SUCCESS, State.FAILED,
-                    State.UPSTREAM_FAILED, State.SKIPPED]),
-            )
-        )
+        qry = (session.query(
+            func.coalesce(
+                func.sum(case([(TI.state == State.SUCCESS, 1)], else_=0)), 0),
+            func.coalesce(
+                func.sum(case([(TI.state == State.SKIPPED, 1)], else_=0)), 0),
+            func.coalesce(
+                func.sum(case([(TI.state == State.FAILED, 1)], else_=0)), 0),
+            func.coalesce(
+                func.sum(
+                    case([(TI.state == State.UPSTREAM_FAILED, 1)], else_=0)),
+                0),
+            func.count(TI.task_id),
+        ).filter(
+            TI.dag_id == ti.dag_id,
+            TI.task_id.in_(ti.task.upstream_task_ids),
+            TI.execution_date == ti.execution_date,
+            TI.state.in_([
+                State.SUCCESS, State.FAILED, State.UPSTREAM_FAILED,
+                State.SKIPPED
+            ]),
+        ))
 
         successes, skipped, failed, upstream_failed, done = qry.first()
         for dep_status in self._evaluate_trigger_rule(
@@ -88,16 +88,9 @@ class TriggerRuleDep(BaseTIDep):
             yield dep_status
 
     @provide_session
-    def _evaluate_trigger_rule(
-            self,
-            ti,
-            successes,
-            skipped,
-            failed,
-            upstream_failed,
-            done,
-            flag_upstream_failed,
-            session):
+    def _evaluate_trigger_rule(self, ti, successes, skipped, failed,
+                               upstream_failed, done, flag_upstream_failed,
+                               session):
         """
         Yields a dependency status that indicate whether the given task instance's trigger
         rule was met.
@@ -130,8 +123,12 @@ class TriggerRuleDep(BaseTIDep):
         tr = task.trigger_rule
         upstream_done = done >= upstream
         upstream_tasks_state = {
-            "total": upstream, "successes": successes, "skipped": skipped,
-            "failed": failed, "upstream_failed": upstream_failed, "done": done
+            "total": upstream,
+            "successes": successes,
+            "skipped": skipped,
+            "failed": failed,
+            "upstream_failed": upstream_failed,
+            "done": done
         }
         # TODO(aoen): Ideally each individual trigger rules would be its own class, but
         # this isn't very feasible at the moment since the database queries need to be
@@ -196,4 +193,5 @@ class TriggerRuleDep(BaseTIDep):
                             task.upstream_task_ids))
         else:
             yield self._failing_status(
-                reason="No strategy to evaluate trigger rule '{0}'.".format(tr))
+                reason="No strategy to evaluate trigger rule '{0}'.".format(
+                    tr))

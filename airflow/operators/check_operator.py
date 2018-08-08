@@ -62,15 +62,15 @@ class CheckOperator(BaseOperator):
     :type sql: string
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.hql', '.sql',)
+    template_fields = ('sql', )
+    template_ext = (
+        '.hql',
+        '.sql',
+    )
     ui_color = '#fff7e6'
 
     @apply_defaults
-    def __init__(
-            self, sql,
-            conn_id=None,
-            *args, **kwargs):
+    def __init__(self, sql, conn_id=None, *args, **kwargs):
         super(CheckOperator, self).__init__(*args, **kwargs)
         self.conn_id = conn_id
         self.sql = sql
@@ -117,18 +117,25 @@ class ValueCheckOperator(BaseOperator):
     :type sql: string
     """
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'ValueCheckOperator'
-    }
-    template_fields = ('sql', 'pass_value',)
-    template_ext = ('.hql', '.sql',)
+    __mapper_args__ = {'polymorphic_identity': 'ValueCheckOperator'}
+    template_fields = (
+        'sql',
+        'pass_value',
+    )
+    template_ext = (
+        '.hql',
+        '.sql',
+    )
     ui_color = '#fff7e6'
 
     @apply_defaults
-    def __init__(
-            self, sql, pass_value, tolerance=None,
-            conn_id=None,
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 pass_value,
+                 tolerance=None,
+                 conn_id=None,
+                 *args,
+                 **kwargs):
         super(ValueCheckOperator, self).__init__(*args, **kwargs)
         self.sql = sql
         self.conn_id = conn_id
@@ -163,9 +170,9 @@ class ValueCheckOperator(BaseOperator):
                 raise AirflowException(cvestr + except_temp.format(**locals()))
             if self.has_tolerance:
                 tests = [
-                    pass_value_conv * (1 - self.tol) <=
-                    r <= pass_value_conv * (1 + self.tol)
-                    for r in num_rec]
+                    pass_value_conv * (1 - self.tol) <= r <=
+                    pass_value_conv * (1 + self.tol) for r in num_rec
+                ]
             else:
                 tests = [r == pass_value_conv for r in num_rec]
         if not all(tests):
@@ -193,19 +200,23 @@ class IntervalCheckOperator(BaseOperator):
     :type metrics_threshold: dict
     """
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'IntervalCheckOperator'
-    }
+    __mapper_args__ = {'polymorphic_identity': 'IntervalCheckOperator'}
     template_fields = ('sql1', 'sql2')
-    template_ext = ('.hql', '.sql',)
+    template_ext = (
+        '.hql',
+        '.sql',
+    )
     ui_color = '#fff7e6'
 
     @apply_defaults
-    def __init__(
-            self, table, metrics_thresholds,
-            date_filter_column='ds', days_back=-7,
-            conn_id=None,
-            *args, **kwargs):
+    def __init__(self,
+                 table,
+                 metrics_thresholds,
+                 date_filter_column='ds',
+                 days_back=-7,
+                 conn_id=None,
+                 *args,
+                 **kwargs):
         super(IntervalCheckOperator, self).__init__(*args, **kwargs)
         self.table = table
         self.metrics_thresholds = metrics_thresholds
@@ -217,7 +228,8 @@ class IntervalCheckOperator(BaseOperator):
         sqlt = ("SELECT {sqlexp} FROM {table}"
                 " WHERE {date_filter_column}=").format(**locals())
         self.sql1 = sqlt + "'{{ ds }}'"
-        self.sql2 = sqlt + "'{{ macros.ds_add(ds, " + str(self.days_back) + ") }}'"
+        self.sql2 = sqlt + "'{{ macros.ds_add(ds, " + str(
+            self.days_back) + ") }}'"
 
     def execute(self, context=None):
         hook = self.get_db_hook()
@@ -226,9 +238,11 @@ class IntervalCheckOperator(BaseOperator):
         self.log.info('Executing SQL check: %s', self.sql1)
         row1 = hook.get_first(self.sql1)
         if not row2:
-            raise AirflowException("The query {q} returned None".format(q=self.sql2))
+            raise AirflowException(
+                "The query {q} returned None".format(q=self.sql2))
         if not row1:
-            raise AirflowException("The query {q} returned None".format(q=self.sql1))
+            raise AirflowException(
+                "The query {q} returned None".format(q=self.sql1))
         current = dict(zip(self.metrics_sorted, row1))
         reference = dict(zip(self.metrics_sorted, row2))
         ratios = {}
@@ -253,8 +267,8 @@ class IntervalCheckOperator(BaseOperator):
             self.log.warning(countstr.format(**locals()))
             for k in failed_tests:
                 self.log.warning(
-                    fstr.format(k=k, r=ratios[k], tr=self.metrics_thresholds[k])
-                )
+                    fstr.format(
+                        k=k, r=ratios[k], tr=self.metrics_thresholds[k]))
             raise AirflowException(estr.format(", ".join(failed_tests)))
         self.log.info("All tests have passed")
 

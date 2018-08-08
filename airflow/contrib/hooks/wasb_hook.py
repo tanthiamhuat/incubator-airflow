@@ -43,8 +43,10 @@ class WasbHook(BaseHook):
         """Return the BlockBlobService object."""
         conn = self.get_connection(self.conn_id)
         service_options = conn.extra_dejson
-        return BlockBlobService(account_name=conn.login,
-                                account_key=conn.password, **service_options)
+        return BlockBlobService(
+            account_name=conn.login,
+            account_key=conn.password,
+            **service_options)
 
     def check_for_blob(self, container_name, blob_name, **kwargs):
         """
@@ -76,8 +78,8 @@ class WasbHook(BaseHook):
         :return: True if blobs matching the prefix exist, False otherwise.
         :rtype bool
         """
-        matches = self.connection.list_blobs(container_name, prefix,
-                                             num_results=1, **kwargs)
+        matches = self.connection.list_blobs(
+            container_name, prefix, num_results=1, **kwargs)
         return len(list(matches)) > 0
 
     def load_file(self, file_path, container_name, blob_name, **kwargs):
@@ -145,6 +147,5 @@ class WasbHook(BaseHook):
             `BlockBlobService.create_blob_from_path()` takes.
         :type kwargs: object
         """
-        return self.connection.get_blob_to_text(container_name,
-                                                blob_name,
+        return self.connection.get_blob_to_text(container_name, blob_name,
                                                 **kwargs).content

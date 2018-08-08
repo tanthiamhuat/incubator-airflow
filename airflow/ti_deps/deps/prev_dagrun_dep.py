@@ -35,8 +35,9 @@ class PrevDagrunDep(BaseTIDep):
     def _get_dep_statuses(self, ti, session, dep_context):
         if dep_context.ignore_depends_on_past:
             yield self._passing_status(
-                reason="The context specified that the state of past DAGs could be "
-                       "ignored.")
+                reason=
+                "The context specified that the state of past DAGs could be "
+                "ignored.")
             return
 
         if not ti.task.depends_on_past:
@@ -49,12 +50,13 @@ class PrevDagrunDep(BaseTIDep):
         if dag.catchup:
             if dag.previous_schedule(ti.execution_date) is None:
                 yield self._passing_status(
-                    reason="This task does not have a schedule or is @once"
-                )
+                    reason="This task does not have a schedule or is @once")
                 return
             if dag.previous_schedule(ti.execution_date) < ti.task.start_date:
                 yield self._passing_status(
-                    reason="This task instance was the first task instance for its task.")
+                    reason=
+                    "This task instance was the first task instance for its task."
+                )
                 return
         else:
             dr = ti.get_dagrun()
@@ -62,25 +64,30 @@ class PrevDagrunDep(BaseTIDep):
 
             if not last_dagrun:
                 yield self._passing_status(
-                    reason="This task instance was the first task instance for its task.")
+                    reason=
+                    "This task instance was the first task instance for its task."
+                )
                 return
 
         previous_ti = ti.previous_ti
         if not previous_ti:
             yield self._failing_status(
-                reason="depends_on_past is true for this task's DAG, but the previous "
-                       "task instance has not run yet.")
+                reason=
+                "depends_on_past is true for this task's DAG, but the previous "
+                "task instance has not run yet.")
             return
 
         if previous_ti.state not in {State.SKIPPED, State.SUCCESS}:
             yield self._failing_status(
-                reason="depends_on_past is true for this task, but the previous task "
-                       "instance {0} is in the state '{1}' which is not a successful "
-                       "state.".format(previous_ti, previous_ti.state))
+                reason=
+                "depends_on_past is true for this task, but the previous task "
+                "instance {0} is in the state '{1}' which is not a successful "
+                "state.".format(previous_ti, previous_ti.state))
 
         previous_ti.task = ti.task
-        if (ti.task.wait_for_downstream and
-                not previous_ti.are_dependents_done(session=session)):
+        if (ti.task.wait_for_downstream
+                and not previous_ti.are_dependents_done(session=session)):
             yield self._failing_status(
-                reason="The tasks downstream of the previous task instance {0} haven't "
-                       "completed.".format(previous_ti))
+                reason=
+                "The tasks downstream of the previous task instance {0} haven't "
+                "completed.".format(previous_ti))

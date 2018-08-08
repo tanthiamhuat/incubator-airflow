@@ -33,7 +33,7 @@ class NotInRetryPeriodDep(BaseTIDep):
         if dep_context.ignore_in_retry_period:
             yield self._passing_status(
                 reason="The context specified that being in a retry period was "
-                       "permitted.")
+                "permitted.")
             return
 
         if ti.state != State.UP_FOR_RETRY:
@@ -48,6 +48,6 @@ class NotInRetryPeriodDep(BaseTIDep):
         if ti.is_premature:
             yield self._failing_status(
                 reason="Task is not ready for retry yet but will be retried "
-                       "automatically. Current date is {0} and task will be retried "
-                       "at {1}.".format(cur_date.isoformat(),
-                                        next_task_retry_date.isoformat()))
+                "automatically. Current date is {0} and task will be retried "
+                "at {1}.".format(cur_date.isoformat(),
+                                 next_task_retry_date.isoformat()))

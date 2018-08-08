@@ -50,7 +50,12 @@ class GoogleCloudStorageDownloadOperator(BaseOperator):
         domain-wide delegation enabled.
     :type delegate_to: string
     """
-    template_fields = ('bucket', 'object', 'filename', 'store_to_xcom_key',)
+    template_fields = (
+        'bucket',
+        'object',
+        'filename',
+        'store_to_xcom_key',
+    )
     ui_color = '#f0eee4'
 
     @apply_defaults
@@ -63,7 +68,8 @@ class GoogleCloudStorageDownloadOperator(BaseOperator):
                  delegate_to=None,
                  *args,
                  **kwargs):
-        super(GoogleCloudStorageDownloadOperator, self).__init__(*args, **kwargs)
+        super(GoogleCloudStorageDownloadOperator, self).__init__(
+            *args, **kwargs)
         self.bucket = bucket
         self.object = object
         self.filename = filename
@@ -76,14 +82,13 @@ class GoogleCloudStorageDownloadOperator(BaseOperator):
                       self.object, self.filename)
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to
-        )
-        file_bytes = hook.download(bucket=self.bucket,
-                                   object=self.object,
-                                   filename=self.filename)
+            delegate_to=self.delegate_to)
+        file_bytes = hook.download(
+            bucket=self.bucket, object=self.object, filename=self.filename)
         if self.store_to_xcom_key:
             if sys.getsizeof(file_bytes) < 48000:
-                context['ti'].xcom_push(key=self.store_to_xcom_key, value=file_bytes)
+                context['ti'].xcom_push(
+                    key=self.store_to_xcom_key, value=file_bytes)
             else:
                 raise RuntimeError(
                     'The size of the downloaded file is too large to push to XCom!'

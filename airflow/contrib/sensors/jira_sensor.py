@@ -53,11 +53,12 @@ class JiraSensor(BaseSensorOperator):
             self.result_processor = result_processor
         self.method_name = method_name
         self.method_params = method_params
-        self.jira_operator = JiraOperator(task_id=self.task_id,
-                                          jira_conn_id=self.jira_conn_id,
-                                          jira_method=self.method_name,
-                                          jira_method_args=self.method_params,
-                                          result_processor=self.result_processor)
+        self.jira_operator = JiraOperator(
+            task_id=self.task_id,
+            jira_conn_id=self.jira_conn_id,
+            jira_method=self.method_name,
+            jira_method_args=self.method_params,
+            result_processor=self.result_processor)
 
     def poke(self, context):
         return self.jira_operator.execute(context=context)
@@ -79,7 +80,7 @@ class JiraTicketSensor(JiraSensor):
     :type result_processor: function
     """
 
-    template_fields = ("ticket_id",)
+    template_fields = ("ticket_id", )
 
     @apply_defaults
     def __init__(self,
@@ -98,13 +99,15 @@ class JiraTicketSensor(JiraSensor):
         if field_checker_func is None:
             field_checker_func = self.issue_field_checker
 
-        super(JiraTicketSensor, self).__init__(jira_conn_id=jira_conn_id,
-                                               result_processor=field_checker_func,
-                                               *args,
-                                               **kwargs)
+        super(JiraTicketSensor, self).__init__(
+            jira_conn_id=jira_conn_id,
+            result_processor=field_checker_func,
+            *args,
+            **kwargs)
 
     def poke(self, context):
-        self.log.info('Jira Sensor checking for change in ticket: %s', self.ticket_id)
+        self.log.info('Jira Sensor checking for change in ticket: %s',
+                      self.ticket_id)
 
         self.jira_operator.method_name = "issue"
         self.jira_operator.jira_method_args = {
@@ -125,15 +128,17 @@ class JiraTicketSensor(JiraSensor):
                     if isinstance(field_val, list):
                         result = self.expected_value in field_val
                     elif isinstance(field_val, str):
-                        result = self.expected_value.lower() == field_val.lower()
-                    elif isinstance(field_val, Resource) and getattr(field_val, 'name'):
-                        result = self.expected_value.lower() == field_val.name.lower()
+                        result = self.expected_value.lower(
+                        ) == field_val.lower()
+                    elif isinstance(field_val, Resource) and getattr(
+                            field_val, 'name'):
+                        result = self.expected_value.lower(
+                        ) == field_val.name.lower()
                     else:
                         self.log.warning(
                             "Not implemented checker for issue field %s which "
                             "is neither string nor list nor Jira Resource",
-                            self.field
-                        )
+                            self.field)
 
         except JIRAError as jira_error:
             self.log.error("Jira error while checking with expected value: %s",
@@ -143,8 +148,9 @@ class JiraTicketSensor(JiraSensor):
                            self.expected_value)
             self.log.exception(e)
         if result is True:
-            self.log.info("Issue field %s has expected value %s, returning success",
-                          self.field, self.expected_value)
+            self.log.info(
+                "Issue field %s has expected value %s, returning success",
+                self.field, self.expected_value)
         else:
             self.log.info("Issue field %s don't have expected value %s yet.",
                           self.field, self.expected_value)

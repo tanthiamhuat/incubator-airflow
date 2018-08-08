@@ -51,7 +51,8 @@ def create_app(config=None, testing=False):
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
     if configuration.conf.get('webserver', 'SECRET_KEY') == "temporary_key":
-        log.info("SECRET_KEY for Flask App is not specified. Using a random one.")
+        log.info(
+            "SECRET_KEY for Flask App is not specified. Using a random one.")
         app.secret_key = os.urandom(16)
     else:
         app.secret_key = configuration.conf.get('webserver', 'SECRET_KEY')
@@ -71,7 +72,10 @@ def create_app(config=None, testing=False):
     api.api_auth.init_app(app)
 
     cache = Cache(
-        app=app, config={'CACHE_TYPE': 'filesystem', 'CACHE_DIR': '/tmp'})
+        app=app, config={
+            'CACHE_TYPE': 'filesystem',
+            'CACHE_DIR': '/tmp'
+        })
 
     app.register_blueprint(routes)
 
@@ -81,7 +85,8 @@ def create_app(config=None, testing=False):
         from airflow.www import views
 
         admin = Admin(
-            app, name='Airflow',
+            app,
+            name='Airflow',
             static_url_path='/admin',
             index_view=views.HomeView(endpoint='', url='/admin', name="DAGs"),
             template_mode='bootstrap3',
@@ -92,53 +97,75 @@ def create_app(config=None, testing=False):
 
         if not conf.getboolean('core', 'secure_mode'):
             av(vs.QueryView(name='Ad Hoc Query', category="Data Profiling"))
-            av(vs.ChartModelView(
-                models.Chart, Session, name="Charts", category="Data Profiling"))
-        av(vs.KnownEventView(
-            models.KnownEvent,
-            Session, name="Known Events", category="Data Profiling"))
-        av(vs.SlaMissModelView(
-            models.SlaMiss,
-            Session, name="SLA Misses", category="Browse"))
-        av(vs.TaskInstanceModelView(models.TaskInstance,
-            Session, name="Task Instances", category="Browse"))
-        av(vs.LogModelView(
-            models.Log, Session, name="Logs", category="Browse"))
-        av(vs.JobModelView(
-            jobs.BaseJob, Session, name="Jobs", category="Browse"))
-        av(vs.PoolModelView(
-            models.Pool, Session, name="Pools", category="Admin"))
-        av(vs.ConfigurationView(
-            name='Configuration', category="Admin"))
-        av(vs.UserModelView(
-            models.User, Session, name="Users", category="Admin"))
-        av(vs.ConnectionModelView(
-            models.Connection, Session, name="Connections", category="Admin"))
-        av(vs.VariableView(
-            models.Variable, Session, name="Variables", category="Admin"))
-        av(vs.XComView(
-            models.XCom, Session, name="XComs", category="Admin"))
+            av(
+                vs.ChartModelView(
+                    models.Chart,
+                    Session,
+                    name="Charts",
+                    category="Data Profiling"))
+        av(
+            vs.KnownEventView(
+                models.KnownEvent,
+                Session,
+                name="Known Events",
+                category="Data Profiling"))
+        av(
+            vs.SlaMissModelView(
+                models.SlaMiss, Session, name="SLA Misses", category="Browse"))
+        av(
+            vs.TaskInstanceModelView(
+                models.TaskInstance,
+                Session,
+                name="Task Instances",
+                category="Browse"))
+        av(
+            vs.LogModelView(
+                models.Log, Session, name="Logs", category="Browse"))
+        av(
+            vs.JobModelView(
+                jobs.BaseJob, Session, name="Jobs", category="Browse"))
+        av(
+            vs.PoolModelView(
+                models.Pool, Session, name="Pools", category="Admin"))
+        av(vs.ConfigurationView(name='Configuration', category="Admin"))
+        av(
+            vs.UserModelView(
+                models.User, Session, name="Users", category="Admin"))
+        av(
+            vs.ConnectionModelView(
+                models.Connection,
+                Session,
+                name="Connections",
+                category="Admin"))
+        av(
+            vs.VariableView(
+                models.Variable, Session, name="Variables", category="Admin"))
+        av(vs.XComView(models.XCom, Session, name="XComs", category="Admin"))
 
-        admin.add_link(base.MenuLink(
-            category='Docs', name='Documentation',
-            url='https://airflow.incubator.apache.org/'))
         admin.add_link(
-            base.MenuLink(category='Docs',
-                          name='Github',
-                          url='https://github.com/apache/incubator-airflow'))
+            base.MenuLink(
+                category='Docs',
+                name='Documentation',
+                url='https://airflow.incubator.apache.org/'))
+        admin.add_link(
+            base.MenuLink(
+                category='Docs',
+                name='Github',
+                url='https://github.com/apache/incubator-airflow'))
 
         av(vs.VersionView(name='Version', category="About"))
 
-        av(vs.DagRunModelView(
-            models.DagRun, Session, name="DAG Runs", category="Browse"))
+        av(
+            vs.DagRunModelView(
+                models.DagRun, Session, name="DAG Runs", category="Browse"))
         av(vs.DagModelView(models.DagModel, Session, name=None))
         # Hack to not add this view to the menu
         admin._menu = admin._menu[:-1]
 
         def integrate_plugins():
             """Integrate plugins to the context"""
-            from airflow.plugins_manager import (
-                admin_views, flask_blueprints, menu_links)
+            from airflow.plugins_manager import (admin_views, flask_blueprints,
+                                                 menu_links)
             for v in admin_views:
                 log.debug('Adding view %s', v.name)
                 admin.add_view(v)
@@ -161,7 +188,8 @@ def create_app(config=None, testing=False):
                 import importlib
                 importlib.reload(e)
 
-        app.register_blueprint(e.api_experimental, url_prefix='/api/experimental')
+        app.register_blueprint(
+            e.api_experimental, url_prefix='/api/experimental')
 
         @app.context_processor
         def jinja_globals():

@@ -27,7 +27,6 @@ from airflow import configuration as conf
 # settings.py and cli.py. Please see AIRFLOW-1455.
 LOG_LEVEL = conf.get('core', 'LOGGING_LEVEL').upper()
 
-
 # Flask appbuilder's info level log is very verbose,
 # so it's set to 'WARN' by default.
 FAB_LOG_LEVEL = conf.get('core', 'FAB_LOGGING_LEVEL').upper()
@@ -39,7 +38,8 @@ BASE_LOG_FOLDER = conf.get('core', 'BASE_LOG_FOLDER')
 PROCESSOR_LOG_FOLDER = conf.get('scheduler', 'CHILD_PROCESS_LOG_DIRECTORY')
 
 FILENAME_TEMPLATE = conf.get('core', 'LOG_FILENAME_TEMPLATE')
-PROCESSOR_FILENAME_TEMPLATE = conf.get('core', 'LOG_PROCESSOR_FILENAME_TEMPLATE')
+PROCESSOR_FILENAME_TEMPLATE = conf.get('core',
+                                       'LOG_PROCESSOR_FILENAME_TEMPLATE')
 
 # Storage bucket url for remote logging
 # s3 buckets should start with "s3://"
@@ -75,10 +75,14 @@ DEFAULT_LOGGING_CONFIG = {
             'filename_template': FILENAME_TEMPLATE,
         },
         'processor': {
-            'class': 'airflow.utils.log.file_processor_handler.FileProcessorHandler',
-            'formatter': 'airflow',
-            'base_log_folder': os.path.expanduser(PROCESSOR_LOG_FOLDER),
-            'filename_template': PROCESSOR_FILENAME_TEMPLATE,
+            'class':
+            'airflow.utils.log.file_processor_handler.FileProcessorHandler',
+            'formatter':
+            'airflow',
+            'base_log_folder':
+            os.path.expanduser(PROCESSOR_LOG_FOLDER),
+            'filename_template':
+            PROCESSOR_FILENAME_TEMPLATE,
         },
     },
     'loggers': {
@@ -159,7 +163,8 @@ REMOTE_HANDLERS = {
     },
     'elasticsearch': {
         'task': {
-            'class': 'airflow.utils.log.es_task_handler.ElasticsearchTaskHandler',
+            'class':
+            'airflow.utils.log.es_task_handler.ElasticsearchTaskHandler',
             'formatter': 'airflow',
             'base_log_folder': os.path.expanduser(BASE_LOG_FOLDER),
             'log_id_template': LOG_ID_TEMPLATE,
@@ -173,10 +178,10 @@ REMOTE_HANDLERS = {
 REMOTE_LOGGING = conf.get('core', 'remote_logging')
 
 if REMOTE_LOGGING and REMOTE_BASE_LOG_FOLDER.startswith('s3://'):
-        DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['s3'])
+    DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['s3'])
 elif REMOTE_LOGGING and REMOTE_BASE_LOG_FOLDER.startswith('gs://'):
-        DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['gcs'])
+    DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['gcs'])
 elif REMOTE_LOGGING and REMOTE_BASE_LOG_FOLDER.startswith('wasb'):
-        DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['wasb'])
+    DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['wasb'])
 elif REMOTE_LOGGING and ELASTICSEARCH_HOST:
-        DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['elasticsearch'])
+    DEFAULT_LOGGING_CONFIG['handlers'].update(REMOTE_HANDLERS['elasticsearch'])

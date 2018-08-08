@@ -22,7 +22,6 @@ from future import standard_library
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.www.utils import LoginMixin
 
-
 from builtins import str
 from queue import Queue
 
@@ -57,11 +56,8 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
     'airflow run <dag_id> <task_instance_id> <start_date> --local -p=<pickle>'
     to run on a mesos slave.
     """
-    def __init__(self,
-                 task_queue,
-                 result_queue,
-                 task_cpu=1,
-                 task_mem=256):
+
+    def __init__(self, task_queue, result_queue, task_cpu=1, task_mem=256):
         self.task_queue = task_queue
         self.result_queue = result_queue
         self.task_cpu = task_cpu
@@ -70,12 +66,12 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
         self.task_key_map = {}
         if configuration.get('mesos', 'DOCKER_IMAGE_SLAVE'):
             self.mesos_slave_docker_image = configuration.get(
-                'mesos', 'DOCKER_IMAGE_SLAVE'
-            )
+                'mesos', 'DOCKER_IMAGE_SLAVE')
 
     def registered(self, driver, frameworkId, masterInfo):
-        self.log.info("AirflowScheduler registered to Mesos with framework ID %s",
-                      frameworkId.value)
+        self.log.info(
+            "AirflowScheduler registered to Mesos with framework ID %s",
+            frameworkId.value)
 
         if configuration.conf.getboolean('mesos', 'CHECKPOINT') and \
                 configuration.conf.get('mesos', 'FAILOVER_TIMEOUT'):
@@ -85,10 +81,13 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
             # Update the Framework ID in the database.
             session = Session()
             conn_id = FRAMEWORK_CONNID_PREFIX + get_framework_name()
-            connection = Session.query(Connection).filter_by(conn_id=conn_id).first()
+            connection = Session.query(Connection).filter_by(
+                conn_id=conn_id).first()
             if connection is None:
-                connection = Connection(conn_id=conn_id, conn_type='mesos_framework-id',
-                                        extra=frameworkId.value)
+                connection = Connection(
+                    conn_id=conn_id,
+                    conn_type='mesos_framework-id',
+                    extra=frameworkId.value)
             else:
                 connection.extra = frameworkId.value
 
@@ -106,7 +105,8 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
         self.log.info("AirflowScheduler offer %s rescinded", str(offerId))
 
     def frameworkMessage(self, driver, executorId, slaveId, message):
-        self.log.info("AirflowScheduler received framework message %s", message)
+        self.log.info("AirflowScheduler received framework message %s",
+                      message)
 
     def executorLost(self, driver, executorId, slaveId, status):
         self.log.warning("AirflowScheduler executor %s lost", str(executorId))
@@ -143,7 +143,8 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
                 self.task_counter += 1
                 self.task_key_map[str(tid)] = key
 
-                self.log.info("Launching task %d using offer %s", tid, offer.id.value)
+                self.log.info("Launching task %d using offer %s", tid,
+                              offer.id.value)
 
                 task = mesos_pb2.TaskInfo()
                 task.task_id.value = str(tid)
@@ -168,16 +169,14 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
                 # If docker image for airflow is specified in config then pull that
                 # image before running the above airflow command
                 if self.mesos_slave_docker_image:
-                    network = mesos_pb2.ContainerInfo.DockerInfo.Network.Value('BRIDGE')
+                    network = mesos_pb2.ContainerInfo.DockerInfo.Network.Value(
+                        'BRIDGE')
                     docker = mesos_pb2.ContainerInfo.DockerInfo(
                         image=self.mesos_slave_docker_image,
                         force_pull_image=False,
-                        network=network
-                    )
+                        network=network)
                     container = mesos_pb2.ContainerInfo(
-                        type=mesos_pb2.ContainerInfo.DOCKER,
-                        docker=docker
-                    )
+                        type=mesos_pb2.ContainerInfo.DOCKER, docker=docker)
                     task.container.MergeFrom(container)
 
                 tasks.append(task)
@@ -188,10 +187,8 @@ class AirflowMesosScheduler(mesos.interface.Scheduler, LoggingMixin):
             driver.launchTasks(offer.id, tasks)
 
     def statusUpdate(self, driver, update):
-        self.log.info(
-            "Task %s is in state %s, data %s",
-            update.task_id.value, mesos_pb2.TaskState.Name(update.state), str(update.data)
-        )
+        self.log.info("Task %s is in state %s, data %s", update.task_id.value,
+                      mesos_pb2.TaskState.Name(update.state), str(update.data))
 
         try:
             key = self.task_key_map[update.task_id.value]
@@ -224,6 +221,7 @@ class MesosExecutor(BaseExecutor, LoginMixin):
     elastic distributed systems to easily be built and run effectively.
     See http://mesos.apache.org/
     """
+
     def start(self):
         self.task_queue = Queue()
         self.result_queue = Queue()
@@ -232,7 +230,8 @@ class MesosExecutor(BaseExecutor, LoginMixin):
 
         if not configuration.conf.get('mesos', 'MASTER'):
             self.log.error("Expecting mesos master URL for mesos executor")
-            raise AirflowException("mesos.master not provided for mesos executor")
+            raise AirflowException(
+                "mesos.master not provided for mesos executor")
 
         master = configuration.conf.get('mesos', 'MASTER')
 
@@ -258,61 +257,56 @@ class MesosExecutor(BaseExecutor, LoginMixin):
                 # Query the database to get the ID of the Mesos Framework, if available.
                 conn_id = FRAMEWORK_CONNID_PREFIX + framework.name
                 session = Session()
-                connection = session.query(Connection).filter_by(conn_id=conn_id).first()
+                connection = session.query(Connection).filter_by(
+                    conn_id=conn_id).first()
                 if connection is not None:
                     # Set the Framework ID to let the scheduler reconnect
                     # with running tasks.
                     framework.id.value = connection.extra
 
                 framework.failover_timeout = configuration.conf.getint(
-                    'mesos', 'FAILOVER_TIMEOUT'
-                )
+                    'mesos', 'FAILOVER_TIMEOUT')
         else:
             framework.checkpoint = False
 
         self.log.info(
             'MesosFramework master : %s, name : %s, cpu : %s, mem : %s, checkpoint : %s',
-            master, framework.name,
-            str(task_cpu), str(task_memory), str(framework.checkpoint)
-        )
+            master, framework.name, str(task_cpu), str(task_memory),
+            str(framework.checkpoint))
 
         implicit_acknowledgements = 1
 
         if configuration.conf.getboolean('mesos', 'AUTHENTICATE'):
             if not configuration.conf.get('mesos', 'DEFAULT_PRINCIPAL'):
-                self.log.error("Expecting authentication principal in the environment")
+                self.log.error(
+                    "Expecting authentication principal in the environment")
                 raise AirflowException(
-                    "mesos.default_principal not provided in authenticated mode")
+                    "mesos.default_principal not provided in authenticated mode"
+                )
             if not configuration.conf.get('mesos', 'DEFAULT_SECRET'):
-                self.log.error("Expecting authentication secret in the environment")
+                self.log.error(
+                    "Expecting authentication secret in the environment")
                 raise AirflowException(
                     "mesos.default_secret not provided in authenticated mode")
 
             credential = mesos_pb2.Credential()
-            credential.principal = configuration.conf.get('mesos', 'DEFAULT_PRINCIPAL')
-            credential.secret = configuration.conf.get('mesos', 'DEFAULT_SECRET')
+            credential.principal = configuration.conf.get(
+                'mesos', 'DEFAULT_PRINCIPAL')
+            credential.secret = configuration.conf.get('mesos',
+                                                       'DEFAULT_SECRET')
 
             framework.principal = credential.principal
 
             driver = mesos.native.MesosSchedulerDriver(
-                AirflowMesosScheduler(self.task_queue,
-                                      self.result_queue,
-                                      task_cpu,
-                                      task_memory),
-                framework,
-                master,
-                implicit_acknowledgements,
-                credential)
+                AirflowMesosScheduler(self.task_queue, self.result_queue,
+                                      task_cpu, task_memory), framework,
+                master, implicit_acknowledgements, credential)
         else:
             framework.principal = 'Airflow'
             driver = mesos.native.MesosSchedulerDriver(
-                AirflowMesosScheduler(self.task_queue,
-                                      self.result_queue,
-                                      task_cpu,
-                                      task_memory),
-                framework,
-                master,
-                implicit_acknowledgements)
+                AirflowMesosScheduler(self.task_queue, self.result_queue,
+                                      task_cpu, task_memory), framework,
+                master, implicit_acknowledgements)
 
         self.mesos_driver = driver
         self.mesos_driver.start()

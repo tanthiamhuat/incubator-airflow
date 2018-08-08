@@ -39,7 +39,8 @@ def _create_dagruns(dag, execution_dates, state, run_id_template):
     """
     # find out if we need to create any dag runs
     drs = DagRun.find(dag_id=dag.dag_id, execution_date=execution_dates)
-    dates_to_create = list(set(execution_dates) - set([dr.execution_date for dr in drs]))
+    dates_to_create = list(
+        set(execution_dates) - set([dr.execution_date for dr in drs]))
 
     for date in dates_to_create:
         dr = dag.create_dagrun(
@@ -54,8 +55,14 @@ def _create_dagruns(dag, execution_dates, state, run_id_template):
     return drs
 
 
-def set_state(task, execution_date, upstream=False, downstream=False,
-              future=False, past=False, state=State.SUCCESS, commit=False):
+def set_state(task,
+              execution_date,
+              upstream=False,
+              downstream=False,
+              future=False,
+              past=False,
+              state=State.SUCCESS,
+              commit=False):
     """
     Set the state of a task instance and if needed its relatives. Can set state
     for future tasks (calculated from execution_date) and retroactively
@@ -138,10 +145,11 @@ def set_state(task, execution_date, upstream=False, downstream=False,
                 # this works as a kind of integrity check
                 # it creates missing dag runs for subdagoperators,
                 # maybe this should be moved to dagrun.verify_integrity
-                drs = _create_dagruns(current_task.subdag,
-                                      execution_dates=confirmed_dates,
-                                      state=State.RUNNING,
-                                      run_id_template=BackfillJob.ID_FORMAT_PREFIX)
+                drs = _create_dagruns(
+                    current_task.subdag,
+                    execution_dates=confirmed_dates,
+                    state=State.RUNNING,
+                    run_id_template=BackfillJob.ID_FORMAT_PREFIX)
 
                 for dr in drs:
                     dr.dag = current_task.subdag
@@ -157,22 +165,19 @@ def set_state(task, execution_date, upstream=False, downstream=False,
     TI = TaskInstance
 
     # get all tasks of the main dag that will be affected by a state change
-    qry_dag = session.query(TI).filter(
-        TI.dag_id == dag.dag_id,
-        TI.execution_date.in_(confirmed_dates),
-        TI.task_id.in_(task_ids)).filter(
-        or_(TI.state.is_(None),
-            TI.state != state)
-    )
+    qry_dag = session.query(TI).filter(TI.dag_id == dag.dag_id,
+                                       TI.execution_date.in_(confirmed_dates),
+                                       TI.task_id.in_(task_ids)).filter(
+                                           or_(
+                                               TI.state.is_(None),
+                                               TI.state != state))
 
     # get *all* tasks of the sub dags
     if len(sub_dag_ids) > 0:
         qry_sub_dag = session.query(TI).filter(
             TI.dag_id.in_(sub_dag_ids),
             TI.execution_date.in_(confirmed_dates)).filter(
-            or_(TI.state.is_(None),
-                TI.state != state)
-        )
+                or_(TI.state.is_(None), TI.state != state))
 
     if commit:
         tis_altered = qry_dag.with_for_update().all()
@@ -201,10 +206,8 @@ def _set_dag_run_state(dag_id, execution_date, state, session=None):
     :param session: database session
     """
     DR = DagRun
-    dr = session.query(DR).filter(
-        DR.dag_id == dag_id,
-        DR.execution_date == execution_date
-    ).one()
+    dr = session.query(DR).filter(DR.dag_id == dag_id,
+                                  DR.execution_date == execution_date).one()
     dr.state = state
     if state == State.RUNNING:
         dr.start_date = timezone.utcnow()
@@ -214,7 +217,9 @@ def _set_dag_run_state(dag_id, execution_date, state, session=None):
 
 
 @provide_session
-def set_dag_run_state_to_success(dag, execution_date, commit=False,
+def set_dag_run_state_to_success(dag,
+                                 execution_date,
+                                 commit=False,
                                  session=None):
     """
     Set the dag run for a specific execution date and its task instances
@@ -239,15 +244,20 @@ def set_dag_run_state_to_success(dag, execution_date, commit=False,
     # Mark all task instances of the dag run to success.
     for task in dag.tasks:
         task.dag = dag
-        new_state = set_state(task=task, execution_date=execution_date,
-                              state=State.SUCCESS, commit=commit)
+        new_state = set_state(
+            task=task,
+            execution_date=execution_date,
+            state=State.SUCCESS,
+            commit=commit)
         res.extend(new_state)
 
     return res
 
 
 @provide_session
-def set_dag_run_state_to_failed(dag, execution_date, commit=False,
+def set_dag_run_state_to_failed(dag,
+                                execution_date,
+                                commit=False,
                                 session=None):
     """
     Set the dag run for a specific execution date and its running task instances
@@ -273,23 +283,27 @@ def set_dag_run_state_to_failed(dag, execution_date, commit=False,
     TI = TaskInstance
     task_ids = [task.task_id for task in dag.tasks]
     tis = session.query(TI).filter(
-        TI.dag_id == dag.dag_id,
-        TI.execution_date == execution_date,
+        TI.dag_id == dag.dag_id, TI.execution_date == execution_date,
         TI.task_id.in_(task_ids)).filter(TI.state == State.RUNNING)
     task_ids_of_running_tis = [ti.task_id for ti in tis]
     for task in dag.tasks:
         if task.task_id not in task_ids_of_running_tis:
             continue
         task.dag = dag
-        new_state = set_state(task=task, execution_date=execution_date,
-                              state=State.FAILED, commit=commit)
+        new_state = set_state(
+            task=task,
+            execution_date=execution_date,
+            state=State.FAILED,
+            commit=commit)
         res.extend(new_state)
 
     return res
 
 
 @provide_session
-def set_dag_run_state_to_running(dag, execution_date, commit=False,
+def set_dag_run_state_to_running(dag,
+                                 execution_date,
+                                 commit=False,
                                  session=None):
     """
     Set the dag run for a specific execution date to running.

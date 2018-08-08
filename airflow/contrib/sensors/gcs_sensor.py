@@ -43,12 +43,14 @@ class GoogleCloudStorageObjectSensor(BaseSensorOperator):
     ui_color = '#f0eee4'
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 object,  # pylint:disable=redefined-builtin
-                 google_cloud_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args, **kwargs):
+    def __init__(
+            self,
+            bucket,
+            object,  # pylint:disable=redefined-builtin
+            google_cloud_conn_id='google_cloud_default',
+            delegate_to=None,
+            *args,
+            **kwargs):
 
         super(GoogleCloudStorageObjectSensor, self).__init__(*args, **kwargs)
         self.bucket = bucket
@@ -57,7 +59,8 @@ class GoogleCloudStorageObjectSensor(BaseSensorOperator):
         self.delegate_to = delegate_to
 
     def poke(self, context):
-        self.log.info('Sensor checks existence of : %s, %s', self.bucket, self.object)
+        self.log.info('Sensor checks existence of : %s, %s', self.bucket,
+                      self.object)
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_conn_id,
             delegate_to=self.delegate_to)
@@ -96,19 +99,22 @@ class GoogleCloudStorageObjectUpdatedSensor(BaseSensorOperator):
         :type delegate_to: string
     """
     template_fields = ('bucket', 'object')
-    template_ext = ('.sql',)
+    template_ext = ('.sql', )
     ui_color = '#f0eee4'
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 object,  # pylint:disable=redefined-builtin
-                 ts_func=ts_function,
-                 google_cloud_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args, **kwargs):
+    def __init__(
+            self,
+            bucket,
+            object,  # pylint:disable=redefined-builtin
+            ts_func=ts_function,
+            google_cloud_conn_id='google_cloud_default',
+            delegate_to=None,
+            *args,
+            **kwargs):
 
-        super(GoogleCloudStorageObjectUpdatedSensor, self).__init__(*args, **kwargs)
+        super(GoogleCloudStorageObjectUpdatedSensor, self).__init__(
+            *args, **kwargs)
         self.bucket = bucket
         self.object = object
         self.ts_func = ts_func
@@ -116,11 +122,13 @@ class GoogleCloudStorageObjectUpdatedSensor(BaseSensorOperator):
         self.delegate_to = delegate_to
 
     def poke(self, context):
-        self.log.info('Sensor checks existence of : %s, %s', self.bucket, self.object)
+        self.log.info('Sensor checks existence of : %s, %s', self.bucket,
+                      self.object)
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_conn_id,
             delegate_to=self.delegate_to)
-        return hook.is_updated_after(self.bucket, self.object, self.ts_func(context))
+        return hook.is_updated_after(self.bucket, self.object,
+                                     self.ts_func(context))
 
 
 class GoogleCloudStoragePrefixSensor(BaseSensorOperator):
@@ -150,7 +158,8 @@ class GoogleCloudStoragePrefixSensor(BaseSensorOperator):
                  prefix,
                  google_cloud_conn_id='google_cloud_default',
                  delegate_to=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
         super(GoogleCloudStoragePrefixSensor, self).__init__(*args, **kwargs)
         self.bucket = bucket
         self.prefix = prefix

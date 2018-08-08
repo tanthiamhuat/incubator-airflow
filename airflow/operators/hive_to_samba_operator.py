@@ -40,15 +40,19 @@ class Hive2SambaOperator(BaseOperator):
     """
 
     template_fields = ('hql', 'destination_filepath')
-    template_ext = ('.hql', '.sql',)
+    template_ext = (
+        '.hql',
+        '.sql',
+    )
 
     @apply_defaults
-    def __init__(
-            self, hql,
-            destination_filepath,
-            samba_conn_id='samba_default',
-            hiveserver2_conn_id='hiveserver2_default',
-            *args, **kwargs):
+    def __init__(self,
+                 hql,
+                 destination_filepath,
+                 samba_conn_id='samba_default',
+                 hiveserver2_conn_id='hiveserver2_default',
+                 *args,
+                 **kwargs):
         super(Hive2SambaOperator, self).__init__(*args, **kwargs)
 
         self.hiveserver2_conn_id = hiveserver2_conn_id
@@ -61,7 +65,9 @@ class Hive2SambaOperator(BaseOperator):
         hive = HiveServer2Hook(hiveserver2_conn_id=self.hiveserver2_conn_id)
         tmpfile = tempfile.NamedTemporaryFile()
         self.log.info("Fetching file from Hive")
-        hive.to_csv(hql=self.hql, csv_filepath=tmpfile.name,
-                    hive_conf=context_to_airflow_vars(context))
+        hive.to_csv(
+            hql=self.hql,
+            csv_filepath=tmpfile.name,
+            hive_conf=context_to_airflow_vars(context))
         self.log.info("Pushing to samba")
         samba.push_from_local(self.destination_filepath, tmpfile.name)

@@ -35,7 +35,8 @@ def _load_kube_config(in_cluster, cluster_context, config_file):
     if in_cluster:
         config.load_incluster_config()
     else:
-        config.load_kube_config(config_file=config_file, context=cluster_context)
+        config.load_kube_config(
+            config_file=config_file, context=cluster_context)
     if PY2:
         # For connect_get_namespaced_pod_exec
         from kubernetes.client import Configuration
@@ -45,7 +46,8 @@ def _load_kube_config(in_cluster, cluster_context, config_file):
     return client.CoreV1Api()
 
 
-def get_kube_client(in_cluster=conf.getboolean('kubernetes', 'in_cluster'),
-                    cluster_context=None,
-                    config_file=None):
+def get_kube_client(
+        in_cluster=conf.getboolean('kubernetes', 'in_cluster'),
+        cluster_context=None,
+        config_file=None):
     return _load_kube_config(in_cluster, cluster_context, config_file)

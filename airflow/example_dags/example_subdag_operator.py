@@ -25,7 +25,6 @@ from airflow.operators.subdag_operator import SubDagOperator
 
 from airflow.example_dags.subdags.subdag import subdag
 
-
 DAG_NAME = 'example_subdag_operator'
 
 args = {

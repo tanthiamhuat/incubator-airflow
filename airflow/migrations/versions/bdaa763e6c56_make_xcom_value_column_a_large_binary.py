@@ -15,7 +15,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """Make xcom value column a large binary
 
 Revision ID: bdaa763e6c56

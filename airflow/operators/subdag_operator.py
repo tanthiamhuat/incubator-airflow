@@ -44,11 +44,7 @@ class SubDagOperator(BaseOperator):
 
     @provide_session
     @apply_defaults
-    def __init__(
-            self,
-            subdag,
-            executor=SequentialExecutor(),
-            *args, **kwargs):
+    def __init__(self, subdag, executor=SequentialExecutor(), *args, **kwargs):
         import airflow.models
         dag = kwargs.get('dag') or airflow.models._CONTEXT_MANAGER_DAG
         if not dag:
@@ -71,13 +67,8 @@ class SubDagOperator(BaseOperator):
             conflicts = [t for t in subdag.tasks if t.pool == self.pool]
             if conflicts:
                 # only query for pool conflicts if one may exist
-                pool = (
-                    session
-                    .query(Pool)
-                    .filter(Pool.slots == 1)
-                    .filter(Pool.pool == self.pool)
-                    .first()
-                )
+                pool = (session.query(Pool).filter(Pool.slots == 1)
+                        .filter(Pool.pool == self.pool).first())
                 if pool and any(t.pool == self.pool for t in subdag.tasks):
                     raise AirflowException(
                         'SubDagOperator {sd} and subdag task{plural} {t} both '
@@ -86,9 +77,7 @@ class SubDagOperator(BaseOperator):
                             sd=self.task_id,
                             plural=len(conflicts) > 1,
                             t=', '.join(t.task_id for t in conflicts),
-                            p=self.pool
-                        )
-                    )
+                            p=self.pool))
 
         self.subdag = subdag
         # Airflow pool is not honored by SubDagOperator.
@@ -99,5 +88,7 @@ class SubDagOperator(BaseOperator):
     def execute(self, context):
         ed = context['execution_date']
         self.subdag.run(
-            start_date=ed, end_date=ed, donot_pickle=True,
+            start_date=ed,
+            end_date=ed,
+            donot_pickle=True,
             executor=self.executor)

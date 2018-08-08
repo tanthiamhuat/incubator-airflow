@@ -46,9 +46,12 @@ dag.doc_md = __doc__
 t1 = SimpleHttpOperator(
     task_id='post_op',
     endpoint='api/v1.0/nodes',
-    data=json.dumps({"priority": 5}),
+    data=json.dumps({
+        "priority": 5
+    }),
     headers={"Content-Type": "application/json"},
-    response_check=lambda response: True if len(response.json()) == 0 else False,
+    response_check=
+    lambda response: True if len(response.json()) == 0 else False,
     dag=dag)
 
 t5 = SimpleHttpOperator(
@@ -62,7 +65,10 @@ t2 = SimpleHttpOperator(
     task_id='get_op',
     method='GET',
     endpoint='api/v1.0/nodes',
-    data={"param1": "value1", "param2": "value2"},
+    data={
+        "param1": "value1",
+        "param2": "value2"
+    },
     headers={},
     dag=dag)
 
@@ -70,7 +76,9 @@ t3 = SimpleHttpOperator(
     task_id='put_op',
     method='PUT',
     endpoint='api/v1.0/nodes',
-    data=json.dumps({"priority": 5}),
+    data=json.dumps({
+        "priority": 5
+    }),
     headers={"Content-Type": "application/json"},
     dag=dag)
 
@@ -87,7 +95,8 @@ sensor = HttpSensor(
     http_conn_id='http_default',
     endpoint='',
     request_params={},
-    response_check=lambda response: True if "Google" in response.content else False,
+    response_check=
+    lambda response: True if "Google" in response.content else False,
     poke_interval=5,
     dag=dag)
 

@@ -28,8 +28,7 @@ from airflow.exceptions import AirflowException
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 
-
-_DEFAULT_SCOPES = ('https://www.googleapis.com/auth/cloud-platform',)
+_DEFAULT_SCOPES = ('https://www.googleapis.com/auth/cloud-platform', )
 
 
 class GoogleCloudBaseHook(BaseHook, LoggingMixin):
@@ -88,13 +87,13 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
             # Get credentials from a JSON file.
             if key_path.endswith('.json'):
                 self.log.info('Getting connection using a JSON key file.')
-                credentials = (
-                    google.oauth2.service_account.Credentials.from_service_account_file(
-                        key_path, scopes=scopes)
-                )
+                credentials = (google.oauth2.service_account.Credentials.
+                               from_service_account_file(
+                                   key_path, scopes=scopes))
             elif key_path.endswith('.p12'):
-                raise AirflowException('Legacy P12 key file are not supported, '
-                                       'use a JSON key file.')
+                raise AirflowException(
+                    'Legacy P12 key file are not supported, '
+                    'use a JSON key file.')
             else:
                 raise AirflowException('Unrecognised extension for key file.')
         else:
@@ -104,13 +103,12 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
 
                 # Depending on how the JSON was formatted, it may contain
                 # escaped newlines. Convert those to actual newlines.
-                keyfile_dict['private_key'] = keyfile_dict['private_key'].replace(
-                    '\\n', '\n')
+                keyfile_dict['private_key'] = keyfile_dict[
+                    'private_key'].replace('\\n', '\n')
 
-                credentials = (
-                    google.oauth2.service_account.Credentials.from_service_account_info(
-                        keyfile_dict, scopes=scopes)
-                )
+                credentials = (google.oauth2.service_account.Credentials.
+                               from_service_account_info(
+                                   keyfile_dict, scopes=scopes))
             except json.decoder.JSONDecodeError:
                 raise AirflowException('Invalid key JSON.')
 

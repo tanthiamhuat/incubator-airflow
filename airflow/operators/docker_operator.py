@@ -100,35 +100,40 @@ class DockerOperator(BaseOperator):
     :param docker_conn_id: ID of the Airflow connection to use
     :type docker_conn_id: str
     """
-    template_fields = ('command', 'environment',)
-    template_ext = ('.sh', '.bash',)
+    template_fields = (
+        'command',
+        'environment',
+    )
+    template_ext = (
+        '.sh',
+        '.bash',
+    )
 
     @apply_defaults
-    def __init__(
-            self,
-            image,
-            api_version=None,
-            command=None,
-            cpus=1.0,
-            docker_url='unix://var/run/docker.sock',
-            environment=None,
-            force_pull=False,
-            mem_limit=None,
-            network_mode=None,
-            tls_ca_cert=None,
-            tls_client_cert=None,
-            tls_client_key=None,
-            tls_hostname=None,
-            tls_ssl_version=None,
-            tmp_dir='/tmp/airflow',
-            user=None,
-            volumes=None,
-            working_dir=None,
-            xcom_push=False,
-            xcom_all=False,
-            docker_conn_id=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 image,
+                 api_version=None,
+                 command=None,
+                 cpus=1.0,
+                 docker_url='unix://var/run/docker.sock',
+                 environment=None,
+                 force_pull=False,
+                 mem_limit=None,
+                 network_mode=None,
+                 tls_ca_cert=None,
+                 tls_client_cert=None,
+                 tls_client_key=None,
+                 tls_hostname=None,
+                 tls_ssl_version=None,
+                 tmp_dir='/tmp/airflow',
+                 user=None,
+                 volumes=None,
+                 working_dir=None,
+                 xcom_push=False,
+                 xcom_all=False,
+                 docker_conn_id=None,
+                 *args,
+                 **kwargs):
 
         super(DockerOperator, self).__init__(*args, **kwargs)
         self.api_version = api_version
@@ -162,8 +167,7 @@ class DockerOperator(BaseOperator):
             docker_conn_id=self.docker_conn_id,
             base_url=self.docker_url,
             version=self.api_version,
-            tls=self.__get_tls_config()
-        )
+            tls=self.__get_tls_config())
 
     def execute(self, context):
         self.log.info('Starting docker container from image %s', self.image)
@@ -176,8 +180,7 @@ class DockerOperator(BaseOperator):
             self.cli = APIClient(
                 base_url=self.docker_url,
                 version=self.api_version,
-                tls=tls_config
-            )
+                tls=tls_config)
 
         if ':' not in self.image:
             image = self.image + ':latest'
@@ -207,12 +210,12 @@ class DockerOperator(BaseOperator):
                 image=image,
                 mem_limit=self.mem_limit,
                 user=self.user,
-                working_dir=self.working_dir
-            )
+                working_dir=self.working_dir)
             self.cli.start(self.container['Id'])
 
             line = ''
-            for line in self.cli.logs(container=self.container['Id'], stream=True):
+            for line in self.cli.logs(
+                    container=self.container['Id'], stream=True):
                 line = line.strip()
                 if hasattr(line, 'decode'):
                     line = line.decode('utf-8')
@@ -246,7 +249,6 @@ class DockerOperator(BaseOperator):
                 client_cert=(self.tls_client_cert, self.tls_client_key),
                 verify=True,
                 ssl_version=self.tls_ssl_version,
-                assert_hostname=self.tls_hostname
-            )
+                assert_hostname=self.tls_hostname)
             self.docker_url = self.docker_url.replace('tcp://', 'https://')
         return tls_config

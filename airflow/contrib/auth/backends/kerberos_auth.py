@@ -21,8 +21,7 @@ import logging
 import flask_login
 from flask_login import current_user
 from flask import flash
-from wtforms import (
-    Form, PasswordField, StringField)
+from wtforms import (Form, PasswordField, StringField)
 from wtforms.validators import InputRequired
 
 # pykerberos should be used as it verifies the KDC, the "kerberos" module does not do so
@@ -53,22 +52,19 @@ class KerberosUser(models.User, LoggingMixin):
 
     @staticmethod
     def authenticate(username, password):
-        service_principal = "%s/%s" % (
-            configuration.conf.get('kerberos', 'principal'),
-            utils.get_fqdn()
-        )
+        service_principal = "%s/%s" % (configuration.conf.get(
+            'kerberos', 'principal'), utils.get_fqdn())
         realm = configuration.conf.get("kerberos", "default_realm")
         user_principal = utils.principal_from_username(username)
 
         try:
             # this is pykerberos specific, verify = True is needed to prevent KDC spoofing
-            if not kerberos.checkPassword(user_principal,
-                                          password,
+            if not kerberos.checkPassword(user_principal, password,
                                           service_principal, realm, True):
                 raise AuthenticationError()
         except kerberos.KrbError as e:
-            logging.error(
-                'Password validation for principal %s failed %s', user_principal, e)
+            logging.error('Password validation for principal %s failed %s',
+                          user_principal, e)
             raise AuthenticationError(e)
 
         return
@@ -104,7 +100,8 @@ def load_user(userid, session=None):
     if not userid or userid == 'None':
         return None
 
-    user = session.query(models.User).filter(models.User.id == int(userid)).first()
+    user = session.query(
+        models.User).filter(models.User.id == int(userid)).first()
     return KerberosUser(user)
 
 
@@ -124,20 +121,17 @@ def login(self, request, session=None):
         password = request.form.get("password")
 
     if not username or not password:
-        return self.render('airflow/login.html',
-                           title="Airflow - Login",
-                           form=form)
+        return self.render(
+            'airflow/login.html', title="Airflow - Login", form=form)
 
     try:
         KerberosUser.authenticate(username, password)
 
-        user = session.query(models.User).filter(
-            models.User.username == username).first()
+        user = session.query(
+            models.User).filter(models.User.username == username).first()
 
         if not user:
-            user = models.User(
-                username=username,
-                is_superuser=False)
+            user = models.User(username=username, is_superuser=False)
 
         session.merge(user)
         session.commit()
@@ -147,9 +141,8 @@ def login(self, request, session=None):
         return redirect(request.args.get("next") or url_for("admin.index"))
     except AuthenticationError:
         flash("Incorrect login details")
-        return self.render('airflow/login.html',
-                           title="Airflow - Login",
-                           form=form)
+        return self.render(
+            'airflow/login.html', title="Airflow - Login", form=form)
 
 
 class LoginForm(Form):

@@ -189,14 +189,14 @@ class DataprocClusterCreateOperator(BaseOperator):
 
     def _get_cluster_list_for_project(self, service):
         result = service.projects().regions().clusters().list(
-            projectId=self.project_id,
-            region=self.region
-        ).execute()
+            projectId=self.project_id, region=self.region).execute()
         return result.get('clusters', [])
 
     def _get_cluster(self, service):
         cluster_list = self._get_cluster_list_for_project(service)
-        cluster = [c for c in cluster_list if c['clusterName'] == self.cluster_name]
+        cluster = [
+            c for c in cluster_list if c['clusterName'] == self.cluster_name
+        ]
         if cluster:
             return cluster[0]
         return None
@@ -228,11 +228,11 @@ class DataprocClusterCreateOperator(BaseOperator):
                 self.log.info("No state for cluster '%s'", self.cluster_name)
                 time.sleep(15)
             else:
-                self.log.info("State for cluster '%s' is %s", self.cluster_name, state)
+                self.log.info("State for cluster '%s' is %s",
+                              self.cluster_name, state)
                 if self._cluster_ready(state, service):
-                    self.log.info(
-                        "Cluster '%s' successfully created", self.cluster_name
-                    )
+                    self.log.info("Cluster '%s' successfully created",
+                                  self.cluster_name)
                     return
                 time.sleep(15)
 
@@ -301,14 +301,18 @@ class DataprocClusterCreateOperator(BaseOperator):
         # Dataproc labels must conform to the following regex:
         # [a-z]([-a-z0-9]*[a-z0-9])? (current airflow version string follows
         # semantic versioning spec: x.y.z).
-        cluster_data['labels'].update({'airflow-version':
-                                       'v' + version.replace('.', '-').replace('+', '-')})
+        cluster_data['labels'].update({
+            'airflow-version':
+            'v' + version.replace('.', '-').replace('+', '-')
+        })
         if self.storage_bucket:
             cluster_data['config']['configBucket'] = self.storage_bucket
         if self.metadata:
-            cluster_data['config']['gceClusterConfig']['metadata'] = self.metadata
+            cluster_data['config']['gceClusterConfig'][
+                'metadata'] = self.metadata
         if self.network_uri:
-            cluster_data['config']['gceClusterConfig']['networkUri'] = self.network_uri
+            cluster_data['config']['gceClusterConfig'][
+                'networkUri'] = self.network_uri
         if self.subnetwork_uri:
             cluster_data['config']['gceClusterConfig']['subnetworkUri'] = \
                 self.subnetwork_uri
@@ -320,26 +324,29 @@ class DataprocClusterCreateOperator(BaseOperator):
         if self.tags:
             cluster_data['config']['gceClusterConfig']['tags'] = self.tags
         if self.image_version:
-            cluster_data['config']['softwareConfig']['imageVersion'] = self.image_version
+            cluster_data['config']['softwareConfig'][
+                'imageVersion'] = self.image_version
         if self.properties:
-            cluster_data['config']['softwareConfig']['properties'] = self.properties
+            cluster_data['config']['softwareConfig'][
+                'properties'] = self.properties
         if self.idle_delete_ttl:
             cluster_data['config']['lifecycleConfig']['idleDeleteTtl'] = \
                 "{}s".format(self.idle_delete_ttl)
         if self.auto_delete_time:
-            utc_auto_delete_time = timezone.convert_to_utc(self.auto_delete_time)
+            utc_auto_delete_time = timezone.convert_to_utc(
+                self.auto_delete_time)
             cluster_data['config']['lifecycleConfig']['autoDeleteTime'] = \
                 utc_auto_delete_time.format('%Y-%m-%dT%H:%M:%S.%fZ', formatter='classic')
         elif self.auto_delete_ttl:
             cluster_data['config']['lifecycleConfig']['autoDeleteTtl'] = \
                 "{}s".format(self.auto_delete_ttl)
         if self.init_actions_uris:
-            init_actions_dict = [
-                {
-                    'executableFile': uri,
-                    'executionTimeout': self._get_init_action_timeout()
-                } for uri in self.init_actions_uris
-            ]
+            init_actions_dict = [{
+                'executableFile':
+                uri,
+                'executionTimeout':
+                self._get_init_action_timeout()
+            } for uri in self.init_actions_uris]
             cluster_data['config']['initializationActions'] = init_actions_dict
         if self.service_account:
             cluster_data['config']['gceClusterConfig']['serviceAccount'] =\
@@ -352,16 +359,12 @@ class DataprocClusterCreateOperator(BaseOperator):
     def execute(self, context):
         self.log.info('Creating cluster: %s', self.cluster_name)
         hook = DataProcHook(
-            gcp_conn_id=self.gcp_conn_id,
-            delegate_to=self.delegate_to
-        )
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
         service = hook.get_conn()
 
         if self._get_cluster(service):
-            self.log.info(
-                'Cluster %s already exists... Checking status...',
-                self.cluster_name
-            )
+            self.log.info('Cluster %s already exists... Checking status...',
+                          self.cluster_name)
             self._wait_for_done(service)
             return True
 
@@ -370,16 +373,14 @@ class DataprocClusterCreateOperator(BaseOperator):
             service.projects().regions().clusters().create(
                 projectId=self.project_id,
                 region=self.region,
-                body=cluster_data
-            ).execute()
+                body=cluster_data).execute()
         except HttpError as e:
             # probably two cluster start commands at the same time
             time.sleep(10)
             if self._get_cluster(service):
                 self.log.info(
                     'Cluster {} already exists... Checking status...',
-                    self.cluster_name
-                )
+                    self.cluster_name)
                 self._wait_for_done(service)
                 return True
             else:
@@ -465,8 +466,7 @@ class DataprocClusterScaleOperator(BaseOperator):
         while True:
             try:
                 response = service.projects().regions().operations().get(
-                    name=operation_name
-                ).execute()
+                    name=operation_name).execute()
 
                 if 'done' in response and response['done']:
                     if 'error' in response:
@@ -515,9 +515,7 @@ class DataprocClusterScaleOperator(BaseOperator):
     def execute(self, context):
         self.log.info("Scaling cluster: %s", self.cluster_name)
         hook = DataProcHook(
-            gcp_conn_id=self.gcp_conn_id,
-            delegate_to=self.delegate_to
-        )
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
         service = hook.get_conn()
 
         update_mask = "config.worker_config.num_instances," \
@@ -530,8 +528,7 @@ class DataprocClusterScaleOperator(BaseOperator):
             clusterName=self.cluster_name,
             updateMask=update_mask,
             body=scaling_cluster_data,
-            **self.optional_arguments
-        ).execute()
+            **self.optional_arguments).execute()
         operation_name = response['name']
         self.log.info("Cluster scale operation name: %s", operation_name)
         self._wait_for_done(service, operation_name)
@@ -581,8 +578,7 @@ class DataprocClusterDeleteOperator(BaseOperator):
         time.sleep(15)
         while True:
             response = service.projects().regions().operations().get(
-                name=operation_name
-            ).execute()
+                name=operation_name).execute()
 
             if 'done' in response and response['done']:
                 if 'error' in response:
@@ -594,16 +590,13 @@ class DataprocClusterDeleteOperator(BaseOperator):
     def execute(self, context):
         self.log.info('Deleting cluster: %s', self.cluster_name)
         hook = DataProcHook(
-            gcp_conn_id=self.gcp_conn_id,
-            delegate_to=self.delegate_to
-        )
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
         service = hook.get_conn()
 
         response = service.projects().regions().clusters().delete(
             projectId=self.project_id,
             region=self.region,
-            clusterName=self.cluster_name
-        ).execute()
+            clusterName=self.cluster_name).execute()
         operation_name = response['name']
         self.log.info("Cluster delete operation name: %s", operation_name)
         self._wait_for_done(service, operation_name)
@@ -677,25 +670,29 @@ class DataProcPigOperator(BaseOperator):
         an 8 character random string.
     :vartype dataproc_job_id: string
     """
-    template_fields = ['query', 'variables', 'job_name', 'cluster_name', 'dataproc_jars']
-    template_ext = ('.pg', '.pig',)
+    template_fields = [
+        'query', 'variables', 'job_name', 'cluster_name', 'dataproc_jars'
+    ]
+    template_ext = (
+        '.pg',
+        '.pig',
+    )
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            query=None,
-            query_uri=None,
-            variables=None,
-            job_name='{{task.task_id}}_{{ds_nodash}}',
-            cluster_name='cluster-1',
-            dataproc_pig_properties=None,
-            dataproc_pig_jars=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            region='global',
-            *args,
-            **kwargs):
+    def __init__(self,
+                 query=None,
+                 query_uri=None,
+                 variables=None,
+                 job_name='{{task.task_id}}_{{ds_nodash}}',
+                 cluster_name='cluster-1',
+                 dataproc_pig_properties=None,
+                 dataproc_pig_jars=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 region='global',
+                 *args,
+                 **kwargs):
 
         super(DataProcPigOperator, self).__init__(*args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
@@ -710,10 +707,10 @@ class DataProcPigOperator(BaseOperator):
         self.region = region
 
     def execute(self, context):
-        hook = DataProcHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to)
-        job = hook.create_job_template(self.task_id, self.cluster_name, "pigJob",
-                                       self.dataproc_properties)
+        hook = DataProcHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
+        job = hook.create_job_template(self.task_id, self.cluster_name,
+                                       "pigJob", self.dataproc_properties)
 
         if self.query is None:
             job.add_query_uri(self.query_uri)
@@ -765,25 +762,26 @@ class DataProcHiveOperator(BaseOperator):
         an 8 character random string.
     :vartype dataproc_job_id: string
     """
-    template_fields = ['query', 'variables', 'job_name', 'cluster_name', 'dataproc_jars']
-    template_ext = ('.q',)
+    template_fields = [
+        'query', 'variables', 'job_name', 'cluster_name', 'dataproc_jars'
+    ]
+    template_ext = ('.q', )
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            query=None,
-            query_uri=None,
-            variables=None,
-            job_name='{{task.task_id}}_{{ds_nodash}}',
-            cluster_name='cluster-1',
-            dataproc_hive_properties=None,
-            dataproc_hive_jars=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            region='global',
-            *args,
-            **kwargs):
+    def __init__(self,
+                 query=None,
+                 query_uri=None,
+                 variables=None,
+                 job_name='{{task.task_id}}_{{ds_nodash}}',
+                 cluster_name='cluster-1',
+                 dataproc_hive_properties=None,
+                 dataproc_hive_jars=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 region='global',
+                 *args,
+                 **kwargs):
 
         super(DataProcHiveOperator, self).__init__(*args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
@@ -798,11 +796,11 @@ class DataProcHiveOperator(BaseOperator):
         self.region = region
 
     def execute(self, context):
-        hook = DataProcHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = DataProcHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
 
-        job = hook.create_job_template(self.task_id, self.cluster_name, "hiveJob",
-                                       self.dataproc_properties)
+        job = hook.create_job_template(self.task_id, self.cluster_name,
+                                       "hiveJob", self.dataproc_properties)
 
         if self.query is None:
             job.add_query_uri(self.query_uri)
@@ -855,25 +853,26 @@ class DataProcSparkSqlOperator(BaseOperator):
         an 8 character random string.
     :vartype dataproc_job_id: string
     """
-    template_fields = ['query', 'variables', 'job_name', 'cluster_name', 'dataproc_jars']
-    template_ext = ('.q',)
+    template_fields = [
+        'query', 'variables', 'job_name', 'cluster_name', 'dataproc_jars'
+    ]
+    template_ext = ('.q', )
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            query=None,
-            query_uri=None,
-            variables=None,
-            job_name='{{task.task_id}}_{{ds_nodash}}',
-            cluster_name='cluster-1',
-            dataproc_spark_properties=None,
-            dataproc_spark_jars=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            region='global',
-            *args,
-            **kwargs):
+    def __init__(self,
+                 query=None,
+                 query_uri=None,
+                 variables=None,
+                 job_name='{{task.task_id}}_{{ds_nodash}}',
+                 cluster_name='cluster-1',
+                 dataproc_spark_properties=None,
+                 dataproc_spark_jars=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 region='global',
+                 *args,
+                 **kwargs):
 
         super(DataProcSparkSqlOperator, self).__init__(*args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
@@ -888,11 +887,11 @@ class DataProcSparkSqlOperator(BaseOperator):
         self.region = region
 
     def execute(self, context):
-        hook = DataProcHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = DataProcHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
 
-        job = hook.create_job_template(self.task_id, self.cluster_name, "sparkSqlJob",
-                                       self.dataproc_properties)
+        job = hook.create_job_template(self.task_id, self.cluster_name,
+                                       "sparkSqlJob", self.dataproc_properties)
 
         if self.query is None:
             job.add_query_uri(self.query_uri)
@@ -953,26 +952,27 @@ class DataProcSparkOperator(BaseOperator):
     :vartype dataproc_job_id: string
     """
 
-    template_fields = ['arguments', 'job_name', 'cluster_name', 'dataproc_jars']
+    template_fields = [
+        'arguments', 'job_name', 'cluster_name', 'dataproc_jars'
+    ]
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            main_jar=None,
-            main_class=None,
-            arguments=None,
-            archives=None,
-            files=None,
-            job_name='{{task.task_id}}_{{ds_nodash}}',
-            cluster_name='cluster-1',
-            dataproc_spark_properties=None,
-            dataproc_spark_jars=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            region='global',
-            *args,
-            **kwargs):
+    def __init__(self,
+                 main_jar=None,
+                 main_class=None,
+                 arguments=None,
+                 archives=None,
+                 files=None,
+                 job_name='{{task.task_id}}_{{ds_nodash}}',
+                 cluster_name='cluster-1',
+                 dataproc_spark_properties=None,
+                 dataproc_spark_jars=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 region='global',
+                 *args,
+                 **kwargs):
 
         super(DataProcSparkOperator, self).__init__(*args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
@@ -989,10 +989,10 @@ class DataProcSparkOperator(BaseOperator):
         self.region = region
 
     def execute(self, context):
-        hook = DataProcHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to)
-        job = hook.create_job_template(self.task_id, self.cluster_name, "sparkJob",
-                                       self.dataproc_properties)
+        hook = DataProcHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
+        job = hook.create_job_template(self.task_id, self.cluster_name,
+                                       "sparkJob", self.dataproc_properties)
 
         job.set_main(self.main_jar, self.main_class)
         job.add_args(self.arguments)
@@ -1052,26 +1052,27 @@ class DataProcHadoopOperator(BaseOperator):
     :vartype dataproc_job_id: string
     """
 
-    template_fields = ['arguments', 'job_name', 'cluster_name', 'dataproc_jars']
+    template_fields = [
+        'arguments', 'job_name', 'cluster_name', 'dataproc_jars'
+    ]
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            main_jar=None,
-            main_class=None,
-            arguments=None,
-            archives=None,
-            files=None,
-            job_name='{{task.task_id}}_{{ds_nodash}}',
-            cluster_name='cluster-1',
-            dataproc_hadoop_properties=None,
-            dataproc_hadoop_jars=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            region='global',
-            *args,
-            **kwargs):
+    def __init__(self,
+                 main_jar=None,
+                 main_class=None,
+                 arguments=None,
+                 archives=None,
+                 files=None,
+                 job_name='{{task.task_id}}_{{ds_nodash}}',
+                 cluster_name='cluster-1',
+                 dataproc_hadoop_properties=None,
+                 dataproc_hadoop_jars=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 region='global',
+                 *args,
+                 **kwargs):
 
         super(DataProcHadoopOperator, self).__init__(*args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
@@ -1088,10 +1089,10 @@ class DataProcHadoopOperator(BaseOperator):
         self.region = region
 
     def execute(self, context):
-        hook = DataProcHook(gcp_conn_id=self.gcp_conn_id,
-                            delegate_to=self.delegate_to)
-        job = hook.create_job_template(self.task_id, self.cluster_name, "hadoopJob",
-                                       self.dataproc_properties)
+        hook = DataProcHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
+        job = hook.create_job_template(self.task_id, self.cluster_name,
+                                       "hadoopJob", self.dataproc_properties)
 
         job.set_main(self.main_jar, self.main_class)
         job.add_args(self.arguments)
@@ -1152,17 +1153,22 @@ class DataProcPySparkOperator(BaseOperator):
     :vartype dataproc_job_id: string
     """
 
-    template_fields = ['arguments', 'job_name', 'cluster_name', 'dataproc_jars']
+    template_fields = [
+        'arguments', 'job_name', 'cluster_name', 'dataproc_jars'
+    ]
     ui_color = '#0273d4'
 
     @staticmethod
     def _generate_temp_filename(filename):
         dt = time.strftime('%Y%m%d%H%M%S')
-        return "{}_{}_{}".format(dt, str(uuid.uuid1())[:8], ntpath.basename(filename))
+        return "{}_{}_{}".format(dt,
+                                 str(uuid.uuid1())[:8],
+                                 ntpath.basename(filename))
 
     """
     Upload a local file to a Google Cloud Storage bucket
     """
+
     def _upload_file_temp(self, bucket, local_file):
         temp_filename = self._generate_temp_filename(local_file)
         if not bucket:
@@ -1173,32 +1179,29 @@ class DataProcPySparkOperator(BaseOperator):
         self.log.info("Uploading %s to %s", local_file, temp_filename)
 
         GoogleCloudStorageHook(
-            google_cloud_storage_conn_id=self.gcp_conn_id
-        ).upload(
-            bucket=bucket,
-            object=temp_filename,
-            mime_type='application/x-python',
-            filename=local_file
-        )
+            google_cloud_storage_conn_id=self.gcp_conn_id).upload(
+                bucket=bucket,
+                object=temp_filename,
+                mime_type='application/x-python',
+                filename=local_file)
         return "gs://{}/{}".format(bucket, temp_filename)
 
     @apply_defaults
-    def __init__(
-            self,
-            main,
-            arguments=None,
-            archives=None,
-            pyfiles=None,
-            files=None,
-            job_name='{{task.task_id}}_{{ds_nodash}}',
-            cluster_name='cluster-1',
-            dataproc_pyspark_properties=None,
-            dataproc_pyspark_jars=None,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            region='global',
-            *args,
-            **kwargs):
+    def __init__(self,
+                 main,
+                 arguments=None,
+                 archives=None,
+                 pyfiles=None,
+                 files=None,
+                 job_name='{{task.task_id}}_{{ds_nodash}}',
+                 cluster_name='cluster-1',
+                 dataproc_pyspark_properties=None,
+                 dataproc_pyspark_jars=None,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 region='global',
+                 *args,
+                 **kwargs):
 
         super(DataProcPySparkOperator, self).__init__(*args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
@@ -1216,19 +1219,16 @@ class DataProcPySparkOperator(BaseOperator):
 
     def execute(self, context):
         hook = DataProcHook(
-            gcp_conn_id=self.gcp_conn_id,
-            delegate_to=self.delegate_to
-        )
-        job = hook.create_job_template(
-            self.task_id, self.cluster_name, "pysparkJob", self.dataproc_properties)
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
+        job = hook.create_job_template(self.task_id, self.cluster_name,
+                                       "pysparkJob", self.dataproc_properties)
 
         #  Check if the file is local, if that is the case, upload it to a bucket
         if os.path.isfile(self.main):
             cluster_info = hook.get_cluster(
                 project_id=hook.project_id,
                 region=self.region,
-                cluster_name=self.cluster_name
-            )
+                cluster_name=self.cluster_name)
             bucket = cluster_info['config']['configBucket']
             self.main = self._upload_file_temp(bucket, self.main)
         job.set_python_main(self.main)
@@ -1255,7 +1255,8 @@ class DataprocWorkflowTemplateBaseOperator(BaseOperator):
                  delegate_to=None,
                  *args,
                  **kwargs):
-        super(DataprocWorkflowTemplateBaseOperator, self).__init__(*args, **kwargs)
+        super(DataprocWorkflowTemplateBaseOperator, self).__init__(
+            *args, **kwargs)
         self.gcp_conn_id = gcp_conn_id
         self.delegate_to = delegate_to
         self.project_id = project_id
@@ -1263,8 +1264,7 @@ class DataprocWorkflowTemplateBaseOperator(BaseOperator):
         self.hook = DataProcHook(
             gcp_conn_id=self.gcp_conn_id,
             delegate_to=self.delegate_to,
-            api_version='v1beta2'
-        )
+            api_version='v1beta2')
 
     def execute(self, context):
         self.hook.wait(self.start())
@@ -1273,7 +1273,8 @@ class DataprocWorkflowTemplateBaseOperator(BaseOperator):
         raise AirflowException('plese start a workflow operation')
 
 
-class DataprocWorkflowTemplateInstantiateOperator(DataprocWorkflowTemplateBaseOperator):
+class DataprocWorkflowTemplateInstantiateOperator(
+        DataprocWorkflowTemplateBaseOperator):
     """
     Instantiate a WorkflowTemplate on Google Cloud Dataproc. The operator will wait
     until the WorkflowTemplate is finished executing.
@@ -1301,19 +1302,19 @@ class DataprocWorkflowTemplateInstantiateOperator(DataprocWorkflowTemplateBaseOp
 
     @apply_defaults
     def __init__(self, template_id, *args, **kwargs):
-        (super(DataprocWorkflowTemplateInstantiateOperator, self)
-            .__init__(*args, **kwargs))
+        (super(DataprocWorkflowTemplateInstantiateOperator, self).__init__(
+            *args, **kwargs))
         self.template_id = template_id
 
     def start(self):
         self.log.info('Instantiating Template: %s', self.template_id)
-        return (
-            self.hook.get_conn().projects().regions().workflowTemplates()
-            .instantiate(
-                name=('projects/%s/regions/%s/workflowTemplates/%s' %
-                      (self.project_id, self.region, self.template_id)),
-                body={'instanceId': str(uuid.uuid1())})
-            .execute())
+        return (self.hook.get_conn().projects().regions().workflowTemplates()
+                .instantiate(
+                    name=('projects/%s/regions/%s/workflowTemplates/%s' %
+                          (self.project_id, self.region, self.template_id)),
+                    body={
+                        'instanceId': str(uuid.uuid1())
+                    }).execute())
 
 
 class DataprocWorkflowTemplateInstantiateInlineOperator(
@@ -1346,15 +1347,14 @@ class DataprocWorkflowTemplateInstantiateInlineOperator(
     @apply_defaults
     def __init__(self, template, *args, **kwargs):
         (super(DataprocWorkflowTemplateInstantiateInlineOperator, self)
-            .__init__(*args, **kwargs))
+         .__init__(*args, **kwargs))
         self.template = template
 
     def start(self):
         self.log.info('Instantiating Inline Template')
-        return (
-            self.hook.get_conn().projects().regions().workflowTemplates()
-            .instantiateInline(
-                parent='projects/%s/regions/%s' % (self.project_id, self.region),
-                instanceId=str(uuid.uuid1()),
-                body=self.template)
-            .execute())
+        return (self.hook.get_conn().projects().regions().workflowTemplates()
+                .instantiateInline(
+                    parent='projects/%s/regions/%s' % (self.project_id,
+                                                       self.region),
+                    instanceId=str(uuid.uuid1()),
+                    body=self.template).execute())

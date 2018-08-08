@@ -82,7 +82,8 @@ try:
             prefix=conf.get('scheduler', 'statsd_prefix'))
         Stats = statsd
 except (socket.gaierror, ImportError):
-    log.warning("Could not configure StatsClient, using DummyStatsLogger instead.")
+    log.warning(
+        "Could not configure StatsClient, using DummyStatsLogger instead.")
 
 HEADER = """\
   ____________       _____________
@@ -182,10 +183,11 @@ def configure_orm(disable_connection_pool=False):
     setup_event_handlers(engine, reconnect_timeout)
 
     Session = scoped_session(
-        sessionmaker(autocommit=False,
-                     autoflush=False,
-                     bind=engine,
-                     expire_on_commit=False))
+        sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=engine,
+            expire_on_commit=False))
 
 
 def dispose_orm():
@@ -211,7 +213,8 @@ def configure_adapters():
         pass
     try:
         import MySQLdb.converters
-        MySQLdb.converters.conversions[Pendulum] = MySQLdb.converters.DateTime2literal
+        MySQLdb.converters.conversions[
+            Pendulum] = MySQLdb.converters.DateTime2literal
     except ImportError:
         pass
 
@@ -245,5 +248,4 @@ atexit.register(dispose_orm)
 
 KILOBYTE = 1024
 MEGABYTE = KILOBYTE * KILOBYTE
-WEB_COLORS = {'LIGHTBLUE': '#4d9de0',
-              'LIGHTORANGE': '#FF9933'}
+WEB_COLORS = {'LIGHTBLUE': '#4d9de0', 'LIGHTORANGE': '#FF9933'}

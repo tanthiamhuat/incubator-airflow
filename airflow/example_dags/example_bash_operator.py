@@ -24,14 +24,11 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 from datetime import timedelta
 
-
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {'owner': 'airflow', 'start_date': airflow.utils.dates.days_ago(2)}
 
 dag = DAG(
-    dag_id='example_bash_operator', default_args=args,
+    dag_id='example_bash_operator',
+    default_args=args,
     schedule_interval='0 0 * * *',
     dagrun_timeout=timedelta(minutes=60))
 

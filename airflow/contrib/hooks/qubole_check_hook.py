@@ -27,7 +27,6 @@ try:
 except ImportError:
     from io import StringIO
 
-
 COL_DELIM = '\t'
 ROW_DELIM = '\r\n'
 
@@ -79,7 +78,8 @@ class QuboleCheckHook(QuboleHook):
         if 'results_parser_callable' in kwargs and \
                 kwargs['results_parser_callable'] is not None:
             if not callable(kwargs['results_parser_callable']):
-                raise AirflowException('`results_parser_callable` param must be callable')
+                raise AirflowException(
+                    '`results_parser_callable` param must be callable')
             self.results_parser_callable = kwargs['results_parser_callable']
         self.context = context
 
@@ -109,7 +109,8 @@ class QuboleCheckHook(QuboleHook):
             cmd_id = self.cmd.id
             log.info("command id: " + str(cmd_id))
             query_result_buffer = StringIO()
-            self.cmd.get_results(fp=query_result_buffer, inline=True, delim=COL_DELIM)
+            self.cmd.get_results(
+                fp=query_result_buffer, inline=True, delim=COL_DELIM)
             query_result = query_result_buffer.getvalue()
             query_result_buffer.close()
             return query_result

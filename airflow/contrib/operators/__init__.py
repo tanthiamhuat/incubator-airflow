@@ -18,10 +18,8 @@
 # under the License.
 #
 
-
 # Contrib operators are not imported by default. They should be accessed
 # directly: from airflow.contrib.operators.operator_module import Operator
-
 
 import sys
 import os

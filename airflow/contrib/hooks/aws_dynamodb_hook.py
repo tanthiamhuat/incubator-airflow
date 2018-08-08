@@ -37,7 +37,8 @@ class AwsDynamoDBHook(AwsHook):
                  table_keys=None,
                  table_name=None,
                  region_name=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
         self.table_keys = table_keys
         self.table_name = table_name
         self.region_name = region_name
@@ -57,13 +58,12 @@ class AwsDynamoDBHook(AwsHook):
         try:
             table = dynamodb_conn.Table(self.table_name)
 
-            with table.batch_writer(overwrite_by_pkeys=self.table_keys) as batch:
+            with table.batch_writer(
+                    overwrite_by_pkeys=self.table_keys) as batch:
                 for item in items:
                     batch.put_item(Item=item)
             return True
         except Exception as general_error:
             raise AirflowException(
                 'Failed to insert items in dynamodb, error: {error}'.format(
-                    error=str(general_error)
-                )
-            )
+                    error=str(general_error)))

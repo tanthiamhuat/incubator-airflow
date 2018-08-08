@@ -23,11 +23,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 import random
 
-
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {'owner': 'airflow', 'start_date': airflow.utils.dates.days_ago(2)}
 
 dag = DAG(
     dag_id='example_branch_operator',
@@ -45,11 +41,7 @@ branching = BranchPythonOperator(
     dag=dag)
 branching.set_upstream(run_this_first)
 
-join = DummyOperator(
-    task_id='join',
-    trigger_rule='one_success',
-    dag=dag
-)
+join = DummyOperator(task_id='join', trigger_rule='one_success', dag=dag)
 
 for option in options:
     t = DummyOperator(task_id=option, dag=dag)

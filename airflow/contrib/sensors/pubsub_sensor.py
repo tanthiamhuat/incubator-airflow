@@ -41,17 +41,16 @@ class PubSubPullSensor(BaseSensorOperator):
     ui_color = '#ff7f50'
 
     @apply_defaults
-    def __init__(
-            self,
-            project,
-            subscription,
-            max_messages=5,
-            return_immediately=False,
-            ack_messages=False,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 project,
+                 subscription,
+                 max_messages=5,
+                 return_immediately=False,
+                 ack_messages=False,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 *args,
+                 **kwargs):
         """
         :param project: the GCP project ID for the subscription (templated)
         :type project: string
@@ -93,13 +92,14 @@ class PubSubPullSensor(BaseSensorOperator):
         return self._messages
 
     def poke(self, context):
-        hook = PubSubHook(gcp_conn_id=self.gcp_conn_id,
-                          delegate_to=self.delegate_to)
-        self._messages = hook.pull(
-            self.project, self.subscription, self.max_messages,
-            self.return_immediately)
+        hook = PubSubHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
+        self._messages = hook.pull(self.project, self.subscription,
+                                   self.max_messages, self.return_immediately)
         if self._messages and self.ack_messages:
             if self.ack_messages:
-                ack_ids = [m['ackId'] for m in self._messages if m.get('ackId')]
+                ack_ids = [
+                    m['ackId'] for m in self._messages if m.get('ackId')
+                ]
                 hook.acknowledge(self.project, self.subscription, ack_ids)
         return self._messages

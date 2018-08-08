@@ -36,8 +36,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
     def __init__(self,
                  google_cloud_storage_conn_id='google_cloud_default',
                  delegate_to=None):
-        super(GoogleCloudStorageHook, self).__init__(google_cloud_storage_conn_id,
-                                                     delegate_to)
+        super(GoogleCloudStorageHook, self).__init__(
+            google_cloud_storage_conn_id, delegate_to)
 
     def get_conn(self):
         """
@@ -48,7 +48,10 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             'storage', 'v1', http=http_authorized, cache_discovery=False)
 
     # pylint:disable=redefined-builtin
-    def copy(self, source_bucket, source_object, destination_bucket=None,
+    def copy(self,
+             source_bucket,
+             source_object,
+             destination_bucket=None,
              destination_object=None):
         """
         Copies an object from a bucket to another, with renaming if requested.
@@ -76,7 +79,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                 'must be different, not both the same: bucket=%s, object=%s' %
                 (source_bucket, source_object))
         if not source_bucket or not source_object:
-            raise ValueError('source_bucket and source_object cannot be empty.')
+            raise ValueError(
+                'source_bucket and source_object cannot be empty.')
 
         service = self.get_conn()
         try:
@@ -92,7 +96,10 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                 return False
             raise
 
-    def rewrite(self, source_bucket, source_object, destination_bucket,
+    def rewrite(self,
+                source_bucket,
+                source_object,
+                destination_bucket,
                 destination_object=None):
         """
         Has the same functionality as copy, except that will work on files
@@ -111,14 +118,15 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             Can be omitted; then the same name is used.
         """
         destination_object = destination_object or source_object
-        if (source_bucket == destination_bucket and
-                source_object == destination_object):
+        if (source_bucket == destination_bucket
+                and source_object == destination_object):
             raise ValueError(
                 'Either source/destination bucket or source/destination object '
                 'must be different, not both the same: bucket=%s, object=%s' %
                 (source_bucket, source_object))
         if not source_bucket or not source_object:
-            raise ValueError('source_bucket and source_object cannot be empty.')
+            raise ValueError(
+                'source_bucket and source_object cannot be empty.')
 
         service = self.get_conn()
         request_count = 1
@@ -164,14 +172,19 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
 
         # Write the file to local file path, if requested.
         if filename:
-            write_argument = 'wb' if isinstance(downloaded_file_bytes, bytes) else 'w'
+            write_argument = 'wb' if isinstance(downloaded_file_bytes,
+                                                bytes) else 'w'
             with open(filename, write_argument) as file_fd:
                 file_fd.write(downloaded_file_bytes)
 
         return downloaded_file_bytes
 
     # pylint:disable=redefined-builtin
-    def upload(self, bucket, object, filename, mime_type='application/octet-stream'):
+    def upload(self,
+               bucket,
+               object,
+               filename,
+               mime_type='application/octet-stream'):
         """
         Uploads a local file to Google Cloud Storage.
 
@@ -235,9 +248,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         """
         service = self.get_conn()
         try:
-            response = (service
-                        .objects()
-                        .get(bucket=bucket, object=object)
+            response = (service.objects().get(bucket=bucket, object=object)
                         .execute())
 
             if 'updated' in response:
@@ -285,7 +296,12 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                 return False
             raise
 
-    def list(self, bucket, versions=None, maxResults=None, prefix=None, delimiter=None):
+    def list(self,
+             bucket,
+             versions=None,
+             maxResults=None,
+             prefix=None,
+             delimiter=None):
         """
         List all objects from the bucket with the give string prefix in name
 
@@ -313,8 +329,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                 maxResults=maxResults,
                 pageToken=pageToken,
                 prefix=prefix,
-                delimiter=delimiter
-            ).execute()
+                delimiter=delimiter).execute()
 
             if 'prefixes' not in response:
                 if 'items' not in response:
@@ -349,14 +364,11 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
 
         """
         self.log.info('Checking the file size of object: %s in bucket: %s',
-                      object,
-                      bucket)
+                      object, bucket)
         service = self.get_conn()
         try:
             response = service.objects().get(
-                bucket=bucket,
-                object=object
-            ).execute()
+                bucket=bucket, object=object).execute()
 
             if 'name' in response and response['name'][-1] != '/':
                 # Remove Directories & Just check size of files
@@ -379,14 +391,13 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             storage bucket.
         :type object: string
         """
-        self.log.info('Retrieving the crc32c checksum of '
-                      'object: %s in bucket: %s', object, bucket)
+        self.log.info(
+            'Retrieving the crc32c checksum of '
+            'object: %s in bucket: %s', object, bucket)
         service = self.get_conn()
         try:
             response = service.objects().get(
-                bucket=bucket,
-                object=object
-            ).execute()
+                bucket=bucket, object=object).execute()
 
             crc32c = response['crc32c']
             self.log.info('The crc32c checksum of %s is %s', object, crc32c)
@@ -411,9 +422,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         service = self.get_conn()
         try:
             response = service.objects().get(
-                bucket=bucket,
-                object=object
-            ).execute()
+                bucket=bucket, object=object).execute()
 
             md5hash = response['md5Hash']
             self.log.info('The md5Hash of %s is %s', object, md5hash)
@@ -428,8 +437,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                       storage_class='MULTI_REGIONAL',
                       location='US',
                       project_id=None,
-                      labels=None
-                      ):
+                      labels=None):
         """
         Creates a new bucket. Google Cloud Storage uses a flat namespace, so
         you can't create a bucket with a name that is already in use.
@@ -483,7 +491,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                 'one of {}'.format(storage_class, storage_classes))
 
         if not re.match('[a-zA-Z0-9]+', bucket_name[0]):
-            raise ValueError('Bucket names must start with a number or letter.')
+            raise ValueError(
+                'Bucket names must start with a number or letter.')
 
         if not re.match('[a-zA-Z0-9]+', bucket_name[-1]):
             raise ValueError('Bucket names must end with a number or letter.')
@@ -502,9 +511,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
 
         try:
             response = service.buckets().insert(
-                project=project_id,
-                body=bucket_resource
-            ).execute()
+                project=project_id, body=bucket_resource).execute()
 
             self.log.info('Bucket: %s created successfully.', bucket_name)
 
@@ -512,8 +519,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
 
         except errors.HttpError as ex:
             raise AirflowException(
-                'Bucket creation failed. Error was: {}'.format(ex.content)
-            )
+                'Bucket creation failed. Error was: {}'.format(ex.content))
 
 
 def _parse_gcs_url(gsurl):

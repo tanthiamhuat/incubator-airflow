@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
 """
 This module contains a sqoop 1 operator
 """
@@ -36,14 +35,32 @@ class SqoopOperator(BaseOperator):
     Documentation for Apache Sqoop can be found here:
         https://sqoop.apache.org/docs/1.4.2/SqoopUserGuide.html.
     """
-    template_fields = ('conn_id', 'cmd_type', 'table', 'query', 'target_dir',
-                       'file_type', 'columns', 'split_by',
-                       'where', 'export_dir', 'input_null_string',
-                       'input_null_non_string', 'staging_table',
-                       'enclosed_by', 'escaped_by', 'input_fields_terminated_by',
-                       'input_lines_terminated_by', 'input_optionally_enclosed_by',
-                       'properties', 'extra_import_options', 'driver',
-                       'extra_export_options', 'hcatalog_database', 'hcatalog_table',)
+    template_fields = (
+        'conn_id',
+        'cmd_type',
+        'table',
+        'query',
+        'target_dir',
+        'file_type',
+        'columns',
+        'split_by',
+        'where',
+        'export_dir',
+        'input_null_string',
+        'input_null_non_string',
+        'staging_table',
+        'enclosed_by',
+        'escaped_by',
+        'input_fields_terminated_by',
+        'input_lines_terminated_by',
+        'input_optionally_enclosed_by',
+        'properties',
+        'extra_import_options',
+        'driver',
+        'extra_export_options',
+        'hcatalog_database',
+        'hcatalog_table',
+    )
     ui_color = '#7D8CA4'
 
     @apply_defaults
@@ -173,8 +190,7 @@ class SqoopOperator(BaseOperator):
             num_mappers=self.num_mappers,
             hcatalog_database=self.hcatalog_database,
             hcatalog_table=self.hcatalog_table,
-            properties=self.properties
-        )
+            properties=self.properties)
 
         if self.cmd_type == 'export':
             self.hook.export_table(
@@ -228,8 +244,7 @@ class SqoopOperator(BaseOperator):
                     extra_import_options=self.extra_import_options)
             else:
                 raise AirflowException(
-                    "Provide query or table parameter to import using Sqoop"
-                )
+                    "Provide query or table parameter to import using Sqoop")
         else:
             raise AirflowException("cmd_type should be 'import' or 'export'")
 

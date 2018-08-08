@@ -26,6 +26,7 @@ class ZendeskHook(BaseHook):
     """
     A hook to talk to Zendesk
     """
+
     def __init__(self, zendesk_conn_id):
         self.__zendesk_conn_id = zendesk_conn_id
         self.__url = None
@@ -42,10 +43,8 @@ class ZendeskHook(BaseHook):
         """
         retry_after = int(
             rate_limit_exception.response.headers.get('Retry-After', 60))
-        self.log.info(
-            "Hit Zendesk API rate limit. Pausing for %s seconds",
-            retry_after
-        )
+        self.log.info("Hit Zendesk API rate limit. Pausing for %s seconds",
+                      retry_after)
         time.sleep(retry_after)
 
     def call(self, path, query=None, get_all_pages=True, side_loading=False):

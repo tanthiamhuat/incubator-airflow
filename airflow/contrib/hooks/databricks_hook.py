@@ -32,7 +32,6 @@ try:
 except ImportError:
     import urlparse
 
-
 SUBMIT_RUN_ENDPOINT = ('POST', 'api/2.0/jobs/runs/submit')
 GET_RUN_ENDPOINT = ('GET', 'api/2.0/jobs/runs/get')
 CANCEL_RUN_ENDPOINT = ('POST', 'api/2.0/jobs/runs/cancel')
@@ -43,11 +42,11 @@ class DatabricksHook(BaseHook, LoggingMixin):
     """
     Interact with Databricks.
     """
-    def __init__(
-            self,
-            databricks_conn_id='databricks_default',
-            timeout_seconds=180,
-            retry_limit=3):
+
+    def __init__(self,
+                 databricks_conn_id='databricks_default',
+                 timeout_seconds=180,
+                 retry_limit=3):
         """
         :param databricks_conn_id: The name of the databricks connection to use.
         :type databricks_conn_id: string
@@ -132,16 +131,16 @@ class DatabricksHook(BaseHook, LoggingMixin):
                 else:
                     # In this case, the user probably made a mistake.
                     # Don't retry.
-                    raise AirflowException('Response: {0}, Status Code: {1}'.format(
-                        response.content, response.status_code))
+                    raise AirflowException(
+                        'Response: {0}, Status Code: {1}'.format(
+                            response.content, response.status_code))
             except (requests_exceptions.ConnectionError,
                     requests_exceptions.Timeout) as e:
                 self.log.error(
                     'Attempt %s API Request to Databricks failed with reason: %s',
-                    attempt_num, e
-                )
-        raise AirflowException(('API requests to Databricks failed {} times. ' +
-                               'Giving up.').format(self.retry_limit))
+                    attempt_num, e)
+        raise AirflowException(('API requests to Databricks failed {} times. '
+                                + 'Giving up.').format(self.retry_limit))
 
     def submit_run(self, json):
         """
@@ -176,11 +175,7 @@ class DatabricksHook(BaseHook, LoggingMixin):
 
 
 RUN_LIFE_CYCLE_STATES = [
-    'PENDING',
-    'RUNNING',
-    'TERMINATING',
-    'TERMINATED',
-    'SKIPPED',
+    'PENDING', 'RUNNING', 'TERMINATING', 'TERMINATED', 'SKIPPED',
     'INTERNAL_ERROR'
 ]
 
@@ -189,6 +184,7 @@ class RunState:
     """
     Utility class for the run state concept of Databricks runs.
     """
+
     def __init__(self, life_cycle_state, result_state, state_message):
         self.life_cycle_state = life_cycle_state
         self.result_state = result_state
@@ -201,8 +197,9 @@ class RunState:
                 ('Unexpected life cycle state: {}: If the state has '
                  'been introduced recently, please check the Databricks user '
                  'guide for troubleshooting information').format(
-                    self.life_cycle_state))
-        return self.life_cycle_state in ('TERMINATED', 'SKIPPED', 'INTERNAL_ERROR')
+                     self.life_cycle_state))
+        return self.life_cycle_state in ('TERMINATED', 'SKIPPED',
+                                         'INTERNAL_ERROR')
 
     @property
     def is_successful(self):
@@ -222,6 +219,7 @@ class _TokenAuth(AuthBase):
     Helper class for requests Auth field. AuthBase requires you to implement the __call__
     magic function.
     """
+
     def __init__(self, token):
         self.token = token
 

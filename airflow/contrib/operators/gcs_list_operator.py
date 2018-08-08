@@ -81,12 +81,11 @@ class GoogleCloudStorageListOperator(BaseOperator):
 
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to
-        )
+            delegate_to=self.delegate_to)
 
-        self.log.info('Getting list of the files. Bucket: %s; Delimiter: %s; Prefix: %s',
-                      self.bucket, self.delimiter, self.prefix)
+        self.log.info(
+            'Getting list of the files. Bucket: %s; Delimiter: %s; Prefix: %s',
+            self.bucket, self.delimiter, self.prefix)
 
-        return hook.list(bucket=self.bucket,
-                         prefix=self.prefix,
-                         delimiter=self.delimiter)
+        return hook.list(
+            bucket=self.bucket, prefix=self.prefix, delimiter=self.delimiter)

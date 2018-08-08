@@ -44,7 +44,8 @@ class EmrHook(AwsHook):
         """
 
         if not self.emr_conn_id:
-            raise AirflowException('emr_conn_id must be present to use create_job_flow')
+            raise AirflowException(
+                'emr_conn_id must be present to use create_job_flow')
 
         emr_conn = self.get_connection(self.emr_conn_id)
 
@@ -63,7 +64,6 @@ class EmrHook(AwsHook):
             VisibleToAllUsers=config.get('VisibleToAllUsers'),
             JobFlowRole=config.get('JobFlowRole'),
             ServiceRole=config.get('ServiceRole'),
-            Tags=config.get('Tags')
-        )
+            Tags=config.get('Tags'))
 
         return response

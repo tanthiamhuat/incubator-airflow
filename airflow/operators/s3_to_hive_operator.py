@@ -94,24 +94,24 @@ class S3ToHiveTransfer(BaseOperator):
     ui_color = '#a0e08c'
 
     @apply_defaults
-    def __init__(
-            self,
-            s3_key,
-            field_dict,
-            hive_table,
-            delimiter=',',
-            create=True,
-            recreate=False,
-            partition=None,
-            headers=False,
-            check_headers=False,
-            wildcard_match=False,
-            aws_conn_id='aws_default',
-            hive_cli_conn_id='hive_cli_default',
-            input_compressed=False,
-            tblproperties=None,
-            select_expression=None,
-            *args, **kwargs):
+    def __init__(self,
+                 s3_key,
+                 field_dict,
+                 hive_table,
+                 delimiter=',',
+                 create=True,
+                 recreate=False,
+                 partition=None,
+                 headers=False,
+                 check_headers=False,
+                 wildcard_match=False,
+                 aws_conn_id='aws_default',
+                 hive_cli_conn_id='hive_cli_default',
+                 input_compressed=False,
+                 tblproperties=None,
+                 select_expression=None,
+                 *args,
+                 **kwargs):
         super(S3ToHiveTransfer, self).__init__(*args, **kwargs)
         self.s3_key = s3_key
         self.field_dict = field_dict
@@ -129,8 +129,8 @@ class S3ToHiveTransfer(BaseOperator):
         self.tblproperties = tblproperties
         self.select_expression = select_expression
 
-        if (self.check_headers and
-                not (self.field_dict is not None and self.headers)):
+        if (self.check_headers
+                and not (self.field_dict is not None and self.headers)):
             raise AirflowException("To check_headers provide " +
                                    "field_dict and headers")
 
@@ -147,13 +147,13 @@ class S3ToHiveTransfer(BaseOperator):
             s3_key_object = self.s3.get_wildcard_key(self.s3_key)
         else:
             if not self.s3.check_for_key(self.s3_key):
-                raise AirflowException(
-                    "The key {0} does not exists".format(self.s3_key))
+                raise AirflowException("The key {0} does not exists".format(
+                    self.s3_key))
             s3_key_object = self.s3.get_key(self.s3_key)
 
         root, file_ext = os.path.splitext(s3_key_object.key)
-        if (self.select_expression and self.input_compressed and
-                file_ext.lower() != '.gz'):
+        if (self.select_expression and self.input_compressed
+                and file_ext.lower() != '.gz'):
             raise AirflowException("GZIP is the only compression " +
                                    "format Amazon S3 Select supports")
 
@@ -178,8 +178,7 @@ class S3ToHiveTransfer(BaseOperator):
                     bucket_name=s3_key_object.bucket_name,
                     key=s3_key_object.key,
                     expression=self.select_expression,
-                    input_serialization=input_serialization
-                )
+                    input_serialization=input_serialization)
                 f.write(content.encode("utf-8"))
             else:
                 s3_key_object.download_fileobj(f)
@@ -200,8 +199,7 @@ class S3ToHiveTransfer(BaseOperator):
                 # Decompressing file
                 if self.input_compressed:
                     self.log.info("Uncompressing file %s", f.name)
-                    fn_uncompressed = uncompress_file(f.name,
-                                                      file_ext,
+                    fn_uncompressed = uncompress_file(f.name, file_ext,
                                                       tmp_dir)
                     self.log.info("Uncompressed to %s", fn_uncompressed)
                     # uncompressed file available now so deleting
@@ -219,20 +217,19 @@ class S3ToHiveTransfer(BaseOperator):
 
                 # Deleting top header row
                 self.log.info("Removing header from file %s", fn_uncompressed)
-                headless_file = (
-                    self._delete_top_row_and_compress(fn_uncompressed,
-                                                      file_ext,
-                                                      tmp_dir))
+                headless_file = (self._delete_top_row_and_compress(
+                    fn_uncompressed, file_ext, tmp_dir))
                 self.log.info("Headless file %s", headless_file)
                 self.log.info("Loading file %s into Hive", headless_file)
-                self.hive.load_file(headless_file,
-                                    self.hive_table,
-                                    field_dict=self.field_dict,
-                                    create=self.create,
-                                    partition=self.partition,
-                                    delimiter=self.delimiter,
-                                    recreate=self.recreate,
-                                    tblproperties=self.tblproperties)
+                self.hive.load_file(
+                    headless_file,
+                    self.hive_table,
+                    field_dict=self.field_dict,
+                    create=self.create,
+                    partition=self.partition,
+                    delimiter=self.delimiter,
+                    recreate=self.recreate,
+                    tblproperties=self.tblproperties)
 
     def _get_top_row_as_list(self, file_name):
         with open(file_name, 'rt') as f:
@@ -250,8 +247,10 @@ class S3ToHiveTransfer(BaseOperator):
                              "Field names: \n {field_names}\n"
                              .format(**locals()))
             return False
-        test_field_match = [h1.lower() == h2.lower()
-                            for h1, h2 in zip(header_list, field_names)]
+        test_field_match = [
+            h1.lower() == h2.lower()
+            for h1, h2 in zip(header_list, field_names)
+        ]
         if not all(test_field_match):
             self.log.warning("Headers do not match field names"
                              "File headers:\n {header_list}\n"
@@ -262,10 +261,8 @@ class S3ToHiveTransfer(BaseOperator):
             return True
 
     @staticmethod
-    def _delete_top_row_and_compress(
-            input_file_name,
-            output_file_ext,
-            dest_dir):
+    def _delete_top_row_and_compress(input_file_name, output_file_ext,
+                                     dest_dir):
         # When output_file_ext is not defined, file is not compressed
         open_fn = open
         if output_file_ext.lower() == '.gz':

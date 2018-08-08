@@ -24,13 +24,15 @@ operator_typedef = {
     "classificationDefs": [],
     "entityDefs": [
         {
-            "superTypes": [
-                "Process"
-            ],
-            "name": "airflow_operator",
-            "description": "Airflow Operator",
-            "createdBy": "airflow",
-            "updatedBy": "airflow",
+            "superTypes": ["Process"],
+            "name":
+            "airflow_operator",
+            "description":
+            "Airflow Operator",
+            "createdBy":
+            "airflow",
+            "updatedBy":
+            "airflow",
             "attributeDefs": [
                 # "name" will be set to Operator name
                 # "qualifiedName" will be set to dag_id_task_id@operator_name

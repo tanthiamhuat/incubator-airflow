@@ -36,11 +36,7 @@ class EmrTerminateJobFlowOperator(BaseOperator):
     ui_color = '#f9c915'
 
     @apply_defaults
-    def __init__(
-            self,
-            job_flow_id,
-            aws_conn_id='s3_default',
-            *args, **kwargs):
+    def __init__(self, job_flow_id, aws_conn_id='s3_default', *args, **kwargs):
         super(EmrTerminateJobFlowOperator, self).__init__(*args, **kwargs)
         self.job_flow_id = job_flow_id
         self.aws_conn_id = aws_conn_id

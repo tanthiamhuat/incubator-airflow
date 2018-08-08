@@ -32,7 +32,6 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.module_loading import import_string
 
 PARALLELISM = configuration.conf.get('core', 'PARALLELISM')
-
 '''
 To start the celery worker, run the command:
 airflow worker
@@ -40,8 +39,7 @@ airflow worker
 
 if configuration.conf.has_option('celery', 'celery_config_options'):
     celery_configuration = import_string(
-        configuration.conf.get('celery', 'celery_config_options')
-    )
+        configuration.conf.get('celery', 'celery_config_options'))
 else:
     celery_configuration = DEFAULT_CELERY_CONFIG
 
@@ -56,8 +54,12 @@ def execute_command(command):
     log.info("Executing command in Celery: %s", command)
     env = os.environ.copy()
     try:
-        subprocess.check_call(command, shell=True, stderr=subprocess.STDOUT,
-                              close_fds=True, env=env)
+        subprocess.check_call(
+            command,
+            shell=True,
+            stderr=subprocess.STDOUT,
+            close_fds=True,
+            env=env)
     except subprocess.CalledProcessError as e:
         log.exception('execute_command encountered a CalledProcessError')
         log.error(e.output)
@@ -74,11 +76,14 @@ class CeleryExecutor(BaseExecutor):
     vast amounts of messages, while providing operations with the tools
     required to maintain such a system.
     """
+
     def start(self):
         self.tasks = {}
         self.last_state = {}
 
-    def execute_async(self, key, command,
+    def execute_async(self,
+                      key,
+                      command,
                       queue=DEFAULT_CELERY_CONFIG['task_default_queue'],
                       executor_config=None):
         self.log.info("[celery] queuing {key} through celery, "
@@ -109,13 +114,15 @@ class CeleryExecutor(BaseExecutor):
                         self.log.info("Unexpected state: %s", task.state)
                     self.last_state[key] = task.state
             except Exception as e:
-                self.log.error("Error syncing the celery executor, ignoring it:")
+                self.log.error(
+                    "Error syncing the celery executor, ignoring it:")
                 self.log.exception(e)
 
     def end(self, synchronous=False):
         if synchronous:
             while any([
                     task.state not in celery_states.READY_STATES
-                    for task in self.tasks.values()]):
+                    for task in self.tasks.values()
+            ]):
                 time.sleep(5)
         self.sync()

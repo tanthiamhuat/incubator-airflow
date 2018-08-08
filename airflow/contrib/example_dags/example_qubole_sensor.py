@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """
 This is only an example DAG to highlight usage of QuboleSensor in various scenarios,
 some of these tasks may or may not work based on your QDS account setup.
@@ -41,7 +40,8 @@ default_args = {
     'email_on_retry': False
 }
 
-dag = DAG('example_qubole_sensor', default_args=default_args, schedule_interval=None)
+dag = DAG(
+    'example_qubole_sensor', default_args=default_args, schedule_interval=None)
 
 dag.doc_md = __doc__
 
@@ -51,29 +51,32 @@ t1 = QuboleFileSensor(
     poke_interval=60,
     timeout=600,
     data={
-        "files":
-            [
-                "s3://paid-qubole/HadoopAPIExamples/jars/hadoop-0.20.1-dev-streaming.jar",
-                "s3://paid-qubole/HadoopAPITests/data/{{ ds.split('-')[2] }}.tsv"
-            ]  # will check for availability of all the files in array
+        "files": [
+            "s3://paid-qubole/HadoopAPIExamples/jars/hadoop-0.20.1-dev-streaming.jar",
+            "s3://paid-qubole/HadoopAPITests/data/{{ ds.split('-')[2] }}.tsv"
+        ]  # will check for availability of all the files in array
     },
-    dag=dag
-)
+    dag=dag)
 
 t2 = QubolePartitionSensor(
     task_id='check_hive_partition',
     poke_interval=10,
     timeout=60,
-    data={"schema": "default",
-          "table": "my_partitioned_table",
-          "columns": [
-              {"column": "month", "values":
-                  ["{{ ds.split('-')[1] }}"]},
-              {"column": "day", "values":
-                  ["{{ ds.split('-')[2] }}", "{{ yesterday_ds.split('-')[2] }}"]}
-          ]  # will check for partitions like [month=12/day=12,month=12/day=13]
-          },
-    dag=dag
-)
+    data={
+        "schema":
+        "default",
+        "table":
+        "my_partitioned_table",
+        "columns": [{
+            "column": "month",
+            "values": ["{{ ds.split('-')[1] }}"]
+        }, {
+            "column":
+            "day",
+            "values":
+            ["{{ ds.split('-')[2] }}", "{{ yesterday_ds.split('-')[2] }}"]
+        }]  # will check for partitions like [month=12/day=12,month=12/day=13]
+    },
+    dag=dag)
 
 t1.set_downstream(t2)

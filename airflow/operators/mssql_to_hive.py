@@ -68,22 +68,22 @@ class MsSqlToHiveTransfer(BaseOperator):
     """
 
     template_fields = ('sql', 'partition', 'hive_table')
-    template_ext = ('.sql',)
+    template_ext = ('.sql', )
     ui_color = '#a0e08c'
 
     @apply_defaults
-    def __init__(
-            self,
-            sql,
-            hive_table,
-            create=True,
-            recreate=False,
-            partition=None,
-            delimiter=chr(1),
-            mssql_conn_id='mssql_default',
-            hive_cli_conn_id='hive_cli_default',
-            tblproperties=None,
-            *args, **kwargs):
+    def __init__(self,
+                 sql,
+                 hive_table,
+                 create=True,
+                 recreate=False,
+                 partition=None,
+                 delimiter=chr(1),
+                 mssql_conn_id='mssql_default',
+                 hive_cli_conn_id='hive_cli_default',
+                 tblproperties=None,
+                 *args,
+                 **kwargs):
         super(MsSqlToHiveTransfer, self).__init__(*args, **kwargs)
         self.sql = sql
         self.hive_table = hive_table
@@ -110,12 +110,14 @@ class MsSqlToHiveTransfer(BaseOperator):
         hive = HiveCliHook(hive_cli_conn_id=self.hive_cli_conn_id)
         mssql = MsSqlHook(mssql_conn_id=self.mssql_conn_id)
 
-        self.log.info("Dumping Microsoft SQL Server query results to local file")
+        self.log.info(
+            "Dumping Microsoft SQL Server query results to local file")
         conn = mssql.get_conn()
         cursor = conn.cursor()
         cursor.execute(self.sql)
         with NamedTemporaryFile("w") as f:
-            csv_writer = csv.writer(f, delimiter=self.delimiter, encoding='utf-8')
+            csv_writer = csv.writer(
+                f, delimiter=self.delimiter, encoding='utf-8')
             field_dict = OrderedDict()
             col_count = 0
             for field in cursor.description:

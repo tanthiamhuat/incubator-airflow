@@ -89,14 +89,15 @@ def run_command(command):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         close_fds=True)
-    output, stderr = [stream.decode(sys.getdefaultencoding(), 'ignore')
-                      for stream in process.communicate()]
+    output, stderr = [
+        stream.decode(sys.getdefaultencoding(), 'ignore')
+        for stream in process.communicate()
+    ]
 
     if process.returncode != 0:
         raise AirflowConfigException(
             "Cannot execute {}. Error code is: {}. Output: {}, Stderr: {}"
-            .format(command, process.returncode, output, stderr)
-        )
+            .format(command, process.returncode, output, stderr))
 
     return output
 
@@ -146,8 +147,7 @@ class AirflowConfigParser(ConfigParser):
     }
     deprecation_format_string = (
         'The {old} option in [{section}] has been renamed to {new} - the old '
-        'setting has been used, but please update your config.'
-    )
+        'setting has been used, but please update your config.')
 
     def __init__(self, default_config=None, *args, **kwargs):
         super(AirflowConfigParser, self).__init__(*args, **kwargs)
@@ -159,27 +159,22 @@ class AirflowConfigParser(ConfigParser):
         self.is_validated = False
 
     def _validate(self):
-        if (
-                self.get("core", "executor") != 'SequentialExecutor' and
-                "sqlite" in self.get('core', 'sql_alchemy_conn')):
+        if (self.get("core", "executor") != 'SequentialExecutor'
+                and "sqlite" in self.get('core', 'sql_alchemy_conn')):
             raise AirflowConfigException(
                 "error: cannot use sqlite with the {}".format(
                     self.get('core', 'executor')))
 
-        elif (
-            self.getboolean("webserver", "authenticate") and
-            self.get("webserver", "owner_mode") not in ['user', 'ldapgroup']
-        ):
+        elif (self.getboolean("webserver", "authenticate") and self.get(
+                "webserver", "owner_mode") not in ['user', 'ldapgroup']):
             raise AirflowConfigException(
                 "error: owner_mode option should be either "
                 "'user' or 'ldapgroup' when filtering by owner is set")
 
-        elif (
-            self.getboolean("webserver", "authenticate") and
-            self.get("webserver", "owner_mode").lower() == 'ldapgroup' and
-            self.get("webserver", "auth_backend") != (
-                'airflow.contrib.auth.backends.ldap_auth')
-        ):
+        elif (self.getboolean("webserver", "authenticate")
+              and self.get("webserver", "owner_mode").lower() == 'ldapgroup'
+              and self.get("webserver", "auth_backend") !=
+              ('airflow.contrib.auth.backends.ldap_auth')):
             raise AirflowConfigException(
                 "error: attempt at using ldapgroup "
                 "filtering without using the Ldap backend")
@@ -206,7 +201,8 @@ class AirflowConfigParser(ConfigParser):
         section = str(section).lower()
         key = str(key).lower()
 
-        deprecated_name = self.deprecated_options.get(section, {}).get(key, None)
+        deprecated_name = self.deprecated_options.get(section, {}).get(
+            key, None)
 
         # first check environment variables
         option = self._get_env_var_option(section, key)
@@ -225,13 +221,12 @@ class AirflowConfigParser(ConfigParser):
             return expand_env_var(
                 super(AirflowConfigParser, self).get(section, key, **kwargs))
         if deprecated_name:
-            if super(AirflowConfigParser, self).has_option(section, deprecated_name):
+            if super(AirflowConfigParser, self).has_option(
+                    section, deprecated_name):
                 self._warn_deprecate(section, key, deprecated_name)
-                return expand_env_var(super(AirflowConfigParser, self).get(
-                    section,
-                    deprecated_name,
-                    **kwargs
-                ))
+                return expand_env_var(
+                    super(AirflowConfigParser, self).get(
+                        section, deprecated_name, **kwargs))
 
         # ...then commands
         option = self._get_cmd_option(section, key)
@@ -245,13 +240,12 @@ class AirflowConfigParser(ConfigParser):
 
         # ...then the default config
         if self.defaults.has_option(section, key):
-            return expand_env_var(
-                self.defaults.get(section, key, **kwargs))
+            return expand_env_var(self.defaults.get(section, key, **kwargs))
 
         else:
             log.warning(
-                "section/key [{section}/{key}] not found in config".format(**locals())
-            )
+                "section/key [{section}/{key}] not found in config".format(
+                    **locals()))
 
             raise AirflowConfigException(
                 "section/key [{section}/{key}] not found "
@@ -363,14 +357,15 @@ class AirflowConfigParser(ConfigParser):
             except ValueError:
                 opt = None
             if opt:
-                if (
-                    not display_sensitive and
-                        ev != 'AIRFLOW__CORE__UNIT_TEST_MODE'):
+                if (not display_sensitive
+                        and ev != 'AIRFLOW__CORE__UNIT_TEST_MODE'):
                     opt = '< hidden >'
                 if display_source:
                     opt = (opt, 'env var')
-                cfg.setdefault(section.lower(), OrderedDict()).update(
-                    {key.lower(): opt})
+                cfg.setdefault(section.lower(), OrderedDict()).update({
+                    key.lower():
+                    opt
+                })
 
         # add bash commands
         for (section, key) in self.as_command_stdout:
@@ -416,8 +411,8 @@ def mkdir_p(path):
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
-            raise AirflowConfigException(
-                'Error creating {}: {}'.format(path, exc.strerror))
+            raise AirflowConfigException('Error creating {}: {}'.format(
+                path, exc.strerror))
 
 
 # Setting AIRFLOW_HOME and AIRFLOW_CONFIG from environment variables, using
@@ -441,8 +436,7 @@ else:
 # Set up dags folder for unit tests
 # this directory won't exist if users install via pip
 _TEST_DAGS_FOLDER = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-    'tests',
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'tests',
     'dags')
 if os.path.exists(_TEST_DAGS_FOLDER):
     TEST_DAGS_FOLDER = _TEST_DAGS_FOLDER
@@ -451,8 +445,7 @@ else:
 
 # Set up plugins folder for unit tests
 _TEST_PLUGINS_FOLDER = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-    'tests',
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'tests',
     'plugins')
 if os.path.exists(_TEST_PLUGINS_FOLDER):
     TEST_PLUGINS_FOLDER = _TEST_PLUGINS_FOLDER
@@ -481,17 +474,13 @@ else:
 TEMPLATE_START = (
     '# ----------------------- TEMPLATE BEGINS HERE -----------------------')
 if not os.path.isfile(TEST_CONFIG_FILE):
-    log.info(
-        'Creating new Airflow config file for unit tests in: %s', TEST_CONFIG_FILE
-    )
+    log.info('Creating new Airflow config file for unit tests in: %s',
+             TEST_CONFIG_FILE)
     with open(TEST_CONFIG_FILE, 'w') as f:
         cfg = parameterized_config(TEST_CONFIG)
         f.write(cfg.split(TEMPLATE_START)[-1].strip())
 if not os.path.isfile(AIRFLOW_CONFIG):
-    log.info(
-        'Creating new Airflow config file in: %s',
-        AIRFLOW_CONFIG
-    )
+    log.info('Creating new Airflow config file in: %s', AIRFLOW_CONFIG)
     with open(AIRFLOW_CONFIG, 'w') as f:
         cfg = parameterized_config(DEFAULT_CONFIG)
         cfg = cfg.split(TEMPLATE_START)[-1].strip()
@@ -505,14 +494,15 @@ conf = AirflowConfigParser(default_config=parameterized_config(DEFAULT_CONFIG))
 
 conf.read(AIRFLOW_CONFIG)
 
-
 if conf.getboolean('webserver', 'rbac'):
-    DEFAULT_WEBSERVER_CONFIG = _read_default_config_file('default_webserver_config.py')
+    DEFAULT_WEBSERVER_CONFIG = _read_default_config_file(
+        'default_webserver_config.py')
 
     WEBSERVER_CONFIG = AIRFLOW_HOME + '/webserver_config.py'
 
     if not os.path.isfile(WEBSERVER_CONFIG):
-        log.info('Creating new FAB webserver config file in: %s', WEBSERVER_CONFIG)
+        log.info('Creating new FAB webserver config file in: %s',
+                 WEBSERVER_CONFIG)
         with open(WEBSERVER_CONFIG, 'w') as f:
             f.write(DEFAULT_WEBSERVER_CONFIG)
 
@@ -530,10 +520,12 @@ getsection = conf.getsection
 has_option = conf.has_option
 remove_option = conf.remove_option
 as_dict = conf.as_dict
-set = conf.set # noqa
+set = conf.set  # noqa
 
-for func in [load_test_config, get, getboolean, getfloat, getint, has_option,
-             remove_option, as_dict, set]:
+for func in [
+        load_test_config, get, getboolean, getfloat, getint, has_option,
+        remove_option, as_dict, set
+]:
     deprecated(
         func,
         "Accessing configuration method '{f.__name__}' directly from "

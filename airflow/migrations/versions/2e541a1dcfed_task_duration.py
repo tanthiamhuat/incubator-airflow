@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """task_duration
 
 Revision ID: 2e541a1dcfed
@@ -39,10 +38,11 @@ from sqlalchemy.dialects import mysql
 def upgrade():
     # use batch_alter_table to support SQLite workaround
     with op.batch_alter_table("task_instance") as batch_op:
-        batch_op.alter_column('duration',
-                              existing_type=mysql.INTEGER(display_width=11),
-                              type_=sa.Float(),
-                              existing_nullable=True)
+        batch_op.alter_column(
+            'duration',
+            existing_type=mysql.INTEGER(display_width=11),
+            type_=sa.Float(),
+            existing_nullable=True)
 
 
 def downgrade():

@@ -145,12 +145,13 @@ class BigQueryOperator(BaseOperator):
         # TODO remove `bql` in Airflow 2.0
         if self.bql:
             import warnings
-            warnings.warn('Deprecated parameter `bql` used in Task id: {}. '
-                          'Use `sql` parameter instead to pass the sql to be '
-                          'executed. `bql` parameter is deprecated and '
-                          'will be removed in a future version of '
-                          'Airflow.'.format(self.task_id),
-                          category=DeprecationWarning)
+            warnings.warn(
+                'Deprecated parameter `bql` used in Task id: {}. '
+                'Use `sql` parameter instead to pass the sql to be '
+                'executed. `bql` parameter is deprecated and '
+                'will be removed in a future version of '
+                'Airflow.'.format(self.task_id),
+                category=DeprecationWarning)
 
         if self.sql is None:
             raise TypeError('{} missing 1 required positional '
@@ -179,8 +180,7 @@ class BigQueryOperator(BaseOperator):
             labels=self.labels,
             schema_update_options=self.schema_update_options,
             priority=self.priority,
-            time_partitioning=self.time_partitioning
-        )
+            time_partitioning=self.time_partitioning)
 
     def on_kill(self):
         super(BigQueryOperator, self).on_kill()
@@ -294,7 +294,8 @@ class BigQueryCreateEmptyTableOperator(BaseOperator):
                  google_cloud_storage_conn_id='google_cloud_default',
                  delegate_to=None,
                  labels=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
 
         super(BigQueryCreateEmptyTableOperator, self).__init__(*args, **kwargs)
 
@@ -310,8 +311,9 @@ class BigQueryCreateEmptyTableOperator(BaseOperator):
         self.labels = labels
 
     def execute(self, context):
-        bq_hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                               delegate_to=self.delegate_to)
+        bq_hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
 
         if not self.schema_fields and self.gcs_schema_object:
 
@@ -320,9 +322,8 @@ class BigQueryCreateEmptyTableOperator(BaseOperator):
             gcs_hook = GoogleCloudStorageHook(
                 google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
                 delegate_to=self.delegate_to)
-            schema_fields = json.loads(gcs_hook.download(
-                gcs_bucket,
-                gcs_object).decode("utf-8"))
+            schema_fields = json.loads(
+                gcs_hook.download(gcs_bucket, gcs_object).decode("utf-8"))
         else:
             schema_fields = self.schema_fields
 
@@ -335,8 +336,7 @@ class BigQueryCreateEmptyTableOperator(BaseOperator):
             table_id=self.table_id,
             schema_fields=schema_fields,
             time_partitioning=self.time_partitioning,
-            labels=self.labels
-        )
+            labels=self.labels)
 
 
 class BigQueryCreateExternalTableOperator(BaseOperator):
@@ -411,8 +411,8 @@ class BigQueryCreateExternalTableOperator(BaseOperator):
     :param labels a dictionary containing labels for the table, passed to BigQuery
     :type labels: dict
     """
-    template_fields = ('bucket', 'source_objects',
-                       'schema_object', 'destination_project_dataset_table', 'labels')
+    template_fields = ('bucket', 'source_objects', 'schema_object',
+                       'destination_project_dataset_table', 'labels')
     ui_color = '#f0eee4'
 
     @apply_defaults
@@ -435,9 +435,11 @@ class BigQueryCreateExternalTableOperator(BaseOperator):
                  delegate_to=None,
                  src_fmt_configs={},
                  labels=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
 
-        super(BigQueryCreateExternalTableOperator, self).__init__(*args, **kwargs)
+        super(BigQueryCreateExternalTableOperator, self).__init__(
+            *args, **kwargs)
 
         # GCS config
         self.bucket = bucket
@@ -464,27 +466,31 @@ class BigQueryCreateExternalTableOperator(BaseOperator):
         self.labels = labels
 
     def execute(self, context):
-        bq_hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                               delegate_to=self.delegate_to)
+        bq_hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
 
         if not self.schema_fields and self.schema_object \
                 and self.source_format != 'DATASTORE_BACKUP':
             gcs_hook = GoogleCloudStorageHook(
                 google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
                 delegate_to=self.delegate_to)
-            schema_fields = json.loads(gcs_hook.download(
-                self.bucket,
-                self.schema_object).decode("utf-8"))
+            schema_fields = json.loads(
+                gcs_hook.download(self.bucket,
+                                  self.schema_object).decode("utf-8"))
         else:
             schema_fields = self.schema_fields
 
-        source_uris = ['gs://{}/{}'.format(self.bucket, source_object)
-                       for source_object in self.source_objects]
+        source_uris = [
+            'gs://{}/{}'.format(self.bucket, source_object)
+            for source_object in self.source_objects
+        ]
         conn = bq_hook.get_conn()
         cursor = conn.cursor()
 
         cursor.create_external_table(
-            external_project_dataset_table=self.destination_project_dataset_table,
+            external_project_dataset_table=self.
+            destination_project_dataset_table,
             schema_fields=schema_fields,
             source_uris=source_uris,
             source_format=self.source_format,
@@ -496,8 +502,7 @@ class BigQueryCreateExternalTableOperator(BaseOperator):
             allow_quoted_newlines=self.allow_quoted_newlines,
             allow_jagged_rows=self.allow_jagged_rows,
             src_fmt_configs=self.src_fmt_configs,
-            labels=self.labels
-        )
+            labels=self.labels)
 
 
 class BigQueryDeleteDatasetOperator(BaseOperator):
@@ -528,7 +533,8 @@ class BigQueryDeleteDatasetOperator(BaseOperator):
                  project_id=None,
                  bigquery_conn_id='bigquery_default',
                  delegate_to=None,
-                 *args, **kwargs):
+                 *args,
+                 **kwargs):
         self.dataset_id = dataset_id
         self.project_id = project_id
         self.bigquery_conn_id = bigquery_conn_id
@@ -540,13 +546,12 @@ class BigQueryDeleteDatasetOperator(BaseOperator):
         super(BigQueryDeleteDatasetOperator, self).__init__(*args, **kwargs)
 
     def execute(self, context):
-        bq_hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                               delegate_to=self.delegate_to)
+        bq_hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
 
         conn = bq_hook.get_conn()
         cursor = conn.cursor()
 
         cursor.delete_dataset(
-            project_id=self.project_id,
-            dataset_id=self.dataset_id
-        )
+            project_id=self.project_id, dataset_id=self.dataset_id)

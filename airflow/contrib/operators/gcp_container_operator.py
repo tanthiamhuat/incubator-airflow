@@ -29,7 +29,9 @@ from airflow.utils.decorators import apply_defaults
 
 
 class GKEClusterDeleteOperator(BaseOperator):
-    template_fields = ['project_id', 'gcp_conn_id', 'name', 'location', 'api_version']
+    template_fields = [
+        'project_id', 'gcp_conn_id', 'name', 'location', 'api_version'
+    ]
 
     @apply_defaults
     def __init__(self,
@@ -93,7 +95,9 @@ class GKEClusterDeleteOperator(BaseOperator):
 
 
 class GKEClusterCreateOperator(BaseOperator):
-    template_fields = ['project_id', 'gcp_conn_id', 'location', 'api_version', 'body']
+    template_fields = [
+        'project_id', 'gcp_conn_id', 'location', 'api_version', 'body'
+    ]
 
     @apply_defaults
     def __init__(self,
@@ -167,9 +171,8 @@ class GKEClusterCreateOperator(BaseOperator):
             elif self.body.name and self.body.initial_node_count:
                 return
 
-        self.log.error(
-            'One of (project_id, location, body, body[\'name\'], '
-            'body[\'initial_node_count\']) is missing or incorrect')
+        self.log.error('One of (project_id, location, body, body[\'name\'], '
+                       'body[\'initial_node_count\']) is missing or incorrect')
         raise AirflowException('Operator has incorrect or missing input.')
 
     def execute(self, context):
@@ -265,11 +268,11 @@ class GKEPodOperator(KubernetesPodOperator):
             # required by KubernetesPodOperator.
             # The gcloud command looks at the env variable `KUBECONFIG` for where to save
             # the kubernetes config file.
-            subprocess.check_call(
-                ["gcloud", "container", "clusters", "get-credentials",
-                 self.cluster_name,
-                 "--zone", self.location,
-                 "--project", self.project_id])
+            subprocess.check_call([
+                "gcloud", "container", "clusters", "get-credentials",
+                self.cluster_name, "--zone", self.location, "--project",
+                self.project_id
+            ])
 
             # Since the key file is of type mkstemp() closing the file will delete it from
             # the file system so it cannot be accessed after we don't need it anymore

@@ -38,15 +38,16 @@ def set_common_options(spark_source,
     return spark_source
 
 
-def spark_write_to_jdbc(spark, url, user, password, metastore_table, jdbc_table, driver,
-                        truncate, save_mode, batch_size, num_partitions,
-                        create_table_column_types):
+def spark_write_to_jdbc(spark, url, user, password, metastore_table,
+                        jdbc_table, driver, truncate, save_mode, batch_size,
+                        num_partitions, create_table_column_types):
     writer = spark \
         .table(metastore_table) \
         .write \
 
     # first set common options
-    writer = set_common_options(writer, url, jdbc_table, user, password, driver)
+    writer = set_common_options(writer, url, jdbc_table, user, password,
+                                driver)
 
     # now set write-specific options
     if truncate:
@@ -56,18 +57,21 @@ def spark_write_to_jdbc(spark, url, user, password, metastore_table, jdbc_table,
     if num_partitions:
         writer = writer.option('numPartitions', num_partitions)
     if create_table_column_types:
-        writer = writer.option("createTableColumnTypes", create_table_column_types)
+        writer = writer.option("createTableColumnTypes",
+                               create_table_column_types)
 
     writer \
         .save(mode=save_mode)
 
 
-def spark_read_from_jdbc(spark, url, user, password, metastore_table, jdbc_table, driver,
-                         save_mode, save_format, fetch_size, num_partitions,
-                         partition_column, lower_bound, upper_bound):
+def spark_read_from_jdbc(spark, url, user, password, metastore_table,
+                         jdbc_table, driver, save_mode, save_format,
+                         fetch_size, num_partitions, partition_column,
+                         lower_bound, upper_bound):
 
     # first set common options
-    reader = set_common_options(spark.read, url, jdbc_table, user, password, driver)
+    reader = set_common_options(spark.read, url, jdbc_table, user, password,
+                                driver)
 
     # now set specific read options
     if fetch_size:
@@ -93,7 +97,8 @@ if __name__ == "__main__":  # pragma: no cover
     parser.add_argument('-url', dest='url', action='store')
     parser.add_argument('-user', dest='user', action='store')
     parser.add_argument('-password', dest='password', action='store')
-    parser.add_argument('-metastoreTable', dest='metastore_table', action='store')
+    parser.add_argument(
+        '-metastoreTable', dest='metastore_table', action='store')
     parser.add_argument('-jdbcTable', dest='jdbc_table', action='store')
     parser.add_argument('-jdbcDriver', dest='jdbc_driver', action='store')
     parser.add_argument('-jdbcTruncate', dest='truncate', action='store')
@@ -102,12 +107,16 @@ if __name__ == "__main__":  # pragma: no cover
     parser.add_argument('-batchsize', dest='batch_size', action='store')
     parser.add_argument('-fetchsize', dest='fetch_size', action='store')
     parser.add_argument('-name', dest='name', action='store')
-    parser.add_argument('-numPartitions', dest='num_partitions', action='store')
-    parser.add_argument('-partitionColumn', dest='partition_column', action='store')
+    parser.add_argument(
+        '-numPartitions', dest='num_partitions', action='store')
+    parser.add_argument(
+        '-partitionColumn', dest='partition_column', action='store')
     parser.add_argument('-lowerBound', dest='lower_bound', action='store')
     parser.add_argument('-upperBound', dest='upper_bound', action='store')
-    parser.add_argument('-createTableColumnTypes',
-                        dest='create_table_column_types', action='store')
+    parser.add_argument(
+        '-createTableColumnTypes',
+        dest='create_table_column_types',
+        action='store')
     arguments = parser.parse_args()
 
     # Disable dynamic allocation by default to allow num_executors to take effect.
@@ -117,30 +126,17 @@ if __name__ == "__main__":  # pragma: no cover
         .getOrCreate()
 
     if arguments.cmd_type == "spark_to_jdbc":
-        spark_write_to_jdbc(spark,
-                            arguments.url,
-                            arguments.user,
-                            arguments.password,
-                            arguments.metastore_table,
-                            arguments.jdbc_table,
-                            arguments.jdbc_driver,
-                            arguments.truncate,
-                            arguments.save_mode,
-                            arguments.batch_size,
-                            arguments.num_partitions,
+        spark_write_to_jdbc(spark, arguments.url, arguments.user,
+                            arguments.password, arguments.metastore_table,
+                            arguments.jdbc_table, arguments.jdbc_driver,
+                            arguments.truncate, arguments.save_mode,
+                            arguments.batch_size, arguments.num_partitions,
                             arguments.create_table_column_types)
     elif arguments.cmd_type == "jdbc_to_spark":
-        spark_read_from_jdbc(spark,
-                             arguments.url,
-                             arguments.user,
-                             arguments.password,
-                             arguments.metastore_table,
-                             arguments.jdbc_table,
-                             arguments.jdbc_driver,
-                             arguments.save_mode,
-                             arguments.save_format,
-                             arguments.fetch_size,
-                             arguments.num_partitions,
-                             arguments.partition_column,
-                             arguments.lower_bound,
+        spark_read_from_jdbc(spark, arguments.url, arguments.user,
+                             arguments.password, arguments.metastore_table,
+                             arguments.jdbc_table, arguments.jdbc_driver,
+                             arguments.save_mode, arguments.save_format,
+                             arguments.fetch_size, arguments.num_partitions,
+                             arguments.partition_column, arguments.lower_bound,
                              arguments.upper_bound)

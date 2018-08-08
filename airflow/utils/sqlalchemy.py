@@ -37,12 +37,10 @@ log = LoggingMixin().log
 utc = pendulum.timezone('UTC')
 
 
-def setup_event_handlers(
-        engine,
-        reconnect_timeout_seconds,
-        initial_backoff_seconds=0.2,
-        max_backoff_seconds=120):
-
+def setup_event_handlers(engine,
+                         reconnect_timeout_seconds,
+                         initial_backoff_seconds=0.2,
+                         max_backoff_seconds=120):
     @event.listens_for(engine, "engine_connect")
     def ping_connection(connection, branch):
         """
@@ -74,8 +72,7 @@ def setup_event_handlers(
                 if time.time() - start >= reconnect_timeout_seconds:
                     log.error(
                         "Failed to re-establish DB connection within %s secs: %s",
-                        reconnect_timeout_seconds,
-                        err)
+                        reconnect_timeout_seconds, err)
                     raise
                 if err.connection_invalidated:
                     log.warning("DB connection invalidated. Reconnecting...")
@@ -100,12 +97,12 @@ def setup_event_handlers(
                 # restore "close with result"
                 connection.should_close_with_result = save_should_close_with_result
 
-
     @event.listens_for(engine, "connect")
     def connect(dbapi_connection, connection_record):
         connection_record.info['pid'] = os.getpid()
 
     if engine.dialect.name == "sqlite":
+
         @event.listens_for(engine, "connect")
         def set_sqlite_pragma(dbapi_connection, connection_record):
             cursor = dbapi_connection.cursor()
@@ -114,6 +111,7 @@ def setup_event_handlers(
 
     # this ensures sanity in mysql when storing datetimes (not required for postgres)
     if engine.dialect.name == "mysql":
+
         @event.listens_for(engine, "connect")
         def set_mysql_timezone(dbapi_connection, connection_record):
             cursor = dbapi_connection.cursor()
@@ -127,8 +125,8 @@ def setup_event_handlers(
             connection_record.connection = connection_proxy.connection = None
             raise exc.DisconnectionError(
                 "Connection record belongs to pid {}, "
-                "attempting to check out in pid {}".format(connection_record.info['pid'], pid)
-            )
+                "attempting to check out in pid {}".format(
+                    connection_record.info['pid'], pid))
 
 
 class UtcDateTime(TypeDecorator):

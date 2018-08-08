@@ -26,8 +26,8 @@ from datetime import datetime, date
 import json
 import numpy as np
 
-
 # Dates and JSON encoding/decoding
+
 
 def json_ser(obj):
     """json serializer that deals with dates.
@@ -39,7 +39,6 @@ def json_ser(obj):
 
 
 class AirflowJsonEncoder(json.JSONEncoder):
-
     def default(self, obj):
         # convert dates and numpy objects in a json serializable format
         if isinstance(obj, datetime):
@@ -47,10 +46,10 @@ class AirflowJsonEncoder(json.JSONEncoder):
         elif isinstance(obj, date):
             return obj.strftime('%Y-%m-%d')
         elif type(obj) in (np.int_, np.intc, np.intp, np.int8, np.int16,
-                           np.int32, np.int64, np.uint8, np.uint16,
-                           np.uint32, np.uint64):
+                           np.int32, np.int64, np.uint8, np.uint16, np.uint32,
+                           np.uint64):
             return int(obj)
-        elif type(obj) in (np.bool_,):
+        elif type(obj) in (np.bool_, ):
             return bool(obj)
         elif type(obj) in (np.float_, np.float16, np.float32, np.float64,
                            np.complex_, np.complex64, np.complex128):

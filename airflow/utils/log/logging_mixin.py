@@ -37,6 +37,7 @@ class LoggingMixin(object):
     """
     Convenience super-class to have a logger configured with the class name
     """
+
     def __init__(self, context=None):
         self._set_context(context)
 
@@ -47,10 +48,8 @@ class LoggingMixin(object):
         warnings.warn(
             'Initializing logger for {} using logger(), which will '
             'be replaced by .log in Airflow 2.0'.format(
-                self.__class__.__module__ + '.' + self.__class__.__name__
-            ),
-            DeprecationWarning
-        )
+                self.__class__.__module__ + '.' + self.__class__.__name__),
+            DeprecationWarning)
         return self.log
 
     @property
@@ -58,9 +57,8 @@ class LoggingMixin(object):
         try:
             return self._log
         except AttributeError:
-            self._log = logging.root.getChild(
-                self.__class__.__module__ + '.' + self.__class__.__name__
-            )
+            self._log = logging.root.getChild(self.__class__.__module__ + '.' +
+                                              self.__class__.__name__)
             return self._log
 
     def _set_context(self, context):
@@ -70,10 +68,10 @@ class LoggingMixin(object):
 
 class StreamLogWriter(object):
     encoding = False
-
     """
     Allows to redirect stdout and stderr to logger
     """
+
     def __init__(self, logger, level):
         """
         :param log: The log level method to write to, ie. log.debug, log.warning
@@ -117,10 +115,12 @@ class RedirectStdHandler(StreamHandler):
     whatever sys.stderr/stderr is currently set to rather than the value of
     sys.stderr/stdout at handler construction time.
     """
+
     def __init__(self, stream):
         if not isinstance(stream, six.string_types):
-            raise Exception("Cannot use file like objects. Use 'stdout' or 'stderr'"
-                            " as a str and without 'ext://'.")
+            raise Exception(
+                "Cannot use file like objects. Use 'stdout' or 'stderr'"
+                " as a str and without 'ext://'.")
 
         self._use_stderr = True
         if 'stdout' in stream:

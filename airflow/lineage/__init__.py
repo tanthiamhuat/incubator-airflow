@@ -63,20 +63,25 @@ def apply_lineage(func):
         inlets = [x.as_dict() for x in self.inlets]
 
         if len(self.outlets) > 0:
-            self.xcom_push(context,
-                           key=PIPELINE_OUTLETS,
-                           value=outlets,
-                           execution_date=context['ti'].execution_date)
+            self.xcom_push(
+                context,
+                key=PIPELINE_OUTLETS,
+                value=outlets,
+                execution_date=context['ti'].execution_date)
 
         if len(self.inlets) > 0:
-            self.xcom_push(context,
-                           key=PIPELINE_INLETS,
-                           value=inlets,
-                           execution_date=context['ti'].execution_date)
+            self.xcom_push(
+                context,
+                key=PIPELINE_INLETS,
+                value=inlets,
+                execution_date=context['ti'].execution_date)
 
         if backend:
-            backend.send_lineage(operator=self, inlets=self.inlets,
-                                 outlets=self.outlets, context=context)
+            backend.send_lineage(
+                operator=self,
+                inlets=self.inlets,
+                outlets=self.outlets,
+                context=context)
 
         return ret_val
 
@@ -93,35 +98,44 @@ def prepare_lineage(func):
         "list of task_ids" -> picks up outlets from the upstream task_ids
         "list of datasets" -> manually defined list of DataSet
     """
+
     @wraps(func)
     def wrapper(self, context, *args, **kwargs):
         self.log.debug("Preparing lineage inlets and outlets")
 
         task_ids = set(self._inlets['task_ids']).intersection(
-            self.get_flat_relative_ids(upstream=True)
-        )
+            self.get_flat_relative_ids(upstream=True))
         if task_ids:
-            inlets = self.xcom_pull(context,
-                                    task_ids=task_ids,
-                                    dag_id=self.dag_id,
-                                    key=PIPELINE_OUTLETS)
-            inlets = [item for sublist in inlets if sublist for item in sublist]
-            inlets = [DataSet.map_type(i['typeName'])(data=i['attributes'])
-                      for i in inlets]
+            inlets = self.xcom_pull(
+                context,
+                task_ids=task_ids,
+                dag_id=self.dag_id,
+                key=PIPELINE_OUTLETS)
+            inlets = [
+                item for sublist in inlets if sublist for item in sublist
+            ]
+            inlets = [
+                DataSet.map_type(i['typeName'])(data=i['attributes'])
+                for i in inlets
+            ]
             self.inlets.extend(inlets)
 
         if self._inlets['auto']:
             # dont append twice
             task_ids = set(self._inlets['task_ids']).symmetric_difference(
-                self.upstream_task_ids
-            )
-            inlets = self.xcom_pull(context,
-                                    task_ids=task_ids,
-                                    dag_id=self.dag_id,
-                                    key=PIPELINE_OUTLETS)
-            inlets = [item for sublist in inlets if sublist for item in sublist]
-            inlets = [DataSet.map_type(i['typeName'])(data=i['attributes'])
-                      for i in inlets]
+                self.upstream_task_ids)
+            inlets = self.xcom_pull(
+                context,
+                task_ids=task_ids,
+                dag_id=self.dag_id,
+                key=PIPELINE_OUTLETS)
+            inlets = [
+                item for sublist in inlets if sublist for item in sublist
+            ]
+            inlets = [
+                DataSet.map_type(i['typeName'])(data=i['attributes'])
+                for i in inlets
+            ]
             self.inlets.extend(inlets)
 
         if len(self._inlets['datasets']) > 0:

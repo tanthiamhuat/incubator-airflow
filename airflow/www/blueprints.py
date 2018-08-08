@@ -18,7 +18,10 @@
 # under the License.
 #
 from flask import (
-    url_for, Markup, Blueprint, redirect,
+    url_for,
+    Markup,
+    Blueprint,
+    redirect,
 )
 import markdown
 

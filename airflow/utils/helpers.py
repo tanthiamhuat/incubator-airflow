@@ -44,8 +44,7 @@ from airflow.exceptions import AirflowException
 # When killing processes, time to wait after issuing a SIGTERM before issuing a
 # SIGKILL.
 DEFAULT_TIME_TO_WAIT_AFTER_SIGTERM = configuration.conf.getint(
-    'core', 'KILLED_TASK_CLEANUP_TIME'
-)
+    'core', 'KILLED_TASK_CLEANUP_TIME')
 
 
 def validate_key(k, max_length=250):
@@ -214,7 +213,9 @@ def pprinttable(rows):
     return s
 
 
-def reap_process_group(pid, log, sig=signal.SIGTERM,
+def reap_process_group(pid,
+                       log,
+                       sig=signal.SIGTERM,
                        timeout=DEFAULT_TIME_TO_WAIT_AFTER_SIGTERM):
     """
     Tries really hard to terminate all children (including grandchildren). Will send
@@ -226,8 +227,10 @@ def reap_process_group(pid, log, sig=signal.SIGTERM,
     :param sig: signal type
     :param timeout: how much time a process has to terminate
     """
+
     def on_terminate(p):
-        log.info("Process %s (%s) terminated with exit code %s", p, p.pid, p.returncode)
+        log.info("Process %s (%s) terminated with exit code %s", p, p.pid,
+                 p.returncode)
 
     if pid == os.getpid():
         raise RuntimeError("I refuse to kill myself")
@@ -240,18 +243,23 @@ def reap_process_group(pid, log, sig=signal.SIGTERM,
     log.info("Sending %s to GPID %s", sig, os.getpgid(pid))
     os.killpg(os.getpgid(pid), sig)
 
-    gone, alive = psutil.wait_procs(children, timeout=timeout, callback=on_terminate)
+    gone, alive = psutil.wait_procs(
+        children, timeout=timeout, callback=on_terminate)
 
     if alive:
         for p in alive:
-            log.warn("process %s (%s) did not respond to SIGTERM. Trying SIGKILL", p, pid)
+            log.warn(
+                "process %s (%s) did not respond to SIGTERM. Trying SIGKILL",
+                p, pid)
 
         os.killpg(os.getpgid(pid), signal.SIGKILL)
 
-        gone, alive = psutil.wait_procs(alive, timeout=timeout, callback=on_terminate)
+        gone, alive = psutil.wait_procs(
+            alive, timeout=timeout, callback=on_terminate)
         if alive:
             for p in alive:
-                log.error("Process %s (%s) could not be killed. Giving up.", p, p.pid)
+                log.error("Process %s (%s) could not be killed. Giving up.", p,
+                          p.pid)
 
 
 def parse_template_string(template_string):
@@ -287,7 +295,8 @@ class AirflowImporter(object):
         :type module_attributes: string
         """
         self._parent_module = parent_module
-        self._attribute_modules = self._build_attribute_modules(module_attributes)
+        self._attribute_modules = self._build_attribute_modules(
+            module_attributes)
         self._loaded_modules = {}
 
         # Wrap the module so we can take over __getattr__.
@@ -333,7 +342,8 @@ class AirflowImporter(object):
             path = os.path.realpath(self._parent_module.__file__)
             folder = os.path.dirname(path)
             f, filename, description = imp.find_module(module, [folder])
-            self._loaded_modules[module] = imp.load_module(module, f, filename, description)
+            self._loaded_modules[module] = imp.load_module(
+                module, f, filename, description)
 
             # This functionality is deprecated, and AirflowImporter should be
             # removed in 2.0.

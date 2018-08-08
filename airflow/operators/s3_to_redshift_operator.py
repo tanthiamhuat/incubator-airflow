@@ -48,18 +48,18 @@ class S3ToRedshiftTransfer(BaseOperator):
     ui_color = '#ededed'
 
     @apply_defaults
-    def __init__(
-            self,
-            schema,
-            table,
-            s3_bucket,
-            s3_key,
-            redshift_conn_id='redshift_default',
-            aws_conn_id='aws_default',
-            copy_options=tuple(),
-            autocommit=False,
-            parameters=None,
-            *args, **kwargs):
+    def __init__(self,
+                 schema,
+                 table,
+                 s3_bucket,
+                 s3_key,
+                 redshift_conn_id='redshift_default',
+                 aws_conn_id='aws_default',
+                 copy_options=tuple(),
+                 autocommit=False,
+                 parameters=None,
+                 *args,
+                 **kwargs):
         super(S3ToRedshiftTransfer, self).__init__(*args, **kwargs)
         self.schema = schema
         self.table = table
@@ -83,13 +83,14 @@ class S3ToRedshiftTransfer(BaseOperator):
             with credentials
             'aws_access_key_id={access_key};aws_secret_access_key={secret_key}'
             {copy_options};
-        """.format(schema=self.schema,
-                   table=self.table,
-                   s3_bucket=self.s3_bucket,
-                   s3_key=self.s3_key,
-                   access_key=credentials.access_key,
-                   secret_key=credentials.secret_key,
-                   copy_options=copy_options)
+        """.format(
+            schema=self.schema,
+            table=self.table,
+            s3_bucket=self.s3_bucket,
+            s3_key=self.s3_key,
+            access_key=credentials.access_key,
+            secret_key=credentials.secret_key,
+            copy_options=copy_options)
 
         self.log.info('Executing COPY command...')
         self.hook.run(copy_query, self.autocommit)

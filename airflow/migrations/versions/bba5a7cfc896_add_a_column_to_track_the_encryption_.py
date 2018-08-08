@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """Add a column to track the encryption state of the 'Extra' field in connection
 
 Revision ID: bba5a7cfc896
@@ -36,7 +35,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('connection', sa.Column('is_extra_encrypted', sa.Boolean,default=False))
+    op.add_column('connection',
+                  sa.Column('is_extra_encrypted', sa.Boolean, default=False))
 
 
 def downgrade():

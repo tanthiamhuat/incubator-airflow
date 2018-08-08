@@ -18,10 +18,8 @@
 # under the License.
 #
 
-
 # Contrib hooks are not imported by default. They should be accessed
 # directly: from airflow.contrib.hooks.hook_module import Hook
-
 
 import sys
 import os
@@ -62,7 +60,6 @@ _hooks = {
     'azure_data_lake_hook': ['AzureDataLakeHook'],
     'azure_fileshare_hook': ['AzureFileShareHook'],
 }
-
 
 if not os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
     from airflow.utils.helpers import AirflowImporter

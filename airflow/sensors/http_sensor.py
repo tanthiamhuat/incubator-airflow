@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 from builtins import str
 
 from airflow.exceptions import AirflowException
@@ -60,7 +59,9 @@ class HttpSensor(BaseSensorOperator):
                  request_params=None,
                  headers=None,
                  response_check=None,
-                 extra_options=None, *args, **kwargs):
+                 extra_options=None,
+                 *args,
+                 **kwargs):
         super(HttpSensor, self).__init__(*args, **kwargs)
         self.endpoint = endpoint
         self.http_conn_id = http_conn_id
@@ -69,17 +70,16 @@ class HttpSensor(BaseSensorOperator):
         self.extra_options = extra_options or {}
         self.response_check = response_check
 
-        self.hook = HttpHook(
-            method=method,
-            http_conn_id=http_conn_id)
+        self.hook = HttpHook(method=method, http_conn_id=http_conn_id)
 
     def poke(self, context):
         self.log.info('Poking: %s', self.endpoint)
         try:
-            response = self.hook.run(self.endpoint,
-                                     data=self.request_params,
-                                     headers=self.headers,
-                                     extra_options=self.extra_options)
+            response = self.hook.run(
+                self.endpoint,
+                data=self.request_params,
+                headers=self.headers,
+                extra_options=self.extra_options)
             if self.response_check:
                 # run content check on response
                 return self.response_check(response)

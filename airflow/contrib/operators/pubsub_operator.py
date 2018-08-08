@@ -56,15 +56,14 @@ class PubSubTopicCreateOperator(BaseOperator):
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            project,
-            topic,
-            fail_if_exists=False,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 project,
+                 topic,
+                 fail_if_exists=False,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 *args,
+                 **kwargs):
         """
         :param project: the GCP project ID where the topic will be created
         :type project: string
@@ -90,11 +89,11 @@ class PubSubTopicCreateOperator(BaseOperator):
         self.delegate_to = delegate_to
 
     def execute(self, context):
-        hook = PubSubHook(gcp_conn_id=self.gcp_conn_id,
-                          delegate_to=self.delegate_to)
+        hook = PubSubHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
 
-        hook.create_topic(self.project, self.topic,
-                          fail_if_exists=self.fail_if_exists)
+        hook.create_topic(
+            self.project, self.topic, fail_if_exists=self.fail_if_exists)
 
 
 class PubSubSubscriptionCreateOperator(BaseOperator):
@@ -144,23 +143,23 @@ class PubSubSubscriptionCreateOperator(BaseOperator):
     ``topic_project``, ``topic``, ``subscription``, and
     ``subscription`` are templated so you can use variables in them.
     """
-    template_fields = ['topic_project', 'topic', 'subscription',
-                       'subscription_project']
+    template_fields = [
+        'topic_project', 'topic', 'subscription', 'subscription_project'
+    ]
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            topic_project,
-            topic,
-            subscription=None,
-            subscription_project=None,
-            ack_deadline_secs=10,
-            fail_if_exists=False,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 topic_project,
+                 topic,
+                 subscription=None,
+                 subscription_project=None,
+                 ack_deadline_secs=10,
+                 fail_if_exists=False,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 *args,
+                 **kwargs):
         """
         :param topic_project: the GCP project ID where the topic exists
         :type topic_project: string
@@ -198,8 +197,8 @@ class PubSubSubscriptionCreateOperator(BaseOperator):
         self.delegate_to = delegate_to
 
     def execute(self, context):
-        hook = PubSubHook(gcp_conn_id=self.gcp_conn_id,
-                          delegate_to=self.delegate_to)
+        hook = PubSubHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
 
         return hook.create_subscription(
             self.topic_project, self.topic, self.subscription,
@@ -237,15 +236,14 @@ class PubSubTopicDeleteOperator(BaseOperator):
     ui_color = '#cb4335'
 
     @apply_defaults
-    def __init__(
-            self,
-            project,
-            topic,
-            fail_if_not_exists=False,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 project,
+                 topic,
+                 fail_if_not_exists=False,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 *args,
+                 **kwargs):
         """
         :param project: the GCP project ID in which to work (templated)
         :type project: string
@@ -274,11 +272,13 @@ class PubSubTopicDeleteOperator(BaseOperator):
         self.delegate_to = delegate_to
 
     def execute(self, context):
-        hook = PubSubHook(gcp_conn_id=self.gcp_conn_id,
-                          delegate_to=self.delegate_to)
+        hook = PubSubHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
 
-        hook.delete_topic(self.project, self.topic,
-                          fail_if_not_exists=self.fail_if_not_exists)
+        hook.delete_topic(
+            self.project,
+            self.topic,
+            fail_if_not_exists=self.fail_if_not_exists)
 
 
 class PubSubSubscriptionDeleteOperator(BaseOperator):
@@ -313,15 +313,14 @@ class PubSubSubscriptionDeleteOperator(BaseOperator):
     ui_color = '#cb4335'
 
     @apply_defaults
-    def __init__(
-            self,
-            project,
-            subscription,
-            fail_if_not_exists=False,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 project,
+                 subscription,
+                 fail_if_not_exists=False,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 *args,
+                 **kwargs):
         """
         :param project: the GCP project ID in which to work (templated)
         :type project: string
@@ -350,11 +349,13 @@ class PubSubSubscriptionDeleteOperator(BaseOperator):
         self.delegate_to = delegate_to
 
     def execute(self, context):
-        hook = PubSubHook(gcp_conn_id=self.gcp_conn_id,
-                          delegate_to=self.delegate_to)
+        hook = PubSubHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
 
-        hook.delete_subscription(self.project, self.subscription,
-                                 fail_if_not_exists=self.fail_if_not_exists)
+        hook.delete_subscription(
+            self.project,
+            self.subscription,
+            fail_if_not_exists=self.fail_if_not_exists)
 
 
 class PubSubPublishOperator(BaseOperator):
@@ -385,15 +386,14 @@ class PubSubPublishOperator(BaseOperator):
     ui_color = '#0273d4'
 
     @apply_defaults
-    def __init__(
-            self,
-            project,
-            topic,
-            messages,
-            gcp_conn_id='google_cloud_default',
-            delegate_to=None,
-            *args,
-            **kwargs):
+    def __init__(self,
+                 project,
+                 topic,
+                 messages,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None,
+                 *args,
+                 **kwargs):
         """
         :param project: the GCP project ID in which to work (templated)
         :type project: string
@@ -428,6 +428,6 @@ class PubSubPublishOperator(BaseOperator):
         self.messages = messages
 
     def execute(self, context):
-        hook = PubSubHook(gcp_conn_id=self.gcp_conn_id,
-                          delegate_to=self.delegate_to)
+        hook = PubSubHook(
+            gcp_conn_id=self.gcp_conn_id, delegate_to=self.delegate_to)
         hook.publish(self.project, self.topic, self.messages)

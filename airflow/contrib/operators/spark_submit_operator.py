@@ -163,8 +163,7 @@ class SparkSubmitOperator(BaseOperator):
             num_executors=self._num_executors,
             application_args=self._application_args,
             env_vars=self._env_vars,
-            verbose=self._verbose
-        )
+            verbose=self._verbose)
         self._hook.submit(self._application)
 
     def on_kill(self):

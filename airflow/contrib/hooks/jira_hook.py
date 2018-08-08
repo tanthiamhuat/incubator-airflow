@@ -31,9 +31,8 @@ class JiraHook(BaseHook, LoggingMixin):
     :param jira_conn_id: reference to a pre-defined Jira Connection
     :type jira_conn_id: string
     """
-    def __init__(self,
-                 jira_conn_id='jira_default',
-                 proxies=None):
+
+    def __init__(self, jira_conn_id='jira_default', proxies=None):
         super(JiraHook, self).__init__(jira_conn_id)
         self.jira_conn_id = jira_conn_id
         self.proxies = proxies
@@ -42,7 +41,8 @@ class JiraHook(BaseHook, LoggingMixin):
 
     def get_conn(self):
         if not self.client:
-            self.log.debug('Creating Jira client for conn_id: %s', self.jira_conn_id)
+            self.log.debug('Creating Jira client for conn_id: %s',
+                           self.jira_conn_id)
 
             get_server_info = True
             validate = True
@@ -71,17 +71,19 @@ class JiraHook(BaseHook, LoggingMixin):
                         get_server_info = False
 
                 try:
-                    self.client = JIRA(conn.host,
-                                       options=extra_options,
-                                       basic_auth=(conn.login, conn.password),
-                                       get_server_info=get_server_info,
-                                       validate=validate,
-                                       proxies=self.proxies)
+                    self.client = JIRA(
+                        conn.host,
+                        options=extra_options,
+                        basic_auth=(conn.login, conn.password),
+                        get_server_info=get_server_info,
+                        validate=validate,
+                        proxies=self.proxies)
                 except JIRAError as jira_error:
-                    raise AirflowException('Failed to create jira client, jira error: %s'
-                                           % str(jira_error))
+                    raise AirflowException(
+                        'Failed to create jira client, jira error: %s' %
+                        str(jira_error))
                 except Exception as e:
-                    raise AirflowException('Failed to create jira client, error: %s'
-                                           % str(e))
+                    raise AirflowException(
+                        'Failed to create jira client, error: %s' % str(e))
 
         return self.client

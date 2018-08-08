@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """
 This is only an example DAG to highlight usage of QuboleOperator in various scenarios,
 some of these tasks may or may not work based on your Qubole account setup.
@@ -45,7 +44,10 @@ default_args = {
     'email_on_retry': False
 }
 
-dag = DAG('example_qubole_operator', default_args=default_args, schedule_interval=None)
+dag = DAG(
+    'example_qubole_operator',
+    default_args=default_args,
+    schedule_interval=None)
 
 dag.doc_md = __doc__
 
@@ -72,8 +74,7 @@ t1 = QuboleOperator(
     dag=dag,
     params={
         'cluster_label': 'default',
-    }
-)
+    })
 
 t2 = QuboleOperator(
     task_id='hive_s3_location',
@@ -104,33 +105,29 @@ branching = BranchPythonOperator(
     dag=dag)
 branching.set_upstream(t3)
 
-join = DummyOperator(
-    task_id='join',
-    trigger_rule='one_success',
-    dag=dag
-)
+join = DummyOperator(task_id='join', trigger_rule='one_success', dag=dag)
 
 t4 = QuboleOperator(
     task_id='hadoop_jar_cmd',
     command_type='hadoopcmd',
     sub_command='jar s3://paid-qubole/HadoopAPIExamples/'
-                'jars/hadoop-0.20.1-dev-streaming.jar '
-                '-mapper wc '
-                '-numReduceTasks 0 -input s3://paid-qubole/HadoopAPITests/'
-                'data/3.tsv -output '
-                's3://paid-qubole/HadoopAPITests/data/3_wc',
+    'jars/hadoop-0.20.1-dev-streaming.jar '
+    '-mapper wc '
+    '-numReduceTasks 0 -input s3://paid-qubole/HadoopAPITests/'
+    'data/3.tsv -output '
+    's3://paid-qubole/HadoopAPITests/data/3_wc',
     cluster_label='{{ params.cluster_label }}',
     fetch_logs=True,
     dag=dag,
     params={
         'cluster_label': 'default',
-    }
-)
+    })
 
 t5 = QuboleOperator(
     task_id='pig_cmd',
     command_type="pigcmd",
-    script_location="s3://public-qubole/qbol-library/scripts/script1-hadoop-s3-small.pig",
+    script_location=
+    "s3://public-qubole/qbol-library/scripts/script1-hadoop-s3-small.pig",
     parameters="key1=value1 key2=value2",
     trigger_rule="all_done",
     dag=dag)

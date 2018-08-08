@@ -55,12 +55,12 @@ class TriggerDagRunOperator(BaseOperator):
     ui_color = '#ffefeb'
 
     @apply_defaults
-    def __init__(
-            self,
-            trigger_dag_id,
-            python_callable=None,
-            execution_date=None,
-            *args, **kwargs):
+    def __init__(self,
+                 trigger_dag_id,
+                 python_callable=None,
+                 execution_date=None,
+                 *args,
+                 **kwargs):
         super(TriggerDagRunOperator, self).__init__(*args, **kwargs)
         self.python_callable = python_callable
         self.trigger_dag_id = trigger_dag_id
@@ -71,10 +71,11 @@ class TriggerDagRunOperator(BaseOperator):
         if self.python_callable is not None:
             dro = self.python_callable(context, dro)
         if dro:
-            trigger_dag(dag_id=self.trigger_dag_id,
-                        run_id=dro.run_id,
-                        conf=json.dumps(dro.payload),
-                        execution_date=self.execution_date,
-                        replace_microseconds=False)
+            trigger_dag(
+                dag_id=self.trigger_dag_id,
+                run_id=dro.run_id,
+                conf=json.dumps(dro.payload),
+                execution_date=self.execution_date,
+                replace_microseconds=False)
         else:
             self.log.info("Criteria not met, moving on")

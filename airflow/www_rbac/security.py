@@ -121,9 +121,7 @@ op_perms = {
 }
 
 # global view-menu for dag-level access
-dag_vms = {
-    'all_dags'
-}
+dag_vms = {'all_dags'}
 
 dag_perms = {
     'can_dag_read',
@@ -162,7 +160,6 @@ EXISTING_ROLES = {
 
 
 class AirflowSecurityManager(SecurityManager):
-
     def init_role(self, role_name, role_vms, role_perms):
         """
         Initialize the role with the permissions and related view-menus.
@@ -206,7 +203,8 @@ class AirflowSecurityManager(SecurityManager):
         perms_views = set()
         for role in self.get_user_roles():
             for perm_view in role.permissions:
-                perms_views.add((perm_view.permission.name, perm_view.view_menu.name))
+                perms_views.add((perm_view.permission.name,
+                                 perm_view.view_menu.name))
         return perms_views
 
     def get_accessible_dag_ids(self, username=None):
@@ -229,7 +227,8 @@ class AirflowSecurityManager(SecurityManager):
 
         user_perms_views = self.get_all_permissions_views()
         # return all dags that the user could access
-        return set([view for perm, view in user_perms_views if perm in dag_perms])
+        return set(
+            [view for perm, view in user_perms_views if perm in dag_perms])
 
     def has_access(self, permission, view_name, user=None):
         """
@@ -280,10 +279,9 @@ class AirflowSecurityManager(SecurityManager):
         2. Has can_dag_read permission on all_dags view.
         3. Has can_dag_edit permission on all_dags view.
         """
-        return (
-            self._has_role(['Admin', 'Viewer', 'Op', 'User']) or
-            self._has_perm('can_dag_read', 'all_dags') or
-            self._has_perm('can_dag_edit', 'all_dags'))
+        return (self._has_role(['Admin', 'Viewer', 'Op', 'User'])
+                or self._has_perm('can_dag_read', 'all_dags')
+                or self._has_perm('can_dag_edit', 'all_dags'))
 
     def clean_perms(self):
         """
@@ -292,12 +290,11 @@ class AirflowSecurityManager(SecurityManager):
         logging.info('Cleaning faulty perms')
         sesh = self.get_session
         pvms = (
-            sesh.query(sqla_models.PermissionView)
-            .filter(or_(
-                sqla_models.PermissionView.permission == None,  # NOQA
-                sqla_models.PermissionView.view_menu == None,  # NOQA
-            ))
-        )
+            sesh.query(sqla_models.PermissionView).filter(
+                or_(
+                    sqla_models.PermissionView.permission == None,  # NOQA
+                    sqla_models.PermissionView.view_menu == None,  # NOQA
+                )))
         deleted_count = pvms.delete()
         sesh.commit()
         if deleted_count:
@@ -335,7 +332,8 @@ class AirflowSecurityManager(SecurityManager):
         :return: None.
         """
         # todo(Tao): should we put this function here or in scheduler loop?
-        logging.info('Fetching a set of all permission, view_menu from FAB meta-table')
+        logging.info(
+            'Fetching a set of all permission, view_menu from FAB meta-table')
 
         def merge_pv(perm, view_menu):
             """Create permission view menu only if it doesn't exist"""
@@ -366,7 +364,9 @@ class AirflowSecurityManager(SecurityManager):
         all_roles = self.get_all_roles()
         user_role = self.find_role('User')
 
-        dag_role = [role for role in all_roles if role.name not in EXISTING_ROLES]
+        dag_role = [
+            role for role in all_roles if role.name not in EXISTING_ROLES
+        ]
         update_perm_views = []
 
         # todo(tao) need to remove all_dag vm
@@ -382,20 +382,24 @@ class AirflowSecurityManager(SecurityManager):
             .filter(ab_perm_view_role.columns.role_id == user_role.id)\
             .join(view_menu)\
             .filter(perm_view.view_menu_id != dag_vm.id)
-        all_perm_views = set([role.permission_view_id for role in all_perm_view_by_user])
+        all_perm_views = set(
+            [role.permission_view_id for role in all_perm_view_by_user])
 
         for role in dag_role:
             # Get all the perm-view of the role
             existing_perm_view_by_user = self.get_session.query(ab_perm_view_role)\
                 .filter(ab_perm_view_role.columns.role_id == role.id)
 
-            existing_perms_views = set([role.permission_view_id
-                                        for role in existing_perm_view_by_user])
+            existing_perms_views = set([
+                role.permission_view_id for role in existing_perm_view_by_user
+            ])
             missing_perm_views = all_perm_views - existing_perms_views
 
             for perm_view_id in missing_perm_views:
-                update_perm_views.append({'permission_view_id': perm_view_id,
-                                          'role_id': role.id})
+                update_perm_views.append({
+                    'permission_view_id': perm_view_id,
+                    'role_id': role.id
+                })
 
         self.get_session.execute(ab_perm_view_role.insert(), update_perm_views)
         self.get_session.commit()

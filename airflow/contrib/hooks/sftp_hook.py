@@ -50,8 +50,8 @@ class SFTPHook(BaseHook):
         if self.conn is None:
             params = self.get_connection(self.ftp_conn_id)
             cnopts = pysftp.CnOpts()
-            if ('ignore_hostkey_verification' in params.extra_dejson and
-                    params.extra_dejson['ignore_hostkey_verification']):
+            if ('ignore_hostkey_verification' in params.extra_dejson
+                    and params.extra_dejson['ignore_hostkey_verification']):
                 cnopts.hostkeys = None
             conn_params = {
                 'host': params.host,
@@ -64,7 +64,8 @@ class SFTPHook(BaseHook):
             if 'private_key' in params.extra_dejson:
                 conn_params['private_key'] = params.extra_dejson['private_key']
             if 'private_key_pass' in params.extra_dejson:
-                conn_params['private_key_pass'] = params.extra_dejson['private_key_pass']
+                conn_params['private_key_pass'] = params.extra_dejson[
+                    'private_key_pass']
             self.conn = pysftp.Connection(**conn_params)
         return self.conn
 
@@ -93,7 +94,8 @@ class SFTPHook(BaseHook):
             files[f.filename] = {
                 'size': f.st_size,
                 'type': 'dir' if stat.S_ISDIR(f.st_mode) else 'file',
-                'modify': modify}
+                'modify': modify
+            }
         return files
 
     def list_directory(self, path):
@@ -138,8 +140,8 @@ class SFTPHook(BaseHook):
         conn = self.get_conn()
         logging.info('Retrieving file from FTP: {}'.format(remote_full_path))
         conn.get(remote_full_path, local_full_path)
-        logging.info('Finished retrieving file from FTP: {}'.format(
-            remote_full_path))
+        logging.info(
+            'Finished retrieving file from FTP: {}'.format(remote_full_path))
 
     def store_file(self, remote_full_path, local_full_path):
         """
@@ -166,4 +168,5 @@ class SFTPHook(BaseHook):
     def get_mod_time(self, path):
         conn = self.get_conn()
         ftp_mdtm = conn.stat(path).st_mtime
-        return datetime.datetime.fromtimestamp(ftp_mdtm).strftime('%Y%m%d%H%M%S')
+        return datetime.datetime.fromtimestamp(ftp_mdtm).strftime(
+            '%Y%m%d%H%M%S')

@@ -17,8 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from airflow.exceptions import (DagNotFound, TaskNotFound,
-                                DagRunNotFound, TaskInstanceNotFound)
+from airflow.exceptions import (DagNotFound, TaskNotFound, DagRunNotFound,
+                                TaskInstanceNotFound)
 from airflow.models import DagBag
 
 
@@ -41,15 +41,15 @@ def get_task_instance(dag_id, task_id, execution_date):
     # Get DagRun object and check that it exists
     dagrun = dag.get_dagrun(execution_date=execution_date)
     if not dagrun:
-        error_message = ('Dag Run for date {} not found in dag {}'
-                         .format(execution_date, dag_id))
+        error_message = ('Dag Run for date {} not found in dag {}'.format(
+            execution_date, dag_id))
         raise DagRunNotFound(error_message)
 
     # Get task instance object and check that it exists
     task_instance = dagrun.get_task_instance(task_id)
     if not task_instance:
-        error_message = ('Task {} instance for date {} not found'
-                         .format(task_id, execution_date))
+        error_message = ('Task {} instance for date {} not found'.format(
+            task_id, execution_date))
         raise TaskInstanceNotFound(error_message)
 
     return task_instance

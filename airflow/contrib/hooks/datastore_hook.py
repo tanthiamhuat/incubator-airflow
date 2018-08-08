@@ -56,8 +56,9 @@ class DatastoreHook(GoogleCloudBaseHook):
         :return: a list of full keys.
         """
         resp = self.connection.projects().allocateIds(
-            projectId=self.project_id, body={'keys': partialKeys}
-        ).execute()
+            projectId=self.project_id, body={
+                'keys': partialKeys
+            }).execute()
         return resp['keys']
 
     def begin_transaction(self):
@@ -150,7 +151,8 @@ class DatastoreHook(GoogleCloudBaseHook):
 
         :param name: the name of the operation resource
         """
-        resp = self.connection.projects().operations().delete(name=name).execute()
+        resp = self.connection.projects().operations().delete(
+            name=name).execute()
         return resp
 
     def poll_operation_until_done(self, name, polling_interval_in_seconds):
@@ -161,18 +163,23 @@ class DatastoreHook(GoogleCloudBaseHook):
             result = self.get_operation(name)
             state = result['metadata']['common']['state']
             if state == 'PROCESSING':
-                self.log.info('Operation is processing. Re-polling state in {} seconds'
-                              .format(polling_interval_in_seconds))
+                self.log.info(
+                    'Operation is processing. Re-polling state in {} seconds'
+                    .format(polling_interval_in_seconds))
                 time.sleep(polling_interval_in_seconds)
             else:
                 return result
 
-    def export_to_storage_bucket(self, bucket, namespace=None,
-                                 entity_filter=None, labels=None):
+    def export_to_storage_bucket(self,
+                                 bucket,
+                                 namespace=None,
+                                 entity_filter=None,
+                                 labels=None):
         """
         Export entities from Cloud Datastore to Cloud Storage for backup
         """
-        output_uri_prefix = 'gs://' + '/'.join(filter(None, [bucket, namespace]))
+        output_uri_prefix = 'gs://' + '/'.join(
+            filter(None, [bucket, namespace]))
         if not entity_filter:
             entity_filter = {}
         if not labels:
@@ -186,8 +193,12 @@ class DatastoreHook(GoogleCloudBaseHook):
             projectId=self.project_id, body=body).execute()
         return resp
 
-    def import_from_storage_bucket(self, bucket, file,
-                                   namespace=None, entity_filter=None, labels=None):
+    def import_from_storage_bucket(self,
+                                   bucket,
+                                   file,
+                                   namespace=None,
+                                   entity_filter=None,
+                                   labels=None):
         """
         Import a backup from Cloud Storage to Cloud Datastore
         """

@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """
 ### Tutorial Documentation
 Documentation that goes along with the Airflow tutorial located
@@ -26,7 +25,6 @@ import airflow
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from datetime import timedelta
-
 
 # these args will get passed on to each operator
 # you can override them on a per-task basis during operator initialization
@@ -61,10 +59,7 @@ dag = DAG(
     schedule_interval=timedelta(days=1))
 
 # t1, t2 and t3 are examples of tasks created by instantiating operators
-t1 = BashOperator(
-    task_id='print_date',
-    bash_command='date',
-    dag=dag)
+t1 = BashOperator(task_id='print_date', bash_command='date', dag=dag)
 
 t1.doc_md = """\
 #### Task Documentation
@@ -77,10 +72,7 @@ rendered in the UI's Task Instance Details page.
 dag.doc_md = __doc__
 
 t2 = BashOperator(
-    task_id='sleep',
-    depends_on_past=False,
-    bash_command='sleep 5',
-    dag=dag)
+    task_id='sleep', depends_on_past=False, bash_command='sleep 5', dag=dag)
 
 templated_command = """
 {% for i in range(5) %}

@@ -39,6 +39,7 @@ class HipChatAPIOperator(BaseOperator):
     :param base_url: HipChat REST API base url.
     :type base_url: str
     """
+
     @apply_defaults
     def __init__(self,
                  token,
@@ -64,12 +65,14 @@ class HipChatAPIOperator(BaseOperator):
     def execute(self, context):
         self.prepare_request()
 
-        response = requests.request(self.method,
-                                    self.url,
-                                    headers={
-                                        'Content-Type': 'application/json',
-                                        'Authorization': 'Bearer %s' % self.token},
-                                    data=self.body)
+        response = requests.request(
+            self.method,
+            self.url,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer %s' % self.token
+            },
+            data=self.body)
         if response.status_code >= 400:
             self.log.error('HipChat API call failed: %s %s',
                            response.status_code, response.reason)
@@ -104,10 +107,19 @@ class HipChatAPISendRoomNotificationOperator(HipChatAPIOperator):
     ui_color = '#2980b9'
 
     @apply_defaults
-    def __init__(self, room_id, message, message_format='html',
-                 color='yellow', frm='airflow', attach_to=None,
-                 notify=False, card=None, *args, **kwargs):
-        super(HipChatAPISendRoomNotificationOperator, self).__init__(*args, **kwargs)
+    def __init__(self,
+                 room_id,
+                 message,
+                 message_format='html',
+                 color='yellow',
+                 frm='airflow',
+                 attach_to=None,
+                 notify=False,
+                 card=None,
+                 *args,
+                 **kwargs):
+        super(HipChatAPISendRoomNotificationOperator, self).__init__(
+            *args, **kwargs)
         self.room_id = room_id
         self.message = message
         self.message_format = message_format
@@ -130,5 +142,5 @@ class HipChatAPISendRoomNotificationOperator(HipChatAPIOperator):
 
         self.method = 'POST'
         self.url = '%s/room/%s/notification' % (self.base_url, self.room_id)
-        self.body = json.dumps(dict(
-            (str(k), str(v)) for k, v in params.items() if v))
+        self.body = json.dumps(
+            dict((str(k), str(v)) for k, v in params.items() if v))

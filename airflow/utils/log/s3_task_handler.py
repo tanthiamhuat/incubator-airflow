@@ -29,6 +29,7 @@ class S3TaskHandler(FileTaskHandler, LoggingMixin):
     task instance logs. It extends airflow FileTaskHandler and
     uploads to and reads from S3 remote storage.
     """
+
     def __init__(self, base_log_folder, s3_log_folder, filename_template):
         super(S3TaskHandler, self).__init__(base_log_folder, filename_template)
         self.remote_base = s3_log_folder
@@ -46,8 +47,7 @@ class S3TaskHandler(FileTaskHandler, LoggingMixin):
             self.log.error(
                 'Could not create an S3Hook with connection id "%s". '
                 'Please make sure that airflow[s3] is installed and '
-                'the S3 connection exists.', remote_conn_id
-            )
+                'the S3 connection exists.', remote_conn_id)
 
     @property
     def hook(self):
@@ -167,7 +167,9 @@ class S3TaskHandler(FileTaskHandler, LoggingMixin):
                 log,
                 key=remote_log_location,
                 replace=True,
-                encrypt=configuration.conf.getboolean('core', 'ENCRYPT_S3_LOGS'),
+                encrypt=configuration.conf.getboolean('core',
+                                                      'ENCRYPT_S3_LOGS'),
             )
         except Exception:
-            self.log.exception('Could not write logs to %s', remote_log_location)
+            self.log.exception('Could not write logs to %s',
+                               remote_log_location)

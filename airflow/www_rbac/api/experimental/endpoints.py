@@ -119,7 +119,8 @@ def test():
     return jsonify(status='OK')
 
 
-@api_experimental.route('/dags/<string:dag_id>/tasks/<string:task_id>', methods=['GET'])
+@api_experimental.route(
+    '/dags/<string:dag_id>/tasks/<string:task_id>', methods=['GET'])
 @requires_authentication
 def task_info(dag_id, task_id):
     """Returns a JSON with a task's public instance variables. """
@@ -132,24 +133,24 @@ def task_info(dag_id, task_id):
         return response
 
     # JSONify and return.
-    fields = {k: str(v)
-              for k, v in vars(info).items()
-              if not k.startswith('_')}
+    fields = {
+        k: str(v)
+        for k, v in vars(info).items() if not k.startswith('_')
+    }
     return jsonify(fields)
 
 
 # ToDo: Shouldn't this be a PUT method?
-@api_experimental.route('/dags/<string:dag_id>/paused/<string:paused>', methods=['GET'])
+@api_experimental.route(
+    '/dags/<string:dag_id>/paused/<string:paused>', methods=['GET'])
 @requires_authentication
 def dag_paused(dag_id, paused):
     """(Un)pauses a dag"""
 
     DagModel = models.DagModel
     with create_session() as session:
-        orm_dag = (
-            session.query(DagModel)
-                   .filter(DagModel.dag_id == dag_id).first()
-        )
+        orm_dag = (session.query(DagModel)
+                   .filter(DagModel.dag_id == dag_id).first())
         if paused == 'true':
             orm_dag.is_paused = True
         else:
@@ -195,15 +196,15 @@ def task_instance_info(dag_id, execution_date, task_id):
         return response
 
     # JSONify and return.
-    fields = {k: str(v)
-              for k, v in vars(info).items()
-              if not k.startswith('_')}
+    fields = {
+        k: str(v)
+        for k, v in vars(info).items() if not k.startswith('_')
+    }
     return jsonify(fields)
 
 
 @api_experimental.route(
-    '/dags/<string:dag_id>/dag_runs/<string:execution_date>',
-    methods=['GET'])
+    '/dags/<string:dag_id>/dag_runs/<string:execution_date>', methods=['GET'])
 @requires_authentication
 def dag_run_status(dag_id, execution_date):
     """
@@ -237,6 +238,7 @@ def dag_run_status(dag_id, execution_date):
 
     return jsonify(info)
 
+
 @api_experimental.route('/latest_runs', methods=['GET'])
 @requires_authentication
 def latest_dag_runs():
@@ -247,14 +249,20 @@ def latest_dag_runs():
     for dagrun in dagruns:
         if dagrun.execution_date:
             payload.append({
-                'dag_id': dagrun.dag_id,
-                'execution_date': dagrun.execution_date.isoformat(),
-                'start_date': ((dagrun.start_date or '') and
-                               dagrun.start_date.isoformat()),
-                'dag_run_url': url_for('Airflow.graph', dag_id=dagrun.dag_id,
-                                       execution_date=dagrun.execution_date)
+                'dag_id':
+                dagrun.dag_id,
+                'execution_date':
+                dagrun.execution_date.isoformat(),
+                'start_date': ((dagrun.start_date or '')
+                               and dagrun.start_date.isoformat()),
+                'dag_run_url':
+                url_for(
+                    'Airflow.graph',
+                    dag_id=dagrun.dag_id,
+                    execution_date=dagrun.execution_date)
             })
-    return jsonify(items=payload)  # old flask versions dont support jsonifying arrays
+    return jsonify(
+        items=payload)  # old flask versions dont support jsonifying arrays
 
 
 @api_experimental.route('/pools/<string:name>', methods=['GET'])

@@ -45,7 +45,6 @@ pd.set_option('display.max_colwidth', -1)
 
 # Creating a flask admin BaseView
 class MetastoreBrowserView(BaseView, wwwutils.DataProfilingMixin):
-
     @expose('/')
     def index(self):
         sql = """
@@ -58,16 +57,15 @@ class MetastoreBrowserView(BaseView, wwwutils.DataProfilingMixin):
         """.format(**locals())
         h = MySqlHook(METASTORE_MYSQL_CONN_ID)
         df = h.get_pandas_df(sql)
-        df.db = (
-            '<a href="/admin/metastorebrowserview/db/?db=' +
-            df.db + '">' + df.db + '</a>')
+        df.db = ('<a href="/admin/metastorebrowserview/db/?db=' + df.db + '">'
+                 + df.db + '</a>')
         table = df.to_html(
             classes="table table-striped table-bordered table-hover",
             index=False,
             escape=False,
-            na_rep='',)
-        return self.render(
-            "metastore_browser/dbs.html", table=table)
+            na_rep='',
+        )
+        return self.render("metastore_browser/dbs.html", table=table)
 
     @expose('/table/')
     def table(self):
@@ -76,15 +74,17 @@ class MetastoreBrowserView(BaseView, wwwutils.DataProfilingMixin):
         table = m.get_table(table_name)
         return self.render(
             "metastore_browser/table.html",
-            table=table, table_name=table_name, datetime=datetime, int=int)
+            table=table,
+            table_name=table_name,
+            datetime=datetime,
+            int=int)
 
     @expose('/db/')
     def db(self):
         db = request.args.get("db")
         m = HiveMetastoreHook(METASTORE_CONN_ID)
         tables = sorted(m.get_tables(db=db), key=lambda x: x.tableName)
-        return self.render(
-            "metastore_browser/db.html", tables=tables, db=db)
+        return self.render("metastore_browser/db.html", tables=tables, db=db)
 
     @wwwutils.gzipped
     @expose('/partitions/')
@@ -112,7 +112,8 @@ class MetastoreBrowserView(BaseView, wwwutils.DataProfilingMixin):
         return df.to_html(
             classes="table table-striped table-bordered table-hover",
             index=False,
-            na_rep='',)
+            na_rep='',
+        )
 
     @wwwutils.gzipped
     @expose('/objects/')
@@ -135,11 +136,10 @@ class MetastoreBrowserView(BaseView, wwwutils.DataProfilingMixin):
             b.NAME NOT LIKE '%temp%'
         {where_clause}
         LIMIT {LIMIT};
-        """.format(where_clause=where_clause, LIMIT=TABLE_SELECTOR_LIMIT)
+        """.format(
+            where_clause=where_clause, LIMIT=TABLE_SELECTOR_LIMIT)
         h = MySqlHook(METASTORE_MYSQL_CONN_ID)
-        d = [
-            {'id': row[0], 'text': row[0]}
-            for row in h.get_records(sql)]
+        d = [{'id': row[0], 'text': row[0]} for row in h.get_records(sql)]
         return json.dumps(d)
 
     @wwwutils.gzipped
@@ -152,7 +152,8 @@ class MetastoreBrowserView(BaseView, wwwutils.DataProfilingMixin):
         return df.to_html(
             classes="table table-striped table-bordered table-hover",
             index=False,
-            na_rep='',)
+            na_rep='',
+        )
 
     @expose('/ddl/')
     def ddl(self):
@@ -166,7 +167,8 @@ v = MetastoreBrowserView(category="Plugins", name="Hive Metadata Browser")
 
 # Creating a flask blueprint to intergrate the templates and static folder
 bp = Blueprint(
-    "metastore_browser", __name__,
+    "metastore_browser",
+    __name__,
     template_folder='templates',
     static_folder='static',
     static_url_path='/static/metastore_browser')

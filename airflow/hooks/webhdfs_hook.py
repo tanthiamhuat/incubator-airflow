@@ -24,8 +24,8 @@ from airflow.exceptions import AirflowException
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 
-
-_kerberos_security_mode = configuration.conf.get("core", "security") == "kerberos"
+_kerberos_security_mode = configuration.conf.get("core",
+                                                 "security") == "kerberos"
 if _kerberos_security_mode:
     try:
         from hdfs.ext.kerberos import KerberosClient
@@ -43,6 +43,7 @@ class WebHDFSHook(BaseHook):
     """
     Interact with HDFS. This class is a wrapper around the hdfscli library.
     """
+
     def __init__(self, webhdfs_conn_id='webhdfs_default', proxy_user=None):
         self.webhdfs_conn_id = webhdfs_conn_id
         self.proxy_user = proxy_user
@@ -65,10 +66,8 @@ class WebHDFSHook(BaseHook):
                 self.log.debug('Using namenode %s for hook', nn.host)
                 return client
             except HdfsError as e:
-                self.log.debug(
-                    "Read operation on namenode {nn.host} "
-                    "failed with error: {e}".format(**locals())
-                )
+                self.log.debug("Read operation on namenode {nn.host} "
+                               "failed with error: {e}".format(**locals()))
         nn_hosts = [c.host for c in nn_connections]
         no_nn_error = "Read operations failed " \
                       "on the namenodes below:\n{}".format("\n".join(nn_hosts))
@@ -81,7 +80,11 @@ class WebHDFSHook(BaseHook):
         c = self.get_conn()
         return bool(c.status(hdfs_path, strict=False))
 
-    def load_file(self, source, destination, overwrite=True, parallelism=1,
+    def load_file(self,
+                  source,
+                  destination,
+                  overwrite=True,
+                  parallelism=1,
                   **kwargs):
         """
         Uploads a file to HDFS
@@ -103,9 +106,10 @@ class WebHDFSHook(BaseHook):
 
         """
         c = self.get_conn()
-        c.upload(hdfs_path=destination,
-                 local_path=source,
-                 overwrite=overwrite,
-                 n_threads=parallelism,
-                 **kwargs)
+        c.upload(
+            hdfs_path=destination,
+            local_path=source,
+            overwrite=overwrite,
+            n_threads=parallelism,
+            **kwargs)
         self.log.debug("Uploaded file %s to %s", source, destination)

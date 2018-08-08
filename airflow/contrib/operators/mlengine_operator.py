@@ -503,16 +503,9 @@ class MLEngineTrainingOperator(BaseOperator):
     """
 
     template_fields = [
-        '_project_id',
-        '_job_id',
-        '_package_uris',
-        '_training_python_module',
-        '_training_args',
-        '_region',
-        '_scale_tier',
-        '_runtime_version',
-        '_python_version',
-        '_job_dir'
+        '_project_id', '_job_id', '_package_uris', '_training_python_module',
+        '_training_args', '_region', '_scale_tier', '_runtime_version',
+        '_python_version', '_job_dir'
     ]
 
     @apply_defaults
@@ -578,10 +571,12 @@ class MLEngineTrainingOperator(BaseOperator):
         }
 
         if self._runtime_version:
-            training_request['trainingInput']['runtimeVersion'] = self._runtime_version
+            training_request['trainingInput'][
+                'runtimeVersion'] = self._runtime_version
 
         if self._python_version:
-            training_request['trainingInput']['pythonVersion'] = self._python_version
+            training_request['trainingInput'][
+                'pythonVersion'] = self._python_version
 
         if self._job_dir:
             training_request['trainingInput']['jobDir'] = self._job_dir

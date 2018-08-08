@@ -23,11 +23,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 import airflow.utils.helpers
 
-
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {'owner': 'airflow', 'start_date': airflow.utils.dates.days_ago(2)}
 
 dag = DAG(dag_id='example_short_circuit_operator', default_args=args)
 

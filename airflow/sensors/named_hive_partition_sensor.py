@@ -40,7 +40,7 @@ class NamedHivePartitionSensor(BaseSensorOperator):
     :type metastore_conn_id: str
     """
 
-    template_fields = ('partition_names',)
+    template_fields = ('partition_names', )
     ui_color = '#8d99ae'
 
     @apply_defaults
@@ -90,10 +90,8 @@ class NamedHivePartitionSensor(BaseSensorOperator):
         schema, table, partition = self.parse_partition_name(partition)
 
         self.log.info(
-            'Poking for {schema}.{table}/{partition}'.format(**locals())
-        )
-        return self.hook.check_for_named_partition(
-            schema, table, partition)
+            'Poking for {schema}.{table}/{partition}'.format(**locals()))
+        return self.hook.check_for_named_partition(schema, table, partition)
 
     def poke(self, context):
 

@@ -55,6 +55,7 @@ def action_logging(f):
     :param f: function instance
     :return: wrapped function
     """
+
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         """
@@ -94,8 +95,12 @@ def _build_metrics(func_name, namespace):
     :return: dict with metrics
     """
 
-    metrics = {'sub_command': func_name, 'start_datetime': datetime.utcnow(),
-               'full_command': '{}'.format(list(sys.argv)), 'user': getpass.getuser()}
+    metrics = {
+        'sub_command': func_name,
+        'start_datetime': datetime.utcnow(),
+        'full_command': '{}'.format(list(sys.argv)),
+        'user': getpass.getuser()
+    }
 
     assert isinstance(namespace, Namespace)
     tmp_dic = vars(namespace)
@@ -104,7 +109,8 @@ def _build_metrics(func_name, namespace):
     metrics['execution_date'] = tmp_dic.get('execution_date')
     metrics['host_name'] = socket.gethostname()
 
-    extra = json.dumps(dict((k, metrics[k]) for k in ('host_name', 'full_command')))
+    extra = json.dumps(
+        dict((k, metrics[k]) for k in ('host_name', 'full_command')))
     log = airflow.models.Log(
         event='cli_{}'.format(func_name),
         task_instance=None,

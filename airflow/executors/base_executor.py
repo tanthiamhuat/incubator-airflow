@@ -23,12 +23,10 @@ from airflow import configuration
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.state import State
 
-
 PARALLELISM = configuration.conf.getint('core', 'PARALLELISM')
 
 
 class BaseExecutor(LoggingMixin):
-
     def __init__(self, parallelism=PARALLELISM):
         """
         Class to derive in order to interface with executor-type systems
@@ -58,17 +56,16 @@ class BaseExecutor(LoggingMixin):
         else:
             self.log.info("could not queue task {}".format(key))
 
-    def queue_task_instance(
-            self,
-            task_instance,
-            mark_success=False,
-            pickle_id=None,
-            ignore_all_deps=False,
-            ignore_depends_on_past=False,
-            ignore_task_deps=False,
-            ignore_ti_state=False,
-            pool=None,
-            cfg_path=None):
+    def queue_task_instance(self,
+                            task_instance,
+                            mark_success=False,
+                            pickle_id=None,
+                            ignore_all_deps=False,
+                            ignore_depends_on_past=False,
+                            ignore_task_deps=False,
+                            ignore_ti_state=False,
+                            pool=None,
+                            cfg_path=None):
         pool = pool or task_instance.pool
 
         # TODO (edgarRd): AIRFLOW-1985:
@@ -136,14 +133,14 @@ class BaseExecutor(LoggingMixin):
             ti.refresh_from_db()
             if ti.state != State.RUNNING:
                 self.running[key] = command
-                self.execute_async(key=key,
-                                   command=command,
-                                   queue=queue,
-                                   executor_config=ti.executor_config)
+                self.execute_async(
+                    key=key,
+                    command=command,
+                    queue=queue,
+                    executor_config=ti.executor_config)
             else:
-                self.logger.info(
-                    'Task is already running, not sending to '
-                    'executor: {}'.format(key))
+                self.logger.info('Task is already running, not sending to '
+                                 'executor: {}'.format(key))
 
         # Calling child class sync method
         self.log.debug("Calling the %s sync method", self.__class__)
@@ -181,10 +178,7 @@ class BaseExecutor(LoggingMixin):
 
         return cleared_events
 
-    def execute_async(self,
-                      key,
-                      command,
-                      queue=None,
+    def execute_async(self, key, command, queue=None,
                       executor_config=None):  # pragma: no cover
         """
         This method will execute the command asynchronously.

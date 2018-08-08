@@ -85,7 +85,8 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
         :param parameters: a parameters dict that is substituted at query runtime.
         :type parameters: dict
         """
-        super(PostgresToGoogleCloudStorageOperator, self).__init__(*args, **kwargs)
+        super(PostgresToGoogleCloudStorageOperator, self).__init__(
+            *args, **kwargs)
         self.sql = sql
         self.bucket = bucket
         self.filename = filename
@@ -132,7 +133,8 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
             names in GCS, and values are file handles to local files that
             contain the data for the GCS objects.
         """
-        schema = list(map(lambda schema_tuple: schema_tuple[0], cursor.description))
+        schema = list(
+            map(lambda schema_tuple: schema_tuple[0], cursor.description))
         file_no = 0
         tmp_file_handle = NamedTemporaryFile(delete=True)
         tmp_file_handles = {self.filename.format(file_no): tmp_file_handle}
@@ -154,7 +156,8 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
             if tmp_file_handle.tell() >= self.approx_max_file_size_bytes:
                 file_no += 1
                 tmp_file_handle = NamedTemporaryFile(delete=True)
-                tmp_file_handles[self.filename.format(file_no)] = tmp_file_handle
+                tmp_file_handles[self.filename.format(
+                    file_no)] = tmp_file_handle
 
         return tmp_file_handles
 

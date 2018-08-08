@@ -26,14 +26,11 @@ from airflow.models import DAG
 import time
 from pprint import pprint
 
-
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {'owner': 'airflow', 'start_date': airflow.utils.dates.days_ago(2)}
 
 dag = DAG(
-    dag_id='example_python_operator', default_args=args,
+    dag_id='example_python_operator',
+    default_args=args,
     schedule_interval=None)
 
 
@@ -49,6 +46,7 @@ run_this = PythonOperator(
     provide_context=True,
     python_callable=print_context,
     dag=dag)
+
 # [END howto_operator_python]
 
 

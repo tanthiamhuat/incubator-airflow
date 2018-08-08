@@ -135,8 +135,12 @@ class PubSubHook(GoogleCloudBaseHook):
                 raise PubSubException(
                     'Error deleting topic {}'.format(full_topic), e)
 
-    def create_subscription(self, topic_project, topic, subscription=None,
-                            subscription_project=None, ack_deadline_secs=10,
+    def create_subscription(self,
+                            topic_project,
+                            topic,
+                            subscription=None,
+                            subscription_project=None,
+                            ack_deadline_secs=10,
                             fail_if_exists=False):
         """Creates a Pub/Sub subscription, if it does not already exist.
 
@@ -171,10 +175,7 @@ class PubSubHook(GoogleCloudBaseHook):
             subscription_project = topic_project
         full_subscription = _format_subscription(subscription_project,
                                                  subscription)
-        body = {
-            'topic': full_topic,
-            'ackDeadlineSeconds': ack_deadline_secs
-        }
+        body = {'topic': full_topic, 'ackDeadlineSeconds': ack_deadline_secs}
         try:
             service.projects().subscriptions().create(
                 name=full_subscription, body=body).execute()
@@ -192,7 +193,9 @@ class PubSubHook(GoogleCloudBaseHook):
                     e)
         return subscription
 
-    def delete_subscription(self, project, subscription,
+    def delete_subscription(self,
+                            project,
+                            subscription,
                             fail_if_not_exists=False):
         """Deletes a Pub/Sub subscription, if it exists.
 
@@ -223,7 +226,10 @@ class PubSubHook(GoogleCloudBaseHook):
                     'Error deleting subscription {}'.format(full_subscription),
                     e)
 
-    def pull(self, project, subscription, max_messages,
+    def pull(self,
+             project,
+             subscription,
+             max_messages,
              return_immediately=False):
         """Pulls up to ``max_messages`` messages from Pub/Sub subscription.
 
@@ -277,8 +283,9 @@ class PubSubHook(GoogleCloudBaseHook):
         full_subscription = _format_subscription(project, subscription)
         try:
             service.projects().subscriptions().acknowledge(
-                subscription=full_subscription, body={'ackIds': ack_ids}
-            ).execute()
+                subscription=full_subscription, body={
+                    'ackIds': ack_ids
+                }).execute()
         except errors.HttpError as e:
             raise PubSubException(
                 'Error acknowledging {} messages pulled from subscription {}'

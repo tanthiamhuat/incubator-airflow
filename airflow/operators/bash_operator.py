@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 import os
 import signal
 from subprocess import Popen, STDOUT, PIPE
@@ -50,17 +49,20 @@ class BashOperator(BaseOperator):
     :type output_encoding: output encoding of bash command
     """
     template_fields = ('bash_command', 'env')
-    template_ext = ('.sh', '.bash',)
+    template_ext = (
+        '.sh',
+        '.bash',
+    )
     ui_color = '#f0ede4'
 
     @apply_defaults
-    def __init__(
-            self,
-            bash_command,
-            xcom_push=False,
-            env=None,
-            output_encoding='utf-8',
-            *args, **kwargs):
+    def __init__(self,
+                 bash_command,
+                 xcom_push=False,
+                 env=None,
+                 output_encoding='utf-8',
+                 *args,
+                 **kwargs):
 
         super(BashOperator, self).__init__(*args, **kwargs)
         self.bash_command = bash_command
@@ -78,11 +80,10 @@ class BashOperator(BaseOperator):
         # Prepare env for child process.
         if self.env is None:
             self.env = os.environ.copy()
-        airflow_context_vars = context_to_airflow_vars(context, in_env_var_format=True)
-        self.log.info("Exporting the following env vars:\n" +
-                      '\n'.join(["{}={}".format(k, v)
-                                 for k, v in
-                                 airflow_context_vars.items()]))
+        airflow_context_vars = context_to_airflow_vars(
+            context, in_env_var_format=True)
+        self.log.info("Exporting the following env vars:\n" + '\n'.join(
+            ["{}={}".format(k, v) for k, v in airflow_context_vars.items()]))
         self.env.update(airflow_context_vars)
 
         self.lineage_data = self.bash_command
@@ -94,10 +95,7 @@ class BashOperator(BaseOperator):
                 f.flush()
                 fname = f.name
                 script_location = os.path.abspath(fname)
-                self.log.info(
-                    "Temporary script location: %s",
-                    script_location
-                )
+                self.log.info("Temporary script location: %s", script_location)
 
                 def pre_exec():
                     # Restore default signal disposition and invoke setsid
@@ -109,8 +107,10 @@ class BashOperator(BaseOperator):
                 self.log.info("Running command: %s", self.bash_command)
                 sp = Popen(
                     ['bash', fname],
-                    stdout=PIPE, stderr=STDOUT,
-                    cwd=tmp_dir, env=self.env,
+                    stdout=PIPE,
+                    stderr=STDOUT,
+                    cwd=tmp_dir,
+                    env=self.env,
                     preexec_fn=pre_exec)
 
                 self.sp = sp
@@ -121,10 +121,8 @@ class BashOperator(BaseOperator):
                     line = line.decode(self.output_encoding).rstrip()
                     self.log.info(line)
                 sp.wait()
-                self.log.info(
-                    "Command exited with return code %s",
-                    sp.returncode
-                )
+                self.log.info("Command exited with return code %s",
+                              sp.returncode)
 
                 if sp.returncode:
                     raise AirflowException("Bash command failed")

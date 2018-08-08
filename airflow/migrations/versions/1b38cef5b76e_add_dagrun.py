@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """add dagrun
 
 Revision ID: 1b38cef5b76e
@@ -36,7 +35,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table('dag_run',
+    op.create_table(
+        'dag_run',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('dag_id', sa.String(length=250), nullable=True),
         sa.Column('execution_date', sa.DateTime(), nullable=True),

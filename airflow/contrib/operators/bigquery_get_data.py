@@ -93,15 +93,17 @@ class BigQueryGetDataOperator(BaseOperator):
         self.log.info('Dataset: %s ; Table: %s ; Max Results: %s',
                       self.dataset_id, self.table_id, self.max_results)
 
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id,
+            delegate_to=self.delegate_to)
 
         conn = hook.get_conn()
         cursor = conn.cursor()
-        response = cursor.get_tabledata(dataset_id=self.dataset_id,
-                                        table_id=self.table_id,
-                                        max_results=self.max_results,
-                                        selected_fields=self.selected_fields)
+        response = cursor.get_tabledata(
+            dataset_id=self.dataset_id,
+            table_id=self.table_id,
+            max_results=self.max_results,
+            selected_fields=self.selected_fields)
 
         self.log.info('Total Extracted rows: %s', response['totalRows'])
         rows = response['rows']
