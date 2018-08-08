@@ -25,38 +25,38 @@ from airflow.models import DAG
 from datetime import timedelta
 
 
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {"owner": "airflow", "start_date": airflow.utils.dates.days_ago(2)}
 
 dag = DAG(
-    dag_id='example_bash_operator', default_args=args,
-    schedule_interval='0 0 * * *',
-    dagrun_timeout=timedelta(minutes=60))
+    dag_id="example_bash_operator",
+    default_args=args,
+    schedule_interval="0 0 * * *",
+    dagrun_timeout=timedelta(minutes=60),
+)
 
-cmd = 'ls -l'
-run_this_last = DummyOperator(task_id='run_this_last', dag=dag)
+cmd = "ls -l"
+run_this_last = DummyOperator(task_id="run_this_last", dag=dag)
 
 # [START howto_operator_bash]
-run_this = BashOperator(
-    task_id='run_after_loop', bash_command='echo 1', dag=dag)
+run_this = BashOperator(task_id="run_after_loop", bash_command="echo 1", dag=dag)
 # [END howto_operator_bash]
 run_this.set_downstream(run_this_last)
 
 for i in range(3):
     i = str(i)
     task = BashOperator(
-        task_id='runme_' + i,
+        task_id="runme_" + i,
         bash_command='echo "{{ task_instance_key_str }}" && sleep 1',
-        dag=dag)
+        dag=dag,
+    )
     task.set_downstream(run_this)
 
 # [START howto_operator_bash_template]
 task = BashOperator(
-    task_id='also_run_this',
+    task_id="also_run_this",
     bash_command='echo "run_id={{ run_id }} | dag_run={{ dag_run }}"',
-    dag=dag)
+    dag=dag,
+)
 # [END howto_operator_bash_template]
 task.set_downstream(run_this_last)
 

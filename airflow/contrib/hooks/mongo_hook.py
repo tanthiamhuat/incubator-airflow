@@ -27,10 +27,11 @@ class MongoHook(BaseHook):
     ex.
         {replicaSet: test, ssl: True, connectTimeoutMS: 30000}
     """
-    conn_type = 'MongoDb'
 
-    def __init__(self, conn_id='mongo_default', *args, **kwargs):
-        super(MongoHook, self).__init__(source='mongo')
+    conn_type = "MongoDb"
+
+    def __init__(self, conn_id="mongo_default", *args, **kwargs):
+        super(MongoHook, self).__init__(source="mongo")
 
         self.mongo_conn_id = conn_id
         self.connection = self.get_connection(conn_id)
@@ -53,22 +54,21 @@ class MongoHook(BaseHook):
 
         conn = self.connection
 
-        uri = 'mongodb://{creds}{host}{port}/{database}'.format(
-            creds='{}:{}@'.format(
-                conn.login, conn.password
-            ) if conn.login is not None else '',
-
+        uri = "mongodb://{creds}{host}{port}/{database}".format(
+            creds="{}:{}@".format(conn.login, conn.password)
+            if conn.login is not None
+            else "",
             host=conn.host,
-            port='' if conn.port is None else ':{}'.format(conn.port),
-            database='' if conn.schema is None else conn.schema
+            port="" if conn.port is None else ":{}".format(conn.port),
+            database="" if conn.schema is None else conn.schema,
         )
 
         # Mongo Connection Options dict that is unpacked when passed to MongoClient
         options = self.extras
 
         # If we are using SSL disable requiring certs from specific hostname
-        if options.get('ssl', False):
-            options.update({'ssl_cert_reqs': CERT_NONE})
+        if options.get("ssl", False):
+            options.update({"ssl_cert_reqs": CERT_NONE})
 
         self.client = MongoClient(uri, **options)
 

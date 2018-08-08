@@ -37,12 +37,18 @@ class WasbBlobSensor(BaseSensorOperator):
     :type check_options: dict
     """
 
-    template_fields = ('container_name', 'blob_name')
+    template_fields = ("container_name", "blob_name")
 
     @apply_defaults
-    def __init__(self, container_name, blob_name,
-                 wasb_conn_id='wasb_default', check_options=None, *args,
-                 **kwargs):
+    def __init__(
+        self,
+        container_name,
+        blob_name,
+        wasb_conn_id="wasb_default",
+        check_options=None,
+        *args,
+        **kwargs
+    ):
         super(WasbBlobSensor, self).__init__(*args, **kwargs)
         if check_options is None:
             check_options = {}
@@ -53,12 +59,13 @@ class WasbBlobSensor(BaseSensorOperator):
 
     def poke(self, context):
         self.log.info(
-            'Poking for blob: {self.blob_name}\n'
-            'in wasb://{self.container_name}'.format(**locals())
+            "Poking for blob: {self.blob_name}\n"
+            "in wasb://{self.container_name}".format(**locals())
         )
         hook = WasbHook(wasb_conn_id=self.wasb_conn_id)
-        return hook.check_for_blob(self.container_name, self.blob_name,
-                                   **self.check_options)
+        return hook.check_for_blob(
+            self.container_name, self.blob_name, **self.check_options
+        )
 
 
 class WasbPrefixSensor(BaseSensorOperator):
@@ -76,11 +83,18 @@ class WasbPrefixSensor(BaseSensorOperator):
     :type check_options: dict
     """
 
-    template_fields = ('container_name', 'prefix')
+    template_fields = ("container_name", "prefix")
 
     @apply_defaults
-    def __init__(self, container_name, prefix, wasb_conn_id='wasb_default',
-                 check_options=None, *args, **kwargs):
+    def __init__(
+        self,
+        container_name,
+        prefix,
+        wasb_conn_id="wasb_default",
+        check_options=None,
+        *args,
+        **kwargs
+    ):
         super(WasbPrefixSensor, self).__init__(*args, **kwargs)
         if check_options is None:
             check_options = {}
@@ -91,9 +105,10 @@ class WasbPrefixSensor(BaseSensorOperator):
 
     def poke(self, context):
         self.log.info(
-            'Poking for prefix: {self.prefix}\n'
-            'in wasb://{self.container_name}'.format(**locals())
+            "Poking for prefix: {self.prefix}\n"
+            "in wasb://{self.container_name}".format(**locals())
         )
         hook = WasbHook(wasb_conn_id=self.wasb_conn_id)
-        return hook.check_for_prefix(self.container_name, self.prefix,
-                                     **self.check_options)
+        return hook.check_for_prefix(
+            self.container_name, self.prefix, **self.check_options
+        )

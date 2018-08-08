@@ -51,20 +51,22 @@ class SlackWebhookOperator(SimpleHttpOperator):
     """
 
     @apply_defaults
-    def __init__(self,
-                 http_conn_id=None,
-                 webhook_token=None,
-                 message="",
-                 channel=None,
-                 username=None,
-                 icon_emoji=None,
-                 link_names=False,
-                 proxy=None,
-                 *args,
-                 **kwargs):
-        super(SlackWebhookOperator, self).__init__(endpoint=webhook_token,
-                                                   *args,
-                                                   **kwargs)
+    def __init__(
+        self,
+        http_conn_id=None,
+        webhook_token=None,
+        message="",
+        channel=None,
+        username=None,
+        icon_emoji=None,
+        link_names=False,
+        proxy=None,
+        *args,
+        **kwargs
+    ):
+        super(SlackWebhookOperator, self).__init__(
+            endpoint=webhook_token, *args, **kwargs
+        )
         self.http_conn_id = http_conn_id
         self.webhook_token = webhook_token
         self.message = message
@@ -87,6 +89,6 @@ class SlackWebhookOperator(SimpleHttpOperator):
             self.username,
             self.icon_emoji,
             self.link_names,
-            self.proxy
+            self.proxy,
         )
         self.hook.execute()

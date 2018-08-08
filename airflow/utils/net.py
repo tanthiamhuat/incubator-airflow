@@ -19,7 +19,7 @@
 #
 import importlib
 import socket
-from airflow.configuration import (conf, AirflowConfigException)
+from airflow.configuration import conf, AirflowConfigException
 
 
 def get_hostname():
@@ -29,7 +29,7 @@ def get_hostname():
     """
     # First we attempt to fetch the callable path from the config.
     try:
-        callable_path = conf.get('core', 'hostname_callable')
+        callable_path = conf.get("core", "hostname_callable")
     except AirflowConfigException:
         callable_path = None
 
@@ -39,7 +39,7 @@ def get_hostname():
         return socket.getfqdn()
 
     # Since we have a callable path, we try to import and run it next.
-    module_path, attr_name = callable_path.split(':')
+    module_path, attr_name = callable_path.split(":")
     module = importlib.import_module(module_path)
     callable = getattr(module, attr_name)
     return callable()

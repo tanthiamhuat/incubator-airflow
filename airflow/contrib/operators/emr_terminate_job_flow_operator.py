@@ -31,16 +31,13 @@ class EmrTerminateJobFlowOperator(BaseOperator):
     :param aws_conn_id: aws connection to uses
     :type aws_conn_id: str
     """
-    template_fields = ['job_flow_id']
+
+    template_fields = ["job_flow_id"]
     template_ext = ()
-    ui_color = '#f9c915'
+    ui_color = "#f9c915"
 
     @apply_defaults
-    def __init__(
-            self,
-            job_flow_id,
-            aws_conn_id='s3_default',
-            *args, **kwargs):
+    def __init__(self, job_flow_id, aws_conn_id="s3_default", *args, **kwargs):
         super(EmrTerminateJobFlowOperator, self).__init__(*args, **kwargs)
         self.job_flow_id = job_flow_id
         self.aws_conn_id = aws_conn_id
@@ -48,10 +45,10 @@ class EmrTerminateJobFlowOperator(BaseOperator):
     def execute(self, context):
         emr = EmrHook(aws_conn_id=self.aws_conn_id).get_conn()
 
-        self.log.info('Terminating JobFlow %s', self.job_flow_id)
+        self.log.info("Terminating JobFlow %s", self.job_flow_id)
         response = emr.terminate_job_flows(JobFlowIds=[self.job_flow_id])
 
-        if not response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            raise AirflowException('JobFlow termination failed: %s' % response)
+        if not response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+            raise AirflowException("JobFlow termination failed: %s" % response)
         else:
-            self.log.info('JobFlow with id %s terminated', self.job_flow_id)
+            self.log.info("JobFlow with id %s terminated", self.job_flow_id)

@@ -36,15 +36,23 @@ class DataSet(object):
         self.context = None
         self._data = dict()
 
-        self._data.update(dict((key, value) for key, value in six.iteritems(kwargs)
-                               if key in set(self.attributes)))
+        self._data.update(
+            dict(
+                (key, value)
+                for key, value in six.iteritems(kwargs)
+                if key in set(self.attributes)
+            )
+        )
 
         if data:
             if "qualifiedName" in data:
                 self._qualified_name = data.pop("qualifiedName")
 
-            self._data = dict((key, value) for key, value in six.iteritems(data)
-                              if key in set(self.attributes))
+            self._data = dict(
+                (key, value)
+                for key, value in six.iteritems(data)
+                if key in set(self.attributes)
+            )
 
     def set_context(self, context):
         self.context = context
@@ -83,10 +91,7 @@ class DataSet(object):
             for key, value in six.iteritems(attributes):
                 attributes[key] = env.from_string(value).render(**self.context)
 
-        d = {
-            "typeName": self.type_name,
-            "attributes": attributes,
-        }
+        d = {"typeName": self.type_name, "attributes": attributes}
 
         return d
 
@@ -101,9 +106,19 @@ class DataSet(object):
 
 class DataBase(DataSet):
     type_name = "dbStore"
-    attributes = ["dbStoreType", "storeUse", "source", "description", "userName",
-                  "storeUri", "operation", "startTime", "endTime", "commandlineOpts",
-                  "attribute_db"]
+    attributes = [
+        "dbStoreType",
+        "storeUse",
+        "source",
+        "description",
+        "userName",
+        "storeUri",
+        "operation",
+        "startTime",
+        "endTime",
+        "commandlineOpts",
+        "attribute_db",
+    ]
 
 
 class File(DataSet):
@@ -113,8 +128,8 @@ class File(DataSet):
     def __init__(self, name=None, data=None):
         super(File, self).__init__(name=name, data=data)
 
-        self._qualified_name = 'file://' + self.name
-        self._data['path'] = self.name
+        self._qualified_name = "file://" + self.name
+        self._data["path"] = self.name
 
 
 class HadoopFile(File):
@@ -127,14 +142,24 @@ class HadoopFile(File):
         super(File, self).__init__(name=name, data=data)
 
         self._qualified_name = "{}@{}".format(self.name, self.cluster_name)
-        self._data['path'] = self.name
+        self._data["path"] = self.name
 
-        self._data['clusterName'] = self.cluster_name
+        self._data["clusterName"] = self.cluster_name
 
 
 class Operator(DataSet):
     type_name = "airflow_operator"
 
     # todo we can derive this from the spec
-    attributes = ["dag_id", "task_id", "command", "conn_id", "name", "execution_date",
-                  "start_date", "end_date", "inputs", "outputs"]
+    attributes = [
+        "dag_id",
+        "task_id",
+        "command",
+        "conn_id",
+        "name",
+        "execution_date",
+        "start_date",
+        "end_date",
+        "inputs",
+        "outputs",
+    ]

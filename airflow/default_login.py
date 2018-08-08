@@ -33,10 +33,10 @@ from airflow import settings
 from airflow import models
 from airflow.utils.db import provide_session
 
-DEFAULT_USERNAME = 'airflow'
+DEFAULT_USERNAME = "airflow"
 
 login_manager = flask_login.LoginManager()
-login_manager.login_view = 'airflow.login'  # Calls login() below
+login_manager.login_view = "airflow.login"  # Calls login() below
 login_manager.login_message = None
 
 
@@ -64,6 +64,7 @@ class DefaultUser(object):
         """Access all the things"""
         return True
 
+
 # models.User = User  # hack!
 # del User
 
@@ -77,12 +78,13 @@ def load_user(userid, session=None):
 
 @provide_session
 def login(self, request, session=None):
-    user = session.query(models.User).filter(
-        models.User.username == DEFAULT_USERNAME).first()
+    user = (
+        session.query(models.User)
+        .filter(models.User.username == DEFAULT_USERNAME)
+        .first()
+    )
     if not user:
-        user = models.User(
-            username=DEFAULT_USERNAME,
-            is_superuser=True)
+        user = models.User(username=DEFAULT_USERNAME, is_superuser=True)
     session.merge(user)
     session.commit()
     flask_login.login_user(DefaultUser(user))

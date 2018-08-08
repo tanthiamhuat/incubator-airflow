@@ -58,7 +58,7 @@ class SimpleDag(BaseDag):
         for task in dag.tasks:
             special_args = {}
             if task.task_concurrency is not None:
-                special_args['task_concurrency'] = task.task_concurrency
+                special_args["task_concurrency"] = task.task_concurrency
             if len(special_args) > 0:
                 self._task_special_args[task.task_id] = special_args
 
@@ -115,7 +115,10 @@ class SimpleDag(BaseDag):
         return self._task_special_args
 
     def get_task_special_arg(self, task_id, special_arg_name):
-        if task_id in self._task_special_args and special_arg_name in self._task_special_args[task_id]:
+        if (
+            task_id in self._task_special_args
+            and special_arg_name in self._task_special_args[task_id]
+        ):
             return self._task_special_args[task_id][special_arg_name]
         else:
             return None
@@ -180,12 +183,12 @@ def list_py_file_paths(directory, safe_mode=True):
         patterns_by_dir = {}
         for root, dirs, files in os.walk(directory, followlinks=True):
             patterns = patterns_by_dir.get(root, [])
-            ignore_file = os.path.join(root, '.airflowignore')
+            ignore_file = os.path.join(root, ".airflowignore")
             if os.path.isfile(ignore_file):
-                with open(ignore_file, 'r') as f:
+                with open(ignore_file, "r") as f:
                     # If we have new patterns create a copy so we don't change
                     # the previous list (which would affect other subdirs)
-                    patterns = patterns + [p for p in f.read().split('\n') if p]
+                    patterns = patterns + [p for p in f.read().split("\n") if p]
 
             # If we can ignore any subdirs entirely we should - fewer paths
             # to walk is better. We have to modify the ``dirs`` array in
@@ -206,9 +209,8 @@ def list_py_file_paths(directory, safe_mode=True):
                     file_path = os.path.join(root, f)
                     if not os.path.isfile(file_path):
                         continue
-                    mod_name, file_ext = os.path.splitext(
-                        os.path.split(file_path)[-1])
-                    if file_ext != '.py' and not zipfile.is_zipfile(file_path):
+                    mod_name, file_ext = os.path.splitext(os.path.split(file_path)[-1])
+                    if file_ext != ".py" and not zipfile.is_zipfile(file_path):
                         continue
                     if any([re.findall(p, file_path) for p in patterns]):
                         continue
@@ -217,10 +219,11 @@ def list_py_file_paths(directory, safe_mode=True):
                     # Airflow DAG definition.
                     might_contain_dag = True
                     if safe_mode and not zipfile.is_zipfile(file_path):
-                        with open(file_path, 'rb') as f:
+                        with open(file_path, "rb") as f:
                             content = f.read()
                             might_contain_dag = all(
-                                [s in content for s in (b'DAG', b'airflow')])
+                                [s in content for s in (b"DAG", b"airflow")]
+                            )
 
                     if not might_contain_dag:
                         continue
@@ -236,6 +239,7 @@ class AbstractDagFileProcessor(object):
     """
     Processes a DAG file. See SchedulerJob.process_file() for more details.
     """
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -321,14 +325,16 @@ class DagFileProcessorManager(LoggingMixin):
     :type _last_finish_time: dict[unicode, datetime]
     """
 
-    def __init__(self,
-                 dag_directory,
-                 file_paths,
-                 parallelism,
-                 process_file_interval,
-                 min_file_parsing_loop_time,
-                 max_runs,
-                 processor_factory):
+    def __init__(
+        self,
+        dag_directory,
+        file_paths,
+        parallelism,
+        process_file_interval,
+        min_file_parsing_loop_time,
+        max_runs,
+        processor_factory,
+    ):
         """
         :param dag_directory: Directory where DAG definitions are kept. All
         files in file_paths should be under this directory
@@ -369,7 +375,7 @@ class DagFileProcessorManager(LoggingMixin):
         # Map from file path to the number of runs
         self._run_count = defaultdict(int)
         # Scheduler heartbeat key.
-        self._heart_beat_key = 'heart-beat'
+        self._heart_beat_key = "heart-beat"
 
     @property
     def file_paths(self):
@@ -403,8 +409,9 @@ class DagFileProcessorManager(LoggingMixin):
         being processed
         """
         if file_path in self._processors:
-            return (timezone.utcnow() - self._processors[file_path].start_time)\
-                .total_seconds()
+            return (
+                timezone.utcnow() - self._processors[file_path].start_time
+            ).total_seconds()
         return None
 
     def get_last_runtime(self, file_path):
@@ -448,8 +455,9 @@ class DagFileProcessorManager(LoggingMixin):
         :return: None
         """
         self._file_paths = new_file_paths
-        self._file_path_queue = [x for x in self._file_path_queue
-                                 if x in new_file_paths]
+        self._file_path_queue = [
+            x for x in self._file_path_queue if x in new_file_paths
+        ]
         # Stop processors that are working on deleted files
         filtered_processors = {}
         for file_path, processor in self._processors.items():
@@ -495,19 +503,24 @@ class DagFileProcessorManager(LoggingMixin):
                 self.log.info("Processor for %s finished", file_path)
                 now = timezone.utcnow()
                 finished_processors[file_path] = processor
-                self._last_runtime[file_path] = (now -
-                                                 processor.start_time).total_seconds()
+                self._last_runtime[file_path] = (
+                    now - processor.start_time
+                ).total_seconds()
                 self._last_finish_time[file_path] = now
                 self._run_count[file_path] += 1
             else:
                 running_processors[file_path] = processor
         self._processors = running_processors
 
-        self.log.debug("%s/%s scheduler processes running",
-                       len(self._processors), self._parallelism)
+        self.log.debug(
+            "%s/%s scheduler processes running",
+            len(self._processors),
+            self._parallelism,
+        )
 
-        self.log.debug("%s file paths queued for processing",
-                       len(self._file_path_queue))
+        self.log.debug(
+            "%s file paths queued for processing", len(self._file_path_queue)
+        )
 
         # Collect all the DAGs that were found in the processed files
         simple_dags = []
@@ -515,7 +528,8 @@ class DagFileProcessorManager(LoggingMixin):
             if processor.result is None:
                 self.log.warning(
                     "Processor for %s exited with return code %s.",
-                    processor.file_path, processor.exit_code
+                    processor.file_path,
+                    processor.exit_code,
                 )
             else:
                 for simple_dag in processor.result:
@@ -535,51 +549,62 @@ class DagFileProcessorManager(LoggingMixin):
                 last_finish_time = self.get_last_finish_time(file_path)
                 if last_finish_time is not None:
                     duration = now - last_finish_time
-                    longest_parse_duration = max(duration.total_seconds(),
-                                                 longest_parse_duration)
+                    longest_parse_duration = max(
+                        duration.total_seconds(), longest_parse_duration
+                    )
                     if duration.total_seconds() < self._process_file_interval:
                         file_paths_recently_processed.append(file_path)
 
-            sleep_length = max(self._min_file_parsing_loop_time - longest_parse_duration,
-                               0)
+            sleep_length = max(
+                self._min_file_parsing_loop_time - longest_parse_duration, 0
+            )
             if sleep_length > 0:
-                self.log.debug("Sleeping for %.2f seconds to prevent excessive "
-                               "logging",
-                               sleep_length)
+                self.log.debug(
+                    "Sleeping for %.2f seconds to prevent excessive " "logging",
+                    sleep_length,
+                )
                 time.sleep(sleep_length)
 
-            files_paths_at_run_limit = [file_path
-                                        for file_path, num_runs in self._run_count.items()
-                                        if num_runs == self._max_runs]
+            files_paths_at_run_limit = [
+                file_path
+                for file_path, num_runs in self._run_count.items()
+                if num_runs == self._max_runs
+            ]
 
-            files_paths_to_queue = list(set(self._file_paths) -
-                                        set(file_paths_in_progress) -
-                                        set(file_paths_recently_processed) -
-                                        set(files_paths_at_run_limit))
+            files_paths_to_queue = list(
+                set(self._file_paths)
+                - set(file_paths_in_progress)
+                - set(file_paths_recently_processed)
+                - set(files_paths_at_run_limit)
+            )
 
             for file_path, processor in self._processors.items():
                 self.log.debug(
                     "File path %s is still being processed (started: %s)",
-                    processor.file_path, processor.start_time.isoformat()
+                    processor.file_path,
+                    processor.start_time.isoformat(),
                 )
 
             self.log.debug(
                 "Queuing the following files for processing:\n\t%s",
-                "\n\t".join(files_paths_to_queue)
+                "\n\t".join(files_paths_to_queue),
             )
 
             self._file_path_queue.extend(files_paths_to_queue)
 
         # Start more processors if we have enough slots and files to process
-        while (self._parallelism - len(self._processors) > 0 and
-               len(self._file_path_queue) > 0):
+        while (
+            self._parallelism - len(self._processors) > 0
+            and len(self._file_path_queue) > 0
+        ):
             file_path = self._file_path_queue.pop(0)
             processor = self._processor_factory(file_path)
 
             processor.start()
             self.log.info(
                 "Started a process (PID: %s) to generate tasks for %s",
-                processor.pid, file_path
+                processor.pid,
+                file_path,
             )
             self._processors[file_path] = processor
 

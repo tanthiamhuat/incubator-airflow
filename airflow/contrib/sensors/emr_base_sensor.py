@@ -27,30 +27,28 @@ class EmrBaseSensor(BaseSensorOperator):
     Subclasses should implement get_emr_response() and state_from_response() methods.
     Subclasses should also implement NON_TERMINAL_STATES and FAILED_STATE constants.
     """
-    ui_color = '#66c3ff'
+
+    ui_color = "#66c3ff"
 
     @apply_defaults
-    def __init__(
-            self,
-            aws_conn_id='aws_default',
-            *args, **kwargs):
+    def __init__(self, aws_conn_id="aws_default", *args, **kwargs):
         super(EmrBaseSensor, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
 
     def poke(self, context):
         response = self.get_emr_response()
 
-        if not response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            self.log.info('Bad HTTP response: %s', response)
+        if not response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+            self.log.info("Bad HTTP response: %s", response)
             return False
 
         state = self.state_from_response(response)
-        self.log.info('Job flow currently %s', state)
+        self.log.info("Job flow currently %s", state)
 
         if state in self.NON_TERMINAL_STATES:
             return False
 
         if state in self.FAILED_STATE:
-            raise AirflowException('EMR job failed')
+            raise AirflowException("EMR job failed")
 
         return True

@@ -33,7 +33,7 @@ def get_task(dag_id, task_id):
     # Get DAG object and check Task Exists
     dag = dagbag.get_dag(dag_id)
     if not dag.has_task(task_id):
-        error_message = 'Task {} not found in dag {}'.format(task_id, dag_id)
+        error_message = "Task {} not found in dag {}".format(task_id, dag_id)
         raise TaskNotFound(error_message)
 
     # Return the task.

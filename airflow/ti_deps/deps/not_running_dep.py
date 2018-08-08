@@ -35,4 +35,6 @@ class NotRunningDep(BaseTIDep):
         if ti.state == State.RUNNING:
             yield self._failing_status(
                 reason="Task is already running, it started on {0}.".format(
-                    ti.start_date))
+                    ti.start_date
+                )
+            )

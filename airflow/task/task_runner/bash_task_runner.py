@@ -27,11 +27,12 @@ class BashTaskRunner(BaseTaskRunner):
     """
     Runs the raw Airflow task by invoking through the Bash shell.
     """
+
     def __init__(self, local_task_job):
         super(BashTaskRunner, self).__init__(local_task_job)
 
     def start(self):
-        self.process = self.run_command(['bash', '-c'], join_args=True)
+        self.process = self.run_command(["bash", "-c"], join_args=True)
 
     def return_code(self):
         return self.process.poll()

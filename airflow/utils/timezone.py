@@ -24,7 +24,7 @@ from airflow.settings import TIMEZONE
 
 
 # UTC time zone as a tzinfo instance.
-utc = pendulum.timezone('UTC')
+utc = pendulum.timezone("UTC")
 
 
 def is_localized(value):
@@ -109,13 +109,12 @@ def make_aware(value, timezone=None):
 
     # Check that we won't overwrite the timezone of an aware datetime.
     if is_localized(value):
-        raise ValueError(
-            "make_aware expects a naive datetime, got %s" % value)
+        raise ValueError("make_aware expects a naive datetime, got %s" % value)
 
-    if hasattr(timezone, 'localize'):
+    if hasattr(timezone, "localize"):
         # This method is available for pytz time zones.
         return timezone.localize(value)
-    elif hasattr(timezone, 'convert'):
+    elif hasattr(timezone, "convert"):
         # For pendulum
         return timezone.convert(value)
     else:
@@ -141,13 +140,9 @@ def make_naive(value, timezone=None):
     o = value.astimezone(timezone)
 
     # cross library compatibility
-    naive = dt.datetime(o.year,
-                        o.month,
-                        o.day,
-                        o.hour,
-                        o.minute,
-                        o.second,
-                        o.microsecond)
+    naive = dt.datetime(
+        o.year, o.month, o.day, o.hour, o.minute, o.second, o.microsecond
+    )
 
     return naive
 
@@ -158,8 +153,8 @@ def datetime(*args, **kwargs):
 
     :return: datetime.datetime
     """
-    if 'tzinfo' not in kwargs:
-        kwargs['tzinfo'] = TIMEZONE
+    if "tzinfo" not in kwargs:
+        kwargs["tzinfo"] = TIMEZONE
 
     return dt.datetime(*args, **kwargs)
 

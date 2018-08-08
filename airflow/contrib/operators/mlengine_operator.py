@@ -41,23 +41,22 @@ def _normalize_mlengine_job_id(job_id):
     """
 
     # Add a prefix when a job_id starts with a digit or a template
-    match = re.search(r'\d|\{{2}', job_id)
+    match = re.search(r"\d|\{{2}", job_id)
     if match and match.start() is 0:
-        job = 'z_{}'.format(job_id)
+        job = "z_{}".format(job_id)
     else:
         job = job_id
 
     # Clean up 'bad' characters except templates
     tracker = 0
-    cleansed_job_id = ''
-    for m in re.finditer(r'\{{2}.+?\}{2}', job):
-        cleansed_job_id += re.sub(r'[^0-9a-zA-Z]+', '_',
-                                  job[tracker:m.start()])
-        cleansed_job_id += job[m.start():m.end()]
+    cleansed_job_id = ""
+    for m in re.finditer(r"\{{2}.+?\}{2}", job):
+        cleansed_job_id += re.sub(r"[^0-9a-zA-Z]+", "_", job[tracker : m.start()])
+        cleansed_job_id += job[m.start() : m.end()]
         tracker = m.end()
 
     # Clean up last substring or the full string if no templates
-    cleansed_job_id += re.sub(r'[^0-9a-zA-Z]+', '_', job[tracker:])
+    cleansed_job_id += re.sub(r"[^0-9a-zA-Z]+", "_", job[tracker:])
 
     return cleansed_job_id
 
@@ -156,33 +155,35 @@ class MLEngineBatchPredictionOperator(BaseOperator):
     """
 
     template_fields = [
-        '_project_id',
-        '_job_id',
-        '_region',
-        '_input_paths',
-        '_output_path',
-        '_model_name',
-        '_version_name',
-        '_uri',
+        "_project_id",
+        "_job_id",
+        "_region",
+        "_input_paths",
+        "_output_path",
+        "_model_name",
+        "_version_name",
+        "_uri",
     ]
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 job_id,
-                 region,
-                 data_format,
-                 input_paths,
-                 output_path,
-                 model_name=None,
-                 version_name=None,
-                 uri=None,
-                 max_worker_count=None,
-                 runtime_version=None,
-                 gcp_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        job_id,
+        region,
+        data_format,
+        input_paths,
+        output_path,
+        model_name=None,
+        version_name=None,
+        uri=None,
+        max_worker_count=None,
+        runtime_version=None,
+        gcp_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(MLEngineBatchPredictionOperator, self).__init__(*args, **kwargs)
 
         self._project_id = project_id
@@ -200,79 +201,92 @@ class MLEngineBatchPredictionOperator(BaseOperator):
         self._delegate_to = delegate_to
 
         if not self._project_id:
-            raise AirflowException('Google Cloud project id is required.')
+            raise AirflowException("Google Cloud project id is required.")
         if not self._job_id:
             raise AirflowException(
-                'An unique job id is required for Google MLEngine prediction '
-                'job.')
+                "An unique job id is required for Google MLEngine prediction " "job."
+            )
 
         if self._uri:
             if self._model_name or self._version_name:
-                raise AirflowException('Ambiguous model origin: Both uri and '
-                                       'model/version name are provided.')
+                raise AirflowException(
+                    "Ambiguous model origin: Both uri and "
+                    "model/version name are provided."
+                )
 
         if self._version_name and not self._model_name:
             raise AirflowException(
-                'Missing model: Batch prediction expects '
-                'a model name when a version name is provided.')
+                "Missing model: Batch prediction expects "
+                "a model name when a version name is provided."
+            )
 
         if not (self._uri or self._model_name):
             raise AirflowException(
-                'Missing model origin: Batch prediction expects a model, '
-                'a model & version combination, or a URI to a savedModel.')
+                "Missing model origin: Batch prediction expects a model, "
+                "a model & version combination, or a URI to a savedModel."
+            )
 
     def execute(self, context):
         job_id = _normalize_mlengine_job_id(self._job_id)
         prediction_request = {
-            'jobId': job_id,
-            'predictionInput': {
-                'dataFormat': self._data_format,
-                'inputPaths': self._input_paths,
-                'outputPath': self._output_path,
-                'region': self._region
-            }
+            "jobId": job_id,
+            "predictionInput": {
+                "dataFormat": self._data_format,
+                "inputPaths": self._input_paths,
+                "outputPath": self._output_path,
+                "region": self._region,
+            },
         }
 
         if self._uri:
-            prediction_request['predictionInput']['uri'] = self._uri
+            prediction_request["predictionInput"]["uri"] = self._uri
         elif self._model_name:
-            origin_name = 'projects/{}/models/{}'.format(
-                self._project_id, self._model_name)
+            origin_name = "projects/{}/models/{}".format(
+                self._project_id, self._model_name
+            )
             if not self._version_name:
-                prediction_request['predictionInput'][
-                    'modelName'] = origin_name
+                prediction_request["predictionInput"]["modelName"] = origin_name
             else:
-                prediction_request['predictionInput']['versionName'] = \
-                    origin_name + '/versions/{}'.format(self._version_name)
+                prediction_request["predictionInput"][
+                    "versionName"
+                ] = origin_name + "/versions/{}".format(self._version_name)
 
         if self._max_worker_count:
-            prediction_request['predictionInput'][
-                'maxWorkerCount'] = self._max_worker_count
+            prediction_request["predictionInput"][
+                "maxWorkerCount"
+            ] = self._max_worker_count
 
         if self._runtime_version:
-            prediction_request['predictionInput'][
-                'runtimeVersion'] = self._runtime_version
+            prediction_request["predictionInput"][
+                "runtimeVersion"
+            ] = self._runtime_version
 
         hook = MLEngineHook(self._gcp_conn_id, self._delegate_to)
 
         # Helper method to check if the existing job's prediction input is the
         # same as the request we get here.
         def check_existing_job(existing_job):
-            return existing_job.get('predictionInput', None) == \
-                prediction_request['predictionInput']
+            return (
+                existing_job.get("predictionInput", None)
+                == prediction_request["predictionInput"]
+            )
 
         try:
             finished_prediction_job = hook.create_job(
-                self._project_id, prediction_request, check_existing_job)
+                self._project_id, prediction_request, check_existing_job
+            )
         except errors.HttpError:
             raise
 
-        if finished_prediction_job['state'] != 'SUCCEEDED':
-            self.log.error('MLEngine batch prediction job failed: {}'.format(
-                str(finished_prediction_job)))
-            raise RuntimeError(finished_prediction_job['errorMessage'])
+        if finished_prediction_job["state"] != "SUCCEEDED":
+            self.log.error(
+                "MLEngine batch prediction job failed: {}".format(
+                    str(finished_prediction_job)
+                )
+            )
+            raise RuntimeError(finished_prediction_job["errorMessage"])
 
-        return finished_prediction_job['predictionOutput']
+        return finished_prediction_job["predictionOutput"]
 
 
 class MLEngineModelOperator(BaseOperator):
@@ -305,19 +319,19 @@ class MLEngineModelOperator(BaseOperator):
     :type delegate_to: string
     """
 
-    template_fields = [
-        '_model',
-    ]
+    template_fields = ["_model"]
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 model,
-                 operation='create',
-                 gcp_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        model,
+        operation="create",
+        gcp_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(MLEngineModelOperator, self).__init__(*args, **kwargs)
         self._project_id = project_id
         self._model = model
@@ -327,13 +341,14 @@ class MLEngineModelOperator(BaseOperator):
 
     def execute(self, context):
         hook = MLEngineHook(
-            gcp_conn_id=self._gcp_conn_id, delegate_to=self._delegate_to)
-        if self._operation == 'create':
+            gcp_conn_id=self._gcp_conn_id, delegate_to=self._delegate_to
+        )
+        if self._operation == "create":
             return hook.create_model(self._project_id, self._model)
-        elif self._operation == 'get':
-            return hook.get_model(self._project_id, self._model['name'])
+        elif self._operation == "get":
+            return hook.get_model(self._project_id, self._model["name"])
         else:
-            raise ValueError('Unknown operation: {}'.format(self._operation))
+            raise ValueError("Unknown operation: {}".format(self._operation))
 
 
 class MLEngineVersionOperator(BaseOperator):
@@ -392,23 +407,21 @@ class MLEngineVersionOperator(BaseOperator):
     :type delegate_to: string
     """
 
-    template_fields = [
-        '_model_name',
-        '_version_name',
-        '_version',
-    ]
+    template_fields = ["_model_name", "_version_name", "_version"]
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 model_name,
-                 version_name=None,
-                 version=None,
-                 operation='create',
-                 gcp_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        model_name,
+        version_name=None,
+        version=None,
+        operation="create",
+        gcp_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
 
         super(MLEngineVersionOperator, self).__init__(*args, **kwargs)
         self._project_id = project_id
@@ -420,28 +433,34 @@ class MLEngineVersionOperator(BaseOperator):
         self._delegate_to = delegate_to
 
     def execute(self, context):
-        if 'name' not in self._version:
-            self._version['name'] = self._version_name
+        if "name" not in self._version:
+            self._version["name"] = self._version_name
 
         hook = MLEngineHook(
-            gcp_conn_id=self._gcp_conn_id, delegate_to=self._delegate_to)
+            gcp_conn_id=self._gcp_conn_id, delegate_to=self._delegate_to
+        )
 
-        if self._operation == 'create':
+        if self._operation == "create":
             if not self._version:
-                raise ValueError("version attribute of {} could not "
-                                 "be empty".format(self.__class__.__name__))
-            return hook.create_version(self._project_id, self._model_name,
-                                       self._version)
-        elif self._operation == 'set_default':
-            return hook.set_default_version(self._project_id, self._model_name,
-                                            self._version['name'])
-        elif self._operation == 'list':
+                raise ValueError(
+                    "version attribute of {} could not "
+                    "be empty".format(self.__class__.__name__)
+                )
+            return hook.create_version(
+                self._project_id, self._model_name, self._version
+            )
+        elif self._operation == "set_default":
+            return hook.set_default_version(
+                self._project_id, self._model_name, self._version["name"]
+            )
+        elif self._operation == "list":
             return hook.list_versions(self._project_id, self._model_name)
-        elif self._operation == 'delete':
-            return hook.delete_version(self._project_id, self._model_name,
-                                       self._version['name'])
+        elif self._operation == "delete":
+            return hook.delete_version(
+                self._project_id, self._model_name, self._version["name"]
+            )
         else:
-            raise ValueError('Unknown operation: {}'.format(self._operation))
+            raise ValueError("Unknown operation: {}".format(self._operation))
 
 
 class MLEngineTrainingOperator(BaseOperator):
@@ -503,35 +522,37 @@ class MLEngineTrainingOperator(BaseOperator):
     """
 
     template_fields = [
-        '_project_id',
-        '_job_id',
-        '_package_uris',
-        '_training_python_module',
-        '_training_args',
-        '_region',
-        '_scale_tier',
-        '_runtime_version',
-        '_python_version',
-        '_job_dir'
+        "_project_id",
+        "_job_id",
+        "_package_uris",
+        "_training_python_module",
+        "_training_args",
+        "_region",
+        "_scale_tier",
+        "_runtime_version",
+        "_python_version",
+        "_job_dir",
     ]
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 job_id,
-                 package_uris,
-                 training_python_module,
-                 training_args,
-                 region,
-                 scale_tier=None,
-                 runtime_version=None,
-                 python_version=None,
-                 job_dir=None,
-                 gcp_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 mode='PRODUCTION',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        job_id,
+        package_uris,
+        training_python_module,
+        training_args,
+        region,
+        scale_tier=None,
+        runtime_version=None,
+        python_version=None,
+        job_dir=None,
+        gcp_conn_id="google_cloud_default",
+        delegate_to=None,
+        mode="PRODUCTION",
+        *args,
+        **kwargs
+    ):
         super(MLEngineTrainingOperator, self).__init__(*args, **kwargs)
         self._project_id = project_id
         self._job_id = job_id
@@ -548,66 +569,73 @@ class MLEngineTrainingOperator(BaseOperator):
         self._mode = mode
 
         if not self._project_id:
-            raise AirflowException('Google Cloud project id is required.')
+            raise AirflowException("Google Cloud project id is required.")
         if not self._job_id:
             raise AirflowException(
-                'An unique job id is required for Google MLEngine training '
-                'job.')
+                "An unique job id is required for Google MLEngine training " "job."
+            )
         if not package_uris:
             raise AirflowException(
-                'At least one python package is required for MLEngine '
-                'Training job.')
+                "At least one python package is required for MLEngine " "Training job."
+            )
         if not training_python_module:
             raise AirflowException(
-                'Python module name to run after installing required '
-                'packages is required.')
+                "Python module name to run after installing required "
+                "packages is required."
+            )
         if not self._region:
-            raise AirflowException('Google Compute Engine region is required.')
+            raise AirflowException("Google Compute Engine region is required.")
 
     def execute(self, context):
         job_id = _normalize_mlengine_job_id(self._job_id)
         training_request = {
-            'jobId': job_id,
-            'trainingInput': {
-                'scaleTier': self._scale_tier,
-                'packageUris': self._package_uris,
-                'pythonModule': self._training_python_module,
-                'region': self._region,
-                'args': self._training_args,
-            }
+            "jobId": job_id,
+            "trainingInput": {
+                "scaleTier": self._scale_tier,
+                "packageUris": self._package_uris,
+                "pythonModule": self._training_python_module,
+                "region": self._region,
+                "args": self._training_args,
+            },
         }
 
         if self._runtime_version:
-            training_request['trainingInput']['runtimeVersion'] = self._runtime_version
+            training_request["trainingInput"]["runtimeVersion"] = self._runtime_version
 
         if self._python_version:
-            training_request['trainingInput']['pythonVersion'] = self._python_version
+            training_request["trainingInput"]["pythonVersion"] = self._python_version
 
         if self._job_dir:
-            training_request['trainingInput']['jobDir'] = self._job_dir
+            training_request["trainingInput"]["jobDir"] = self._job_dir
 
-        if self._mode == 'DRY_RUN':
-            self.log.info('In dry_run mode.')
-            self.log.info('MLEngine Training job request is: {}'.format(
-                training_request))
+        if self._mode == "DRY_RUN":
+            self.log.info("In dry_run mode.")
+            self.log.info(
+                "MLEngine Training job request is: {}".format(training_request)
+            )
             return
 
         hook = MLEngineHook(
-            gcp_conn_id=self._gcp_conn_id, delegate_to=self._delegate_to)
+            gcp_conn_id=self._gcp_conn_id, delegate_to=self._delegate_to
+        )
 
         # Helper method to check if the existing job's training input is the
         # same as the request we get here.
         def check_existing_job(existing_job):
-            return existing_job.get('trainingInput', None) == \
-                training_request['trainingInput']
+            return (
+                existing_job.get("trainingInput", None)
+                == training_request["trainingInput"]
+            )
 
         try:
             finished_training_job = hook.create_job(
-                self._project_id, training_request, check_existing_job)
+                self._project_id, training_request, check_existing_job
+            )
         except errors.HttpError:
             raise
 
-        if finished_training_job['state'] != 'SUCCEEDED':
-            self.log.error('MLEngine training job failed: {}'.format(
-                str(finished_training_job)))
-            raise RuntimeError(finished_training_job['errorMessage'])
+        if finished_training_job["state"] != "SUCCEEDED":
+            self.log.error(
+                "MLEngine training job failed: {}".format(str(finished_training_job))
+            )
+            raise RuntimeError(finished_training_job["errorMessage"])

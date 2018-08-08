@@ -29,24 +29,22 @@ def _poll_with_exponential_delay(request, max_n, is_done_func, is_error_func):
         try:
             response = request.execute()
             if is_error_func(response):
-                raise ValueError(
-                    'The response contained an error: {}'.format(response)
-                )
+                raise ValueError("The response contained an error: {}".format(response))
             elif is_done_func(response):
-                log.info('Operation is done: %s', response)
+                log.info("Operation is done: %s", response)
                 return response
             else:
-                time.sleep((2**i) + (random.randint(0, 1000) / 1000))
+                time.sleep((2 ** i) + (random.randint(0, 1000) / 1000))
         except errors.HttpError as e:
             if e.resp.status != 429:
-                log.info('Something went wrong. Not retrying: %s', format(e))
+                log.info("Something went wrong. Not retrying: %s", format(e))
                 raise
             else:
-                time.sleep((2**i) + (random.randint(0, 1000) / 1000))
+                time.sleep((2 ** i) + (random.randint(0, 1000) / 1000))
 
 
 class MLEngineHook(GoogleCloudBaseHook):
-    def __init__(self, gcp_conn_id='google_cloud_default', delegate_to=None):
+    def __init__(self, gcp_conn_id="google_cloud_default", delegate_to=None):
         super(MLEngineHook, self).__init__(gcp_conn_id, delegate_to)
         self._mlengine = self.get_conn()
 
@@ -55,7 +53,7 @@ class MLEngineHook(GoogleCloudBaseHook):
         Returns a Google MLEngine service object.
         """
         authed_http = self._authorize()
-        return build('ml', 'v1', http=authed_http, cache_discovery=False)
+        return build("ml", "v1", http=authed_http, cache_discovery=False)
 
     def create_job(self, project_id, job, use_existing_job_fn=None):
         """
@@ -89,10 +87,12 @@ class MLEngineHook(GoogleCloudBaseHook):
             terminal state (which might be FAILED or CANCELLED state).
         :rtype: dict
         """
-        request = self._mlengine.projects().jobs().create(
-            parent='projects/{}'.format(project_id),
-            body=job)
-        job_id = job['jobId']
+        request = (
+            self._mlengine.projects()
+            .jobs()
+            .create(parent="projects/{}".format(project_id), body=job)
+        )
+        job_id = job["jobId"]
 
         try:
             request.execute()
@@ -103,17 +103,18 @@ class MLEngineHook(GoogleCloudBaseHook):
                     existing_job = self._get_job(project_id, job_id)
                     if not use_existing_job_fn(existing_job):
                         self.log.error(
-                            'Job with job_id %s already exist, but it does '
-                            'not match our expectation: %s',
-                            job_id, existing_job
+                            "Job with job_id %s already exist, but it does "
+                            "not match our expectation: %s",
+                            job_id,
+                            existing_job,
                         )
                         raise
                 self.log.info(
-                    'Job with job_id %s already exist. Will waiting for it to finish',
-                    job_id
+                    "Job with job_id %s already exist. Will waiting for it to finish",
+                    job_id,
                 )
             else:
-                self.log.error('Failed to create MLEngine job: {}'.format(e))
+                self.log.error("Failed to create MLEngine job: {}".format(e))
                 raise
 
         return self._wait_for_job_done(project_id, job_id)
@@ -128,7 +129,7 @@ class MLEngineHook(GoogleCloudBaseHook):
         Raises:
             apiclient.errors.HttpError: if HTTP error is returned from server
         """
-        job_name = 'projects/{}/jobs/{}'.format(project_id, job_id)
+        job_name = "projects/{}/jobs/{}".format(project_id, job_id)
         request = self._mlengine.projects().jobs().get(name=job_name)
         while True:
             try:
@@ -138,7 +139,7 @@ class MLEngineHook(GoogleCloudBaseHook):
                     # polling after 30 seconds when quota failure occurs
                     time.sleep(30)
                 else:
-                    self.log.error('Failed to get MLEngine job: {}'.format(e))
+                    self.log.error("Failed to get MLEngine job: {}".format(e))
                     raise
 
     def _wait_for_job_done(self, project_id, job_id, interval=30):
@@ -156,7 +157,7 @@ class MLEngineHook(GoogleCloudBaseHook):
             raise ValueError("Interval must be > 0")
         while True:
             job = self._get_job(project_id, job_id)
-            if job['state'] in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+            if job["state"] in ["SUCCEEDED", "FAILED", "CANCELLED"]:
                 return job
             time.sleep(interval)
 
@@ -167,34 +168,43 @@ class MLEngineHook(GoogleCloudBaseHook):
         Returns the operation if the version was created successfully and
         raises an error otherwise.
         """
-        parent_name = 'projects/{}/models/{}'.format(project_id, model_name)
-        create_request = self._mlengine.projects().models().versions().create(
-            parent=parent_name, body=version_spec)
+        parent_name = "projects/{}/models/{}".format(project_id, model_name)
+        create_request = (
+            self._mlengine.projects()
+            .models()
+            .versions()
+            .create(parent=parent_name, body=version_spec)
+        )
         response = create_request.execute()
-        get_request = self._mlengine.projects().operations().get(
-            name=response['name'])
+        get_request = self._mlengine.projects().operations().get(name=response["name"])
 
         return _poll_with_exponential_delay(
             request=get_request,
             max_n=9,
-            is_done_func=lambda resp: resp.get('done', False),
-            is_error_func=lambda resp: resp.get('error', None) is not None)
+            is_done_func=lambda resp: resp.get("done", False),
+            is_error_func=lambda resp: resp.get("error", None) is not None,
+        )
 
     def set_default_version(self, project_id, model_name, version_name):
         """
         Sets a version to be the default. Blocks until finished.
         """
-        full_version_name = 'projects/{}/models/{}/versions/{}'.format(
-            project_id, model_name, version_name)
-        request = self._mlengine.projects().models().versions().setDefault(
-            name=full_version_name, body={})
+        full_version_name = "projects/{}/models/{}/versions/{}".format(
+            project_id, model_name, version_name
+        )
+        request = (
+            self._mlengine.projects()
+            .models()
+            .versions()
+            .setDefault(name=full_version_name, body={})
+        )
 
         try:
             response = request.execute()
-            self.log.info('Successfully set version: %s to default', response)
+            self.log.info("Successfully set version: %s to default", response)
             return response
         except errors.HttpError as e:
-            self.log.error('Something went wrong: %s', e)
+            self.log.error("Something went wrong: %s", e)
             raise
 
     def list_versions(self, project_id, model_name):
@@ -202,22 +212,27 @@ class MLEngineHook(GoogleCloudBaseHook):
         Lists all available versions of a model. Blocks until finished.
         """
         result = []
-        full_parent_name = 'projects/{}/models/{}'.format(
-            project_id, model_name)
-        request = self._mlengine.projects().models().versions().list(
-            parent=full_parent_name, pageSize=100)
+        full_parent_name = "projects/{}/models/{}".format(project_id, model_name)
+        request = (
+            self._mlengine.projects()
+            .models()
+            .versions()
+            .list(parent=full_parent_name, pageSize=100)
+        )
 
         response = request.execute()
-        next_page_token = response.get('nextPageToken', None)
-        result.extend(response.get('versions', []))
+        next_page_token = response.get("nextPageToken", None)
+        result.extend(response.get("versions", []))
         while next_page_token is not None:
-            next_request = self._mlengine.projects().models().versions().list(
-                parent=full_parent_name,
-                pageToken=next_page_token,
-                pageSize=100)
+            next_request = (
+                self._mlengine.projects()
+                .models()
+                .versions()
+                .list(parent=full_parent_name, pageToken=next_page_token, pageSize=100)
+            )
             response = next_request.execute()
-            next_page_token = response.get('nextPageToken', None)
-            result.extend(response.get('versions', []))
+            next_page_token = response.get("nextPageToken", None)
+            result.extend(response.get("versions", []))
             time.sleep(5)
         return result
 
@@ -225,31 +240,33 @@ class MLEngineHook(GoogleCloudBaseHook):
         """
         Deletes the given version of a model. Blocks until finished.
         """
-        full_name = 'projects/{}/models/{}/versions/{}'.format(
-            project_id, model_name, version_name)
-        delete_request = self._mlengine.projects().models().versions().delete(
-            name=full_name)
+        full_name = "projects/{}/models/{}/versions/{}".format(
+            project_id, model_name, version_name
+        )
+        delete_request = (
+            self._mlengine.projects().models().versions().delete(name=full_name)
+        )
         response = delete_request.execute()
-        get_request = self._mlengine.projects().operations().get(
-            name=response['name'])
+        get_request = self._mlengine.projects().operations().get(name=response["name"])
 
         return _poll_with_exponential_delay(
             request=get_request,
             max_n=9,
-            is_done_func=lambda resp: resp.get('done', False),
-            is_error_func=lambda resp: resp.get('error', None) is not None)
+            is_done_func=lambda resp: resp.get("done", False),
+            is_error_func=lambda resp: resp.get("error", None) is not None,
+        )
 
     def create_model(self, project_id, model):
         """
         Create a Model. Blocks until finished.
         """
-        if not model['name']:
-            raise ValueError("Model name must be provided and "
-                             "could not be an empty string")
-        project = 'projects/{}'.format(project_id)
+        if not model["name"]:
+            raise ValueError(
+                "Model name must be provided and " "could not be an empty string"
+            )
+        project = "projects/{}".format(project_id)
 
-        request = self._mlengine.projects().models().create(
-            parent=project, body=model)
+        request = self._mlengine.projects().models().create(parent=project, body=model)
         return request.execute()
 
     def get_model(self, project_id, model_name):
@@ -257,15 +274,15 @@ class MLEngineHook(GoogleCloudBaseHook):
         Gets a Model. Blocks until finished.
         """
         if not model_name:
-            raise ValueError("Model name must be provided and "
-                             "it could not be an empty string")
-        full_model_name = 'projects/{}/models/{}'.format(
-            project_id, model_name)
+            raise ValueError(
+                "Model name must be provided and " "it could not be an empty string"
+            )
+        full_model_name = "projects/{}/models/{}".format(project_id, model_name)
         request = self._mlengine.projects().models().get(name=full_model_name)
         try:
             return request.execute()
         except errors.HttpError as e:
             if e.resp.status == 404:
-                self.log.error('Model was not found: %s', e)
+                self.log.error("Model was not found: %s", e)
                 return None
             raise

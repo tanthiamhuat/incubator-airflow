@@ -58,18 +58,21 @@ class GoogleCloudStorageListOperator(BaseOperator):
                 google_cloud_storage_conn_id=google_cloud_conn_id
             )
     """
-    template_fields = ('bucket', 'prefix', 'delimiter')
-    ui_color = '#f0eee4'
+
+    template_fields = ("bucket", "prefix", "delimiter")
+    ui_color = "#f0eee4"
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 prefix=None,
-                 delimiter=None,
-                 google_cloud_storage_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        bucket,
+        prefix=None,
+        delimiter=None,
+        google_cloud_storage_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(GoogleCloudStorageListOperator, self).__init__(*args, **kwargs)
         self.bucket = bucket
         self.prefix = prefix
@@ -81,12 +84,16 @@ class GoogleCloudStorageListOperator(BaseOperator):
 
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to
+            delegate_to=self.delegate_to,
         )
 
-        self.log.info('Getting list of the files. Bucket: %s; Delimiter: %s; Prefix: %s',
-                      self.bucket, self.delimiter, self.prefix)
+        self.log.info(
+            "Getting list of the files. Bucket: %s; Delimiter: %s; Prefix: %s",
+            self.bucket,
+            self.delimiter,
+            self.prefix,
+        )
 
-        return hook.list(bucket=self.bucket,
-                         prefix=self.prefix,
-                         delimiter=self.delimiter)
+        return hook.list(
+            bucket=self.bucket, prefix=self.prefix, delimiter=self.delimiter
+        )

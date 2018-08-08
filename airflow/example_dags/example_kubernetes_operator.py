@@ -28,18 +28,14 @@ try:
     # pip install airflow[kubernetes]
     from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
-    args = {
-        'owner': 'airflow',
-        'start_date': days_ago(2)
-    }
+    args = {"owner": "airflow", "start_date": days_ago(2)}
 
     dag = DAG(
-        dag_id='example_kubernetes_operator',
-        default_args=args,
-        schedule_interval=None)
+        dag_id="example_kubernetes_operator", default_args=args, schedule_interval=None
+    )
 
     k = KubernetesPodOperator(
-        namespace='default',
+        namespace="default",
         image="ubuntu:16.04",
         cmds=["bash", "-cx"],
         arguments=["echo", "10"],
@@ -48,9 +44,11 @@ try:
         in_cluster=False,
         task_id="task",
         get_logs=True,
-        dag=dag)
+        dag=dag,
+    )
 
 except ImportError as e:
     log.warn("Could not import KubernetesPodOperator: " + str(e))
-    log.warn("Install kubernetes dependencies with: "
-             "    pip install airflow['kubernetes']")
+    log.warn(
+        "Install kubernetes dependencies with: " "    pip install airflow['kubernetes']"
+    )

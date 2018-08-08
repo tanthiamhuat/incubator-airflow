@@ -32,8 +32,9 @@ class CloudantHook(BaseHook):
     This class is a thin wrapper around the cloudant python library. See the
     documentation `here <https://github.com/cloudant-labs/cloudant-python>`_.
     """
-    def __init__(self, cloudant_conn_id='cloudant_default'):
-        super(CloudantHook, self).__init__('cloudant')
+
+    def __init__(self, cloudant_conn_id="cloudant_default"):
+        super(CloudantHook, self).__init__("cloudant")
         self.cloudant_conn_id = cloudant_conn_id
 
     def get_conn(self):
@@ -42,19 +43,20 @@ class CloudantHook(BaseHook):
             if isinstance(s, unicode):
                 log = LoggingMixin().log
                 log.debug(
-                    'cloudant-python does not support unicode. Encoding %s as '
-                    'ascii using "ignore".', s
+                    "cloudant-python does not support unicode. Encoding %s as "
+                    'ascii using "ignore".',
+                    s,
                 )
-                return s.encode('ascii', 'ignore')
+                return s.encode("ascii", "ignore")
 
             return s
 
         conn = self.get_connection(self.cloudant_conn_id)
 
-        for conn_param in ['host', 'password', 'schema']:
+        for conn_param in ["host", "password", "schema"]:
             if not hasattr(conn, conn_param) or not getattr(conn, conn_param):
                 raise AirflowException(
-                    'missing connection parameter {0}'.format(conn_param)
+                    "missing connection parameter {0}".format(conn_param)
                 )
 
         # In the connection form:
@@ -68,9 +70,7 @@ class CloudantHook(BaseHook):
 
         username = _str(conn.login or conn.host)
 
-        account.login(
-            username,
-            _str(conn.password)).raise_for_status()
+        account.login(username, _str(conn.password)).raise_for_status()
 
         return account.database(_str(conn.schema))
 

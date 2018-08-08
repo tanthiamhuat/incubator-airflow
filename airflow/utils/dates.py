@@ -31,19 +31,15 @@ from croniter import croniter
 
 
 cron_presets = {
-    '@hourly': '0 * * * *',
-    '@daily': '0 0 * * *',
-    '@weekly': '0 0 * * 0',
-    '@monthly': '0 0 1 * *',
-    '@yearly': '0 0 1 1 *',
+    "@hourly": "0 * * * *",
+    "@daily": "0 0 * * *",
+    "@weekly": "0 0 * * 0",
+    "@monthly": "0 0 1 * *",
+    "@yearly": "0 0 1 1 *",
 }
 
 
-def date_range(
-        start_date,
-        end_date=None,
-        num=None,
-        delta=None):
+def date_range(start_date, end_date=None, num=None, delta=None):
     """
     Get a set of dates as a list based on a start, end and delta, delta
     can be something that can be added to ``datetime.datetime``
@@ -180,9 +176,9 @@ def round_time(dt, delta, start_date=timezone.make_aware(datetime.min)):
         if start_date + (lower + 1) * delta >= dt:
             # Check if start_date + (lower + 1)*delta or
             # start_date + lower*delta is closer to dt and return the solution
-            if (
-                    (start_date + (lower + 1) * delta) - dt <=
-                    dt - (start_date + lower * delta)):
+            if (start_date + (lower + 1) * delta) - dt <= dt - (
+                start_date + lower * delta
+            ):
                 return start_date + (lower + 1) * delta
             else:
                 return start_date + lower * delta
@@ -207,27 +203,27 @@ def infer_time_unit(time_seconds_arr):
     e.g. 5400 seconds => 'minutes', 36000 seconds => 'hours'
     """
     if len(time_seconds_arr) == 0:
-        return 'hours'
+        return "hours"
     max_time_seconds = max(time_seconds_arr)
     if max_time_seconds <= 60 * 2:
-        return 'seconds'
+        return "seconds"
     elif max_time_seconds <= 60 * 60 * 2:
-        return 'minutes'
+        return "minutes"
     elif max_time_seconds <= 24 * 60 * 60 * 2:
-        return 'hours'
+        return "hours"
     else:
-        return 'days'
+        return "days"
 
 
 def scale_time_units(time_seconds_arr, unit):
     """
     Convert an array of time durations in seconds to the specified time unit.
     """
-    if unit == 'minutes':
+    if unit == "minutes":
         return list(map(lambda x: x * 1.0 / 60, time_seconds_arr))
-    elif unit == 'hours':
+    elif unit == "hours":
         return list(map(lambda x: x * 1.0 / (60 * 60), time_seconds_arr))
-    elif unit == 'days':
+    elif unit == "days":
         return list(map(lambda x: x * 1.0 / (24 * 60 * 60), time_seconds_arr))
     return time_seconds_arr
 
@@ -238,10 +234,8 @@ def days_ago(n, hour=0, minute=0, second=0, microsecond=0):
     set to midnight.
     """
     today = timezone.utcnow().replace(
-        hour=hour,
-        minute=minute,
-        second=second,
-        microsecond=microsecond)
+        hour=hour, minute=minute, second=second, microsecond=microsecond
+    )
     return today - timedelta(days=n)
 
 

@@ -38,43 +38,38 @@ import sys
 
 
 _hooks = {
-    'base_hook': ['BaseHook'],
-    'hive_hooks': [
-        'HiveCliHook',
-        'HiveMetastoreHook',
-        'HiveServer2Hook',
-    ],
-    'hdfs_hook': ['HDFSHook'],
-    'webhdfs_hook': ['WebHDFSHook'],
-    'pig_hook': ['PigCliHook'],
-    'mysql_hook': ['MySqlHook'],
-    'postgres_hook': ['PostgresHook'],
-    'presto_hook': ['PrestoHook'],
-    'samba_hook': ['SambaHook'],
-    'sqlite_hook': ['SqliteHook'],
-    'S3_hook': ['S3Hook'],
-    'zendesk_hook': ['ZendeskHook'],
-    'http_hook': ['HttpHook'],
-    'druid_hook': [
-        'DruidHook',
-        'DruidDbApiHook',
-    ],
-    'jdbc_hook': ['JdbcHook'],
-    'dbapi_hook': ['DbApiHook'],
-    'mssql_hook': ['MsSqlHook'],
-    'oracle_hook': ['OracleHook'],
-    'slack_hook': ['SlackHook'],
+    "base_hook": ["BaseHook"],
+    "hive_hooks": ["HiveCliHook", "HiveMetastoreHook", "HiveServer2Hook"],
+    "hdfs_hook": ["HDFSHook"],
+    "webhdfs_hook": ["WebHDFSHook"],
+    "pig_hook": ["PigCliHook"],
+    "mysql_hook": ["MySqlHook"],
+    "postgres_hook": ["PostgresHook"],
+    "presto_hook": ["PrestoHook"],
+    "samba_hook": ["SambaHook"],
+    "sqlite_hook": ["SqliteHook"],
+    "S3_hook": ["S3Hook"],
+    "zendesk_hook": ["ZendeskHook"],
+    "http_hook": ["HttpHook"],
+    "druid_hook": ["DruidHook", "DruidDbApiHook"],
+    "jdbc_hook": ["JdbcHook"],
+    "dbapi_hook": ["DbApiHook"],
+    "mssql_hook": ["MsSqlHook"],
+    "oracle_hook": ["OracleHook"],
+    "slack_hook": ["SlackHook"],
 }
 
 
-if not os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
+if not os.environ.get("AIRFLOW_USE_NEW_IMPORTS", False):
     from airflow.utils.helpers import AirflowImporter
+
     airflow_importer = AirflowImporter(sys.modules[__name__], _hooks)
 
 
 def _integrate_plugins():
     """Integrate plugins to the context"""
     from airflow.plugins_manager import hooks_modules
+
     for hooks_module in hooks_modules:
         sys.modules[hooks_module.__name__] = hooks_module
         globals()[hooks_module._name] = hooks_module
@@ -82,8 +77,9 @@ def _integrate_plugins():
         ##########################################################
         # TODO FIXME Remove in Airflow 2.0
 
-        if not os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
+        if not os.environ.get("AIRFLOW_USE_NEW_IMPORTS", False):
             from zope.deprecation import deprecated
+
             for _hook in hooks_module._objects:
                 hook_name = _hook.__name__
                 globals()[hook_name] = _hook
@@ -93,4 +89,5 @@ def _integrate_plugins():
                     "'airflow.hooks' has been deprecated. Please "
                     "import from 'airflow.hooks.[plugin_module]' "
                     "instead. Support for direct imports will be dropped "
-                    "entirely in Airflow 2.0.".format(i=hook_name))
+                    "entirely in Airflow 2.0.".format(i=hook_name),
+                )

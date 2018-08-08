@@ -18,11 +18,8 @@
 
 class Resources:
     def __init__(
-            self,
-            request_memory=None,
-            request_cpu=None,
-            limit_memory=None,
-            limit_cpu=None):
+        self, request_memory=None, request_cpu=None, limit_memory=None, limit_cpu=None
+    ):
         self.request_memory = request_memory
         self.request_cpu = request_cpu
         self.limit_memory = limit_memory
@@ -57,27 +54,28 @@ class Pod:
     :param affinity: A dict containing a group of affinity scheduling rules
     :type affinity: dict
     """
+
     def __init__(
-            self,
-            image,
-            envs,
-            cmds,
-            args=None,
-            secrets=None,
-            labels=None,
-            node_selectors=None,
-            name=None,
-            volumes=None,
-            volume_mounts=None,
-            namespace='default',
-            result=None,
-            image_pull_policy='IfNotPresent',
-            image_pull_secrets=None,
-            init_containers=None,
-            service_account_name=None,
-            resources=None,
-            annotations=None,
-            affinity=None
+        self,
+        image,
+        envs,
+        cmds,
+        args=None,
+        secrets=None,
+        labels=None,
+        node_selectors=None,
+        name=None,
+        volumes=None,
+        volume_mounts=None,
+        namespace="default",
+        result=None,
+        image_pull_policy="IfNotPresent",
+        image_pull_secrets=None,
+        init_containers=None,
+        service_account_name=None,
+        resources=None,
+        annotations=None,
+        affinity=None,
     ):
         self.image = image
         self.envs = envs or {}

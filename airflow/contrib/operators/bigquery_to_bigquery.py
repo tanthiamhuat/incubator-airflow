@@ -53,22 +53,28 @@ class BigQueryToBigQueryOperator(BaseOperator):
         passed to BigQuery
     :type labels: dict
     """
-    template_fields = ('source_project_dataset_tables',
-                       'destination_project_dataset_table', 'labels')
-    template_ext = ('.sql',)
-    ui_color = '#e6f0e4'
+
+    template_fields = (
+        "source_project_dataset_tables",
+        "destination_project_dataset_table",
+        "labels",
+    )
+    template_ext = (".sql",)
+    ui_color = "#e6f0e4"
 
     @apply_defaults
-    def __init__(self,
-                 source_project_dataset_tables,
-                 destination_project_dataset_table,
-                 write_disposition='WRITE_EMPTY',
-                 create_disposition='CREATE_IF_NEEDED',
-                 bigquery_conn_id='bigquery_default',
-                 delegate_to=None,
-                 labels=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        source_project_dataset_tables,
+        destination_project_dataset_table,
+        write_disposition="WRITE_EMPTY",
+        create_disposition="CREATE_IF_NEEDED",
+        bigquery_conn_id="bigquery_default",
+        delegate_to=None,
+        labels=None,
+        *args,
+        **kwargs
+    ):
         super(BigQueryToBigQueryOperator, self).__init__(*args, **kwargs)
         self.source_project_dataset_tables = source_project_dataset_tables
         self.destination_project_dataset_table = destination_project_dataset_table
@@ -80,11 +86,13 @@ class BigQueryToBigQueryOperator(BaseOperator):
 
     def execute(self, context):
         self.log.info(
-            'Executing copy of %s into: %s',
-            self.source_project_dataset_tables, self.destination_project_dataset_table
+            "Executing copy of %s into: %s",
+            self.source_project_dataset_tables,
+            self.destination_project_dataset_table,
         )
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id, delegate_to=self.delegate_to
+        )
         conn = hook.get_conn()
         cursor = conn.cursor()
         cursor.run_copy(
@@ -92,4 +100,5 @@ class BigQueryToBigQueryOperator(BaseOperator):
             self.destination_project_dataset_table,
             self.write_disposition,
             self.create_disposition,
-            self.labels)
+            self.labels,
+        )

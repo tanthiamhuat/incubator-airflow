@@ -30,8 +30,8 @@ class SnowflakeHook(DbApiHook):
 
     """
 
-    conn_name_attr = 'snowflake_conn_id'
-    default_conn_name = 'snowflake_default'
+    conn_name_attr = "snowflake_conn_id"
+    default_conn_name = "snowflake_default"
     supports_autocommit = True
 
     def __init__(self, *args, **kwargs):
@@ -46,17 +46,17 @@ class SnowflakeHook(DbApiHook):
         used in get_uri() and get_connection()
         """
         conn = self.get_connection(self.snowflake_conn_id)
-        account = conn.extra_dejson.get('account', None)
-        warehouse = conn.extra_dejson.get('warehouse', None)
-        database = conn.extra_dejson.get('database', None)
+        account = conn.extra_dejson.get("account", None)
+        warehouse = conn.extra_dejson.get("warehouse", None)
+        database = conn.extra_dejson.get("database", None)
 
         conn_config = {
             "user": conn.login,
-            "password": conn.password or '',
-            "schema": conn.schema or '',
-            "database": self.database or database or '',
-            "account": self.account or account or '',
-            "warehouse": self.warehouse or warehouse or ''
+            "password": conn.password or "",
+            "schema": conn.schema or "",
+            "database": self.database or database or "",
+            "account": self.account or account or "",
+            "warehouse": self.warehouse or warehouse or "",
         }
         return conn_config
 
@@ -65,10 +65,9 @@ class SnowflakeHook(DbApiHook):
         override DbApiHook get_uri method for get_sqlalchemy_engine()
         """
         conn_config = self._get_conn_params()
-        uri = 'snowflake://{user}:{password}@{account}/{database}/'
-        uri += '{schema}?warehouse={warehouse}'
-        return uri.format(
-            **conn_config)
+        uri = "snowflake://{user}:{password}@{account}/{database}/"
+        uri += "{schema}?warehouse={warehouse}"
+        return uri.format(**conn_config)
 
     def get_conn(self):
         """
@@ -87,11 +86,13 @@ class SnowflakeHook(DbApiHook):
         """
         if self.snowflake_conn_id:
             connection_object = self.get_connection(self.snowflake_conn_id)
-            if 'aws_secret_access_key' in connection_object.extra_dejson:
+            if "aws_secret_access_key" in connection_object.extra_dejson:
                 aws_access_key_id = connection_object.extra_dejson.get(
-                    'aws_access_key_id')
+                    "aws_access_key_id"
+                )
                 aws_secret_access_key = connection_object.extra_dejson.get(
-                    'aws_secret_access_key')
+                    "aws_secret_access_key"
+                )
         return aws_access_key_id, aws_secret_access_key
 
     def set_autocommit(self, conn, autocommit):

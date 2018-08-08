@@ -30,7 +30,7 @@ from airflow.exceptions import AirflowException
 from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 
-CONN_ENV_PREFIX = 'AIRFLOW_CONN_'
+CONN_ENV_PREFIX = "AIRFLOW_CONN_"
 
 
 class BaseHook(LoggingMixin):
@@ -41,21 +41,17 @@ class BaseHook(LoggingMixin):
     instances of these systems, and expose consistent methods to interact
     with them.
     """
+
     def __init__(self, source):
         pass
 
     @classmethod
     @provide_session
     def _get_connections_from_db(cls, conn_id, session=None):
-        db = (
-            session.query(Connection)
-            .filter(Connection.conn_id == conn_id)
-            .all()
-        )
+        db = session.query(Connection).filter(Connection.conn_id == conn_id).all()
         session.expunge_all()
         if not db:
-            raise AirflowException(
-                "The conn_id `{0}` isn't defined".format(conn_id))
+            raise AirflowException("The conn_id `{0}` isn't defined".format(conn_id))
         return db
 
     @classmethod

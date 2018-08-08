@@ -33,8 +33,9 @@ def delete_dag(dag_id):
 
     dagbag = models.DagBag()
     if dag_id in dagbag.dags:
-        raise DagFileExists("Dag id {} is still in DagBag. "
-                            "Remove the DAG file first.".format(dag_id))
+        raise DagFileExists(
+            "Dag id {} is still in DagBag. " "Remove the DAG file first.".format(dag_id)
+        )
 
     count = 0
 
@@ -42,7 +43,7 @@ def delete_dag(dag_id):
     for m in models.Base._decl_class_registry.values():
         if hasattr(m, "dag_id"):
             cond = or_(m.dag_id == dag_id, m.dag_id.like(dag_id + ".%"))
-            count += session.query(m).filter(cond).delete(synchronize_session='fetch')
+            count += session.query(m).filter(cond).delete(synchronize_session="fetch")
 
     if dag.is_subdag:
         p, c = dag_id.rsplit(".", 1)

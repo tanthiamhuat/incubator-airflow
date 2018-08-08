@@ -32,8 +32,8 @@ class MySqlHook(DbApiHook):
     ``{"cursor": "SSCursor"}``. Refer to the MySQLdb.cursors for more details.
     """
 
-    conn_name_attr = 'mysql_conn_id'
-    default_conn_name = 'mysql_default'
+    conn_name_attr = "mysql_conn_id"
+    default_conn_name = "mysql_default"
     supports_autocommit = True
 
     def __init__(self, *args, **kwargs):
@@ -63,9 +63,9 @@ class MySqlHook(DbApiHook):
         conn = self.get_connection(self.mysql_conn_id)
         conn_config = {
             "user": conn.login,
-            "passwd": conn.password or '',
-            "host": conn.host or 'localhost',
-            "db": self.schema or conn.schema or ''
+            "passwd": conn.password or "",
+            "host": conn.host or "localhost",
+            "db": self.schema or conn.schema or "",
         }
 
         if not conn.port:
@@ -73,21 +73,22 @@ class MySqlHook(DbApiHook):
         else:
             conn_config["port"] = int(conn.port)
 
-        if conn.extra_dejson.get('charset', False):
+        if conn.extra_dejson.get("charset", False):
             conn_config["charset"] = conn.extra_dejson["charset"]
-            if (conn_config["charset"]).lower() == 'utf8' or\
-                    (conn_config["charset"]).lower() == 'utf-8':
+            if (conn_config["charset"]).lower() == "utf8" or (
+                conn_config["charset"]
+            ).lower() == "utf-8":
                 conn_config["use_unicode"] = True
-        if conn.extra_dejson.get('cursor', False):
-            if (conn.extra_dejson["cursor"]).lower() == 'sscursor':
+        if conn.extra_dejson.get("cursor", False):
+            if (conn.extra_dejson["cursor"]).lower() == "sscursor":
                 conn_config["cursorclass"] = MySQLdb.cursors.SSCursor
-            elif (conn.extra_dejson["cursor"]).lower() == 'dictcursor':
+            elif (conn.extra_dejson["cursor"]).lower() == "dictcursor":
                 conn_config["cursorclass"] = MySQLdb.cursors.DictCursor
-            elif (conn.extra_dejson["cursor"]).lower() == 'ssdictcursor':
+            elif (conn.extra_dejson["cursor"]).lower() == "ssdictcursor":
                 conn_config["cursorclass"] = MySQLdb.cursors.SSDictCursor
-        local_infile = conn.extra_dejson.get('local_infile', False)
-        if conn.extra_dejson.get('ssl', False):
-            conn_config['ssl'] = conn.extra_dejson['ssl']
+        local_infile = conn.extra_dejson.get("local_infile", False)
+        if conn.extra_dejson.get("ssl", False):
+            conn_config["ssl"] = conn.extra_dejson["ssl"]
         if local_infile:
             conn_config["local_infile"] = 1
         conn = MySQLdb.connect(**conn_config)
@@ -99,10 +100,14 @@ class MySqlHook(DbApiHook):
         """
         conn = self.get_conn()
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             LOAD DATA LOCAL INFILE '{tmp_file}'
             INTO TABLE {table}
-            """.format(**locals()))
+            """.format(
+                **locals()
+            )
+        )
         conn.commit()
 
     def bulk_dump(self, table, tmp_file):
@@ -111,10 +116,14 @@ class MySqlHook(DbApiHook):
         """
         conn = self.get_conn()
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT * INTO OUTFILE '{tmp_file}'
             FROM {table}
-            """.format(**locals()))
+            """.format(
+                **locals()
+            )
+        )
         conn.commit()
 
     @staticmethod

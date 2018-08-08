@@ -19,11 +19,11 @@
 
 from __future__ import absolute_import
 from datetime import datetime, timedelta
-import dateutil # noqa
-from random import random # noqa
-import time # noqa
-from . import hive # noqa
-import uuid # noqa
+import dateutil  # noqa
+from random import random  # noqa
+import time  # noqa
+from . import hive  # noqa
+import uuid  # noqa
 
 
 def ds_add(ds, days):
@@ -41,7 +41,7 @@ def ds_add(ds, days):
     '2015-01-01'
     """
 
-    ds = datetime.strptime(ds, '%Y-%m-%d')
+    ds = datetime.strptime(ds, "%Y-%m-%d")
     if days:
         ds = ds + timedelta(days)
     return ds.isoformat()[:10]
@@ -71,6 +71,7 @@ def _integrate_plugins():
     """Integrate plugins to the context"""
     import sys
     from airflow.plugins_manager import macros_modules
+
     for macros_module in macros_modules:
         sys.modules[macros_module.__name__] = macros_module
         globals()[macros_module._name] = macros_module
@@ -79,8 +80,10 @@ def _integrate_plugins():
         # TODO FIXME Remove in Airflow 2.0
 
         import os
-        if not os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
+
+        if not os.environ.get("AIRFLOW_USE_NEW_IMPORTS", False):
             from zope.deprecation import deprecated
+
             for _macro in macros_module._objects:
                 macro_name = _macro.__name__
                 globals()[macro_name] = _macro
@@ -90,4 +93,5 @@ def _integrate_plugins():
                     "'airflow.macros' has been deprecated. Please "
                     "import from 'airflow.macros.[plugin_module]' "
                     "instead. Support for direct imports will be dropped "
-                    "entirely in Airflow 2.0.".format(i=macro_name))
+                    "entirely in Airflow 2.0.".format(i=macro_name),
+                )

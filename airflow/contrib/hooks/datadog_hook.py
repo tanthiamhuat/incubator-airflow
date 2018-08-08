@@ -37,32 +37,32 @@ class DatadogHook(BaseHook, LoggingMixin):
     :param datadog_conn_id: The connection to datadog, containing metadata for api keys.
     :param datadog_conn_id: string
     """
-    def __init__(self, datadog_conn_id='datadog_default'):
+
+    def __init__(self, datadog_conn_id="datadog_default"):
         conn = self.get_connection(datadog_conn_id)
-        self.api_key = conn.extra_dejson.get('api_key', None)
-        self.app_key = conn.extra_dejson.get('app_key', None)
-        self.source_type_name = conn.extra_dejson.get('source_type_name', None)
+        self.api_key = conn.extra_dejson.get("api_key", None)
+        self.app_key = conn.extra_dejson.get("app_key", None)
+        self.source_type_name = conn.extra_dejson.get("source_type_name", None)
 
         # If the host is populated, it will use that hostname instead.
         # for all metric submissions.
         self.host = conn.host
 
         if self.api_key is None:
-            raise AirflowException("api_key must be specified in the "
-                                   "Datadog connection details")
+            raise AirflowException(
+                "api_key must be specified in the " "Datadog connection details"
+            )
         if self.app_key is None:
-            raise AirflowException("app_key must be specified in the "
-                                   "Datadog connection details")
+            raise AirflowException(
+                "app_key must be specified in the " "Datadog connection details"
+            )
 
         self.log.info("Setting up api keys for Datadog")
-        options = {
-            'api_key': self.api_key,
-            'app_key': self.app_key
-        }
+        options = {"api_key": self.api_key, "app_key": self.app_key}
         initialize(**options)
 
     def validate_response(self, response):
-        if response['status'] != 'ok':
+        if response["status"] != "ok":
             self.log.error("Datadog returned: %s", response)
             raise AirflowException("Error status received from Datadog")
 
@@ -78,18 +78,13 @@ class DatadogHook(BaseHook, LoggingMixin):
         :type tags: list
         """
         response = api.Metric.send(
-            metric=metric_name,
-            points=datapoint,
-            host=self.host,
-            tags=tags)
+            metric=metric_name, points=datapoint, host=self.host, tags=tags
+        )
 
         self.validate_response(response)
         return response
 
-    def query_metric(self,
-                     query,
-                     from_seconds_ago,
-                     to_seconds_ago):
+    def query_metric(self, query, from_seconds_ago, to_seconds_ago):
         """
         Queries datadog for a specific metric, potentially with some
         function applied to it and returns the results.
@@ -104,9 +99,8 @@ class DatadogHook(BaseHook, LoggingMixin):
         now = int(time.time())
 
         response = api.Metric.query(
-            start=now - from_seconds_ago,
-            end=now - to_seconds_ago,
-            query=query)
+            start=now - from_seconds_ago, end=now - to_seconds_ago, query=query
+        )
 
         self.validate_response(response)
         return response
@@ -136,7 +130,8 @@ class DatadogHook(BaseHook, LoggingMixin):
             tags=tags,
             alert_type=alert_type,
             aggregation_key=aggregation_key,
-            source_type_name=self.source_type_name)
+            source_type_name=self.source_type_name,
+        )
 
         self.validate_response(response)
         return response

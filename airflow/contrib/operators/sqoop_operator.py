@@ -36,52 +36,73 @@ class SqoopOperator(BaseOperator):
     Documentation for Apache Sqoop can be found here:
         https://sqoop.apache.org/docs/1.4.2/SqoopUserGuide.html.
     """
-    template_fields = ('conn_id', 'cmd_type', 'table', 'query', 'target_dir',
-                       'file_type', 'columns', 'split_by',
-                       'where', 'export_dir', 'input_null_string',
-                       'input_null_non_string', 'staging_table',
-                       'enclosed_by', 'escaped_by', 'input_fields_terminated_by',
-                       'input_lines_terminated_by', 'input_optionally_enclosed_by',
-                       'properties', 'extra_import_options', 'driver',
-                       'extra_export_options', 'hcatalog_database', 'hcatalog_table',)
-    ui_color = '#7D8CA4'
+
+    template_fields = (
+        "conn_id",
+        "cmd_type",
+        "table",
+        "query",
+        "target_dir",
+        "file_type",
+        "columns",
+        "split_by",
+        "where",
+        "export_dir",
+        "input_null_string",
+        "input_null_non_string",
+        "staging_table",
+        "enclosed_by",
+        "escaped_by",
+        "input_fields_terminated_by",
+        "input_lines_terminated_by",
+        "input_optionally_enclosed_by",
+        "properties",
+        "extra_import_options",
+        "driver",
+        "extra_export_options",
+        "hcatalog_database",
+        "hcatalog_table",
+    )
+    ui_color = "#7D8CA4"
 
     @apply_defaults
-    def __init__(self,
-                 conn_id='sqoop_default',
-                 cmd_type='import',
-                 table=None,
-                 query=None,
-                 target_dir=None,
-                 append=None,
-                 file_type='text',
-                 columns=None,
-                 num_mappers=None,
-                 split_by=None,
-                 where=None,
-                 export_dir=None,
-                 input_null_string=None,
-                 input_null_non_string=None,
-                 staging_table=None,
-                 clear_staging_table=False,
-                 enclosed_by=None,
-                 escaped_by=None,
-                 input_fields_terminated_by=None,
-                 input_lines_terminated_by=None,
-                 input_optionally_enclosed_by=None,
-                 batch=False,
-                 direct=False,
-                 driver=None,
-                 verbose=False,
-                 relaxed_isolation=False,
-                 properties=None,
-                 hcatalog_database=None,
-                 hcatalog_table=None,
-                 create_hcatalog_table=False,
-                 extra_import_options=None,
-                 extra_export_options=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        conn_id="sqoop_default",
+        cmd_type="import",
+        table=None,
+        query=None,
+        target_dir=None,
+        append=None,
+        file_type="text",
+        columns=None,
+        num_mappers=None,
+        split_by=None,
+        where=None,
+        export_dir=None,
+        input_null_string=None,
+        input_null_non_string=None,
+        staging_table=None,
+        clear_staging_table=False,
+        enclosed_by=None,
+        escaped_by=None,
+        input_fields_terminated_by=None,
+        input_lines_terminated_by=None,
+        input_optionally_enclosed_by=None,
+        batch=False,
+        direct=False,
+        driver=None,
+        verbose=False,
+        relaxed_isolation=False,
+        properties=None,
+        hcatalog_database=None,
+        hcatalog_table=None,
+        create_hcatalog_table=False,
+        extra_import_options=None,
+        extra_export_options=None,
+        *args,
+        **kwargs
+    ):
         """
         :param conn_id: str
         :param cmd_type: str specify command to execute "export" or "import"
@@ -173,10 +194,10 @@ class SqoopOperator(BaseOperator):
             num_mappers=self.num_mappers,
             hcatalog_database=self.hcatalog_database,
             hcatalog_table=self.hcatalog_table,
-            properties=self.properties
+            properties=self.properties,
         )
 
-        if self.cmd_type == 'export':
+        if self.cmd_type == "export":
             self.hook.export_table(
                 table=self.table,
                 export_dir=self.export_dir,
@@ -191,17 +212,18 @@ class SqoopOperator(BaseOperator):
                 input_optionally_enclosed_by=self.input_optionally_enclosed_by,
                 batch=self.batch,
                 relaxed_isolation=self.relaxed_isolation,
-                extra_export_options=self.extra_export_options)
-        elif self.cmd_type == 'import':
+                extra_export_options=self.extra_export_options,
+            )
+        elif self.cmd_type == "import":
             # add create hcatalog table to extra import options if option passed
             # if new params are added to constructor can pass them in here
             # so don't modify sqoop_hook for each param
             if self.create_hcatalog_table:
-                self.extra_import_options['create-hcatalog-table'] = ''
+                self.extra_import_options["create-hcatalog-table"] = ""
 
             if self.table and self.query:
                 raise AirflowException(
-                    'Cannot specify query and table together. Need to specify either or.'
+                    "Cannot specify query and table together. Need to specify either or."
                 )
 
             if self.table:
@@ -215,7 +237,8 @@ class SqoopOperator(BaseOperator):
                     where=self.where,
                     direct=self.direct,
                     driver=self.driver,
-                    extra_import_options=self.extra_import_options)
+                    extra_import_options=self.extra_import_options,
+                )
             elif self.query:
                 self.hook.import_query(
                     query=self.query,
@@ -225,7 +248,8 @@ class SqoopOperator(BaseOperator):
                     split_by=self.split_by,
                     direct=self.direct,
                     driver=self.driver,
-                    extra_import_options=self.extra_import_options)
+                    extra_import_options=self.extra_import_options,
+                )
             else:
                 raise AirflowException(
                     "Provide query or table parameter to import using Sqoop"
@@ -234,5 +258,5 @@ class SqoopOperator(BaseOperator):
             raise AirflowException("cmd_type should be 'import' or 'export'")
 
     def on_kill(self):
-        self.log.info('Sending SIGTERM signal to bash process group')
+        self.log.info("Sending SIGTERM signal to bash process group")
         os.killpg(os.getpgid(self.hook.sp.pid), signal.SIGTERM)

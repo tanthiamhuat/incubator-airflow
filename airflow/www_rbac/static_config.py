@@ -35,19 +35,22 @@ def configure_manifest_files(app):
         # noinspection PyBroadException
         try:
             global manifest
-            manifest_file = os.path.join(os.path.dirname(__file__),
-                                         'static/dist/manifest.json')
-            with open(manifest_file, 'r') as f:
+            manifest_file = os.path.join(
+                os.path.dirname(__file__), "static/dist/manifest.json"
+            )
+            with open(manifest_file, "r") as f:
                 manifest.update(json.load(f))
         except Exception:
-            print("Please make sure to build the frontend in "
-                  "static/ directory and restart the server")
+            print(
+                "Please make sure to build the frontend in "
+                "static/ directory and restart the server"
+            )
             pass
 
     def get_asset_url(filename):
         if app.debug:
             parse_manifest_json()
-        return '/static/dist/{}'.format(manifest.get(filename, ''))
+        return "/static/dist/{}".format(manifest.get(filename, ""))
 
     parse_manifest_json()
 

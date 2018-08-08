@@ -27,10 +27,9 @@ class Client(api_client.Client):
     """Local API client implementation."""
 
     def trigger_dag(self, dag_id, run_id=None, conf=None, execution_date=None):
-        dr = trigger_dag.trigger_dag(dag_id=dag_id,
-                                     run_id=run_id,
-                                     conf=conf,
-                                     execution_date=execution_date)
+        dr = trigger_dag.trigger_dag(
+            dag_id=dag_id, run_id=run_id, conf=conf, execution_date=execution_date
+        )
         return "Created {}".format(dr)
 
     def delete_dag(self, dag_id):

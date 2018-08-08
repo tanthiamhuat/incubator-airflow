@@ -37,6 +37,7 @@ class LoggingMixin(object):
     """
     Convenience super-class to have a logger configured with the class name
     """
+
     def __init__(self, context=None):
         self._set_context(context)
 
@@ -45,11 +46,11 @@ class LoggingMixin(object):
     @property
     def logger(self):
         warnings.warn(
-            'Initializing logger for {} using logger(), which will '
-            'be replaced by .log in Airflow 2.0'.format(
-                self.__class__.__module__ + '.' + self.__class__.__name__
+            "Initializing logger for {} using logger(), which will "
+            "be replaced by .log in Airflow 2.0".format(
+                self.__class__.__module__ + "." + self.__class__.__name__
             ),
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.log
 
@@ -59,7 +60,7 @@ class LoggingMixin(object):
             return self._log
         except AttributeError:
             self._log = logging.root.getChild(
-                self.__class__.__module__ + '.' + self.__class__.__name__
+                self.__class__.__module__ + "." + self.__class__.__name__
             )
             return self._log
 
@@ -74,6 +75,7 @@ class StreamLogWriter(object):
     """
     Allows to redirect stdout and stderr to logger
     """
+
     def __init__(self, logger, level):
         """
         :param log: The log level method to write to, ie. log.debug, log.warning
@@ -117,13 +119,16 @@ class RedirectStdHandler(StreamHandler):
     whatever sys.stderr/stderr is currently set to rather than the value of
     sys.stderr/stdout at handler construction time.
     """
+
     def __init__(self, stream):
         if not isinstance(stream, six.string_types):
-            raise Exception("Cannot use file like objects. Use 'stdout' or 'stderr'"
-                            " as a str and without 'ext://'.")
+            raise Exception(
+                "Cannot use file like objects. Use 'stdout' or 'stderr'"
+                " as a str and without 'ext://'."
+            )
 
         self._use_stderr = True
-        if 'stdout' in stream:
+        if "stdout" in stream:
             self._use_stderr = False
 
         # StreamHandler tries to set self.stream

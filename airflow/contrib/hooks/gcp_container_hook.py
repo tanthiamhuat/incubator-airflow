@@ -35,13 +35,12 @@ OPERATIONAL_POLL_INTERVAL = 15
 
 
 class GKEClusterHook(BaseHook):
-
     def __init__(self, project_id, location):
         self.project_id = project_id
         self.location = location
 
         # Add client library info for better error tracking
-        client_info = ClientInfo(client_library_version='airflow_v' + version.version)
+        client_info = ClientInfo(client_library_version="airflow_v" + version.version)
         self.client = container_v1.ClusterManagerClient(client_info=client_info)
 
     @staticmethod
@@ -70,12 +69,15 @@ class GKEClusterHook(BaseHook):
         self.log.info("Waiting for OPERATION_NAME %s" % operation.name)
         time.sleep(OPERATIONAL_POLL_INTERVAL)
         while operation.status != Operation.Status.DONE:
-            if operation.status == Operation.Status.RUNNING or operation.status == \
-                    Operation.Status.PENDING:
+            if (
+                operation.status == Operation.Status.RUNNING
+                or operation.status == Operation.Status.PENDING
+            ):
                 time.sleep(OPERATIONAL_POLL_INTERVAL)
             else:
                 raise exceptions.GoogleCloudError(
-                    "Operation has failed with status: %s" % operation.status)
+                    "Operation has failed with status: %s" % operation.status
+                )
             # To update status of operation
             operation = self.get_operation(operation.name)
         return operation
@@ -87,9 +89,9 @@ class GKEClusterHook(BaseHook):
         :type operation_name: str
         :return: The new, updated operation from Google Cloud
         """
-        return self.client.get_operation(project_id=self.project_id,
-                                         zone=self.location,
-                                         operation_id=operation_name)
+        return self.client.get_operation(
+            project_id=self.project_id, zone=self.location, operation_id=operation_name
+        )
 
     @staticmethod
     def _append_label(cluster_proto, key, val):
@@ -106,7 +108,7 @@ class GKEClusterHook(BaseHook):
         :type val: str
         :return: The cluster proto updated with new label
         """
-        val = val.replace('.', '-').replace('+', '-')
+        val = val.replace(".", "-").replace("+", "-")
         cluster_proto.resource_labels.update({key: val})
         return cluster_proto
 
@@ -131,20 +133,25 @@ class GKEClusterHook(BaseHook):
         :return: The full url to the delete operation if successful, else None
         """
 
-        self.log.info("Deleting (project_id={}, zone={}, cluster_id={})".format(
-            self.project_id, self.location, name))
+        self.log.info(
+            "Deleting (project_id={}, zone={}, cluster_id={})".format(
+                self.project_id, self.location, name
+            )
+        )
 
         try:
-            op = self.client.delete_cluster(project_id=self.project_id,
-                                            zone=self.location,
-                                            cluster_id=name,
-                                            retry=retry,
-                                            timeout=timeout)
+            op = self.client.delete_cluster(
+                project_id=self.project_id,
+                zone=self.location,
+                cluster_id=name,
+                retry=retry,
+                timeout=timeout,
+            )
             op = self.wait_for_operation(op)
             # Returns server-defined url for the resource
             return op.self_link
         except NotFound as error:
-            self.log.info('Assuming Success: ' + error.message)
+            self.log.info("Assuming Success: " + error.message)
 
     def create_cluster(self, cluster, retry=DEFAULT, timeout=DEFAULT):
         """
@@ -172,25 +179,29 @@ class GKEClusterHook(BaseHook):
             cluster = self._dict_to_proto(py_dict=cluster, proto=cluster_proto)
         elif not isinstance(cluster, Cluster):
             raise AirflowException(
-                "cluster is not instance of Cluster proto or python dict")
+                "cluster is not instance of Cluster proto or python dict"
+            )
 
-        self._append_label(cluster, 'airflow-version', 'v' + version.version)
+        self._append_label(cluster, "airflow-version", "v" + version.version)
 
-        self.log.info("Creating (project_id={}, zone={}, cluster_name={})".format(
-            self.project_id,
-            self.location,
-            cluster.name))
+        self.log.info(
+            "Creating (project_id={}, zone={}, cluster_name={})".format(
+                self.project_id, self.location, cluster.name
+            )
+        )
         try:
-            op = self.client.create_cluster(project_id=self.project_id,
-                                            zone=self.location,
-                                            cluster=cluster,
-                                            retry=retry,
-                                            timeout=timeout)
+            op = self.client.create_cluster(
+                project_id=self.project_id,
+                zone=self.location,
+                cluster=cluster,
+                retry=retry,
+                timeout=timeout,
+            )
             op = self.wait_for_operation(op)
 
             return op.target_link
         except AlreadyExists as error:
-            self.log.info('Assuming Success: ' + error.message)
+            self.log.info("Assuming Success: " + error.message)
             return self.get_cluster(name=cluster.name).self_link
 
     def get_cluster(self, name, retry=DEFAULT, timeout=DEFAULT):
@@ -207,13 +218,16 @@ class GKEClusterHook(BaseHook):
         :type timeout: float
         :return: A google.cloud.container_v1.types.Cluster instance
         """
-        self.log.info("Fetching cluster (project_id={}, zone={}, cluster_name={})".format(
-            self.project_id,
-            self.location,
-            name))
+        self.log.info(
+            "Fetching cluster (project_id={}, zone={}, cluster_name={})".format(
+                self.project_id, self.location, name
+            )
+        )
 
-        return self.client.get_cluster(project_id=self.project_id,
-                                       zone=self.location,
-                                       cluster_id=name,
-                                       retry=retry,
-                                       timeout=timeout).self_link
+        return self.client.get_cluster(
+            project_id=self.project_id,
+            zone=self.location,
+            cluster_id=name,
+            retry=retry,
+            timeout=timeout,
+        ).self_link

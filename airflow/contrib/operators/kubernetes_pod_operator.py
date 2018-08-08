@@ -25,9 +25,9 @@ from airflow.contrib.kubernetes.volume_mount import VolumeMount  # noqa
 from airflow.contrib.kubernetes.volume import Volume  # noqa
 from airflow.contrib.kubernetes.secret import Secret  # noqa
 
-template_fields = ('templates_dict',)
+template_fields = ("templates_dict",)
 template_ext = tuple()
-ui_color = '#ffefeb'
+ui_color = "#ffefeb"
 
 
 class KubernetesPodOperator(BaseOperator):
@@ -79,13 +79,16 @@ class KubernetesPodOperator(BaseOperator):
         XCom when the container completes.
     :type xcom_push: bool
     """
-    template_fields = ('cmds', 'arguments', 'env_vars', 'config_file')
+
+    template_fields = ("cmds", "arguments", "env_vars", "config_file")
 
     def execute(self, context):
         try:
-            client = kube_client.get_kube_client(in_cluster=self.in_cluster,
-                                                 cluster_context=self.cluster_context,
-                                                 config_file=self.config_file)
+            client = kube_client.get_kube_client(
+                in_cluster=self.in_cluster,
+                cluster_context=self.cluster_context,
+                config_file=self.config_file,
+            )
             gen = pod_generator.PodGenerator()
 
             for mount in self.volume_mounts:
@@ -110,46 +113,50 @@ class KubernetesPodOperator(BaseOperator):
             pod.affinity = self.affinity
             pod.node_selectors = self.node_selectors
 
-            launcher = pod_launcher.PodLauncher(kube_client=client,
-                                                extract_xcom=self.xcom_push)
+            launcher = pod_launcher.PodLauncher(
+                kube_client=client, extract_xcom=self.xcom_push
+            )
             (final_state, result) = launcher.run_pod(
                 pod,
                 startup_timeout=self.startup_timeout_seconds,
-                get_logs=self.get_logs)
+                get_logs=self.get_logs,
+            )
             if final_state != State.SUCCESS:
                 raise AirflowException(
-                    'Pod returned a failure: {state}'.format(state=final_state)
+                    "Pod returned a failure: {state}".format(state=final_state)
                 )
             if self.xcom_push:
                 return result
         except AirflowException as ex:
-            raise AirflowException('Pod Launching failed: {error}'.format(error=ex))
+            raise AirflowException("Pod Launching failed: {error}".format(error=ex))
 
     @apply_defaults
-    def __init__(self,
-                 namespace,
-                 image,
-                 name,
-                 cmds=None,
-                 arguments=None,
-                 volume_mounts=None,
-                 volumes=None,
-                 env_vars=None,
-                 secrets=None,
-                 in_cluster=False,
-                 cluster_context=None,
-                 labels=None,
-                 startup_timeout_seconds=120,
-                 get_logs=True,
-                 image_pull_policy='IfNotPresent',
-                 annotations=None,
-                 resources=None,
-                 affinity=None,
-                 config_file=None,
-                 xcom_push=False,
-                 node_selectors=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        namespace,
+        image,
+        name,
+        cmds=None,
+        arguments=None,
+        volume_mounts=None,
+        volumes=None,
+        env_vars=None,
+        secrets=None,
+        in_cluster=False,
+        cluster_context=None,
+        labels=None,
+        startup_timeout_seconds=120,
+        get_logs=True,
+        image_pull_policy="IfNotPresent",
+        annotations=None,
+        resources=None,
+        affinity=None,
+        config_file=None,
+        xcom_push=False,
+        node_selectors=None,
+        *args,
+        **kwargs
+    ):
         super(KubernetesPodOperator, self).__init__(*args, **kwargs)
         self.image = image
         self.namespace = namespace

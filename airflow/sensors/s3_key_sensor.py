@@ -42,25 +42,28 @@ class S3KeySensor(BaseSensorOperator):
     :param aws_conn_id: a reference to the s3 connection
     :type aws_conn_id: str
     """
-    template_fields = ('bucket_key', 'bucket_name')
+
+    template_fields = ("bucket_key", "bucket_name")
 
     @apply_defaults
-    def __init__(self,
-                 bucket_key,
-                 bucket_name=None,
-                 wildcard_match=False,
-                 aws_conn_id='aws_default',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        bucket_key,
+        bucket_name=None,
+        wildcard_match=False,
+        aws_conn_id="aws_default",
+        *args,
+        **kwargs
+    ):
         super(S3KeySensor, self).__init__(*args, **kwargs)
         # Parse
         if bucket_name is None:
             parsed_url = urlparse(bucket_key)
-            if parsed_url.netloc == '':
-                raise AirflowException('Please provide a bucket_name')
+            if parsed_url.netloc == "":
+                raise AirflowException("Please provide a bucket_name")
             else:
                 bucket_name = parsed_url.netloc
-                if parsed_url.path[0] == '/':
+                if parsed_url.path[0] == "/":
                     bucket_key = parsed_url.path[1:]
                 else:
                     bucket_key = parsed_url.path
@@ -71,11 +74,11 @@ class S3KeySensor(BaseSensorOperator):
 
     def poke(self, context):
         from airflow.hooks.S3_hook import S3Hook
+
         hook = S3Hook(aws_conn_id=self.aws_conn_id)
         full_url = "s3://" + self.bucket_name + "/" + self.bucket_key
-        self.log.info('Poking for key : {full_url}'.format(**locals()))
+        self.log.info("Poking for key : {full_url}".format(**locals()))
         if self.wildcard_match:
-            return hook.check_for_wildcard_key(self.bucket_key,
-                                               self.bucket_name)
+            return hook.check_for_wildcard_key(self.bucket_key, self.bucket_name)
         else:
             return hook.check_for_key(self.bucket_key, self.bucket_name)

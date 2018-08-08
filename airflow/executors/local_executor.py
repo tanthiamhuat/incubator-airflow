@@ -216,8 +216,11 @@ class LocalExecutor(BaseExecutor):
         self.workers = []
         self.workers_used = 0
         self.workers_active = 0
-        self.impl = (LocalExecutor._UnlimitedParallelism(self) if self.parallelism == 0
-                     else LocalExecutor._LimitedParallelism(self))
+        self.impl = (
+            LocalExecutor._UnlimitedParallelism(self)
+            if self.parallelism == 0
+            else LocalExecutor._LimitedParallelism(self)
+        )
 
         self.impl.start()
 

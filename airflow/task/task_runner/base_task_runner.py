@@ -30,7 +30,7 @@ from airflow import configuration as conf
 from airflow.utils.configuration import tmp_configuration_copy
 
 
-PYTHONPATH_VAR = 'PYTHONPATH'
+PYTHONPATH_VAR = "PYTHONPATH"
 
 
 class BaseTaskRunner(LoggingMixin):
@@ -54,7 +54,7 @@ class BaseTaskRunner(LoggingMixin):
             self.run_as_user = self._task_instance.run_as_user
         else:
             try:
-                self.run_as_user = conf.get('core', 'default_impersonation')
+                self.run_as_user = conf.get("core", "default_impersonation")
             except conf.AirflowConfigException:
                 self.run_as_user = None
 
@@ -62,10 +62,7 @@ class BaseTaskRunner(LoggingMixin):
         cfg_path = tmp_configuration_copy()
         # The following command should always work since the user doing chmod is the same
         # as the one who just created the file.
-        subprocess.call(
-            ['chmod', '600', cfg_path],
-            close_fds=True
-        )
+        subprocess.call(["chmod", "600", cfg_path], close_fds=True)
 
         # Add sudo commands to change user if we need to. Needed to handle SubDagOperator
         # case using a SequentialExecutor.
@@ -73,16 +70,15 @@ class BaseTaskRunner(LoggingMixin):
         if self.run_as_user and (self.run_as_user != getpass.getuser()):
             # Give ownership of file to user; only they can read and write
             subprocess.call(
-                ['sudo', 'chown', self.run_as_user, cfg_path],
-                close_fds=True
+                ["sudo", "chown", self.run_as_user, cfg_path], close_fds=True
             )
 
             # propagate PYTHONPATH environment variable
-            pythonpath_value = os.environ.get(PYTHONPATH_VAR, '')
-            popen_prepend = ['sudo', '-E', '-H', '-u', self.run_as_user]
+            pythonpath_value = os.environ.get(PYTHONPATH_VAR, "")
+            popen_prepend = ["sudo", "-E", "-H", "-u", self.run_as_user]
 
             if pythonpath_value:
-                popen_prepend.append('{}={}'.format(PYTHONPATH_VAR, pythonpath_value))
+                popen_prepend.append("{}={}".format(PYTHONPATH_VAR, pythonpath_value))
 
         self._cfg_path = cfg_path
         self._command = popen_prepend + self._task_instance.command_as_list(
@@ -99,12 +95,15 @@ class BaseTaskRunner(LoggingMixin):
         while True:
             line = stream.readline()
             if isinstance(line, bytes):
-                line = line.decode('utf-8')
+                line = line.decode("utf-8")
             if len(line) == 0:
                 break
-            self.log.info('Job %s: Subtask %s %s',
-                          self._task_instance.job_id, self._task_instance.task_id,
-                          line.rstrip('\n'))
+            self.log.info(
+                "Job %s: Subtask %s %s",
+                self._task_instance.job_id,
+                self._task_instance.task_id,
+                line.rstrip("\n"),
+            )
 
     def run_command(self, run_with, join_args=False):
         """
@@ -121,7 +120,7 @@ class BaseTaskRunner(LoggingMixin):
         """
         cmd = [" ".join(self._command)] if join_args else self._command
         full_cmd = run_with + cmd
-        self.log.info('Running: %s', full_cmd)
+        self.log.info("Running: %s", full_cmd)
         proc = subprocess.Popen(
             full_cmd,
             stdout=subprocess.PIPE,
@@ -129,14 +128,11 @@ class BaseTaskRunner(LoggingMixin):
             universal_newlines=True,
             close_fds=True,
             env=os.environ.copy(),
-            preexec_fn=os.setsid
+            preexec_fn=os.setsid,
         )
 
         # Start daemon thread to read subprocess logging output
-        log_reader = threading.Thread(
-            target=self._read_task_logs,
-            args=(proc.stdout,),
-        )
+        log_reader = threading.Thread(target=self._read_task_logs, args=(proc.stdout,))
         log_reader.daemon = True
         log_reader.start()
         return proc
@@ -166,4 +162,4 @@ class BaseTaskRunner(LoggingMixin):
         A callback that should be called when this is done running.
         """
         if self._cfg_path and os.path.isfile(self._cfg_path):
-            subprocess.call(['sudo', 'rm', self._cfg_path], close_fds=True)
+            subprocess.call(["sudo", "rm", self._cfg_path], close_fds=True)

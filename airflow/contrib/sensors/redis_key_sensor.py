@@ -25,8 +25,9 @@ class RedisKeySensor(BaseSensorOperator):
     """
     Checks for the existence of a key in a Redis database
     """
-    template_fields = ('key',)
-    ui_color = '#f0eee4'
+
+    template_fields = ("key",)
+    ui_color = "#f0eee4"
 
     @apply_defaults
     def __init__(self, key, redis_conn_id, *args, **kwargs):
@@ -43,5 +44,5 @@ class RedisKeySensor(BaseSensorOperator):
         self.key = key
 
     def poke(self, context):
-        self.log.info('Sensor check existence of key: %s', self.key)
+        self.log.info("Sensor check existence of key: %s", self.key)
         return RedisHook(self.redis_conn_id).key_exists(self.key)

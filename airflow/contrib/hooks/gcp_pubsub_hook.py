@@ -26,11 +26,11 @@ from airflow.contrib.hooks.gcp_api_base_hook import GoogleCloudBaseHook
 
 
 def _format_subscription(project, subscription):
-    return 'projects/{}/subscriptions/{}'.format(project, subscription)
+    return "projects/{}/subscriptions/{}".format(project, subscription)
 
 
 def _format_topic(project, topic):
-    return 'projects/{}/topics/{}'.format(project, topic)
+    return "projects/{}/topics/{}".format(project, topic)
 
 
 class PubSubException(Exception):
@@ -44,7 +44,7 @@ class PubSubHook(GoogleCloudBaseHook):
     the project embedded in the Connection referenced by gcp_conn_id.
     """
 
-    def __init__(self, gcp_conn_id='google_cloud_default', delegate_to=None):
+    def __init__(self, gcp_conn_id="google_cloud_default", delegate_to=None):
         super(PubSubHook, self).__init__(gcp_conn_id, delegate_to=delegate_to)
 
     def get_conn(self):
@@ -53,8 +53,7 @@ class PubSubHook(GoogleCloudBaseHook):
         :rtype: apiclient.discovery.Resource
         """
         http_authorized = self._authorize()
-        return build(
-            'pubsub', 'v1', http=http_authorized, cache_discovery=False)
+        return build("pubsub", "v1", http=http_authorized, cache_discovery=False)
 
     def publish(self, project, topic, messages):
         """Publishes messages to a Pub/Sub topic.
@@ -69,15 +68,15 @@ class PubSubHook(GoogleCloudBaseHook):
         :type messages: list of PubSub messages; see
             http://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage
         """
-        body = {'messages': messages}
+        body = {"messages": messages}
         full_topic = _format_topic(project, topic)
-        request = self.get_conn().projects().topics().publish(
-            topic=full_topic, body=body)
+        request = (
+            self.get_conn().projects().topics().publish(topic=full_topic, body=body)
+        )
         try:
             request.execute()
         except errors.HttpError as e:
-            raise PubSubException(
-                'Error publishing to topic {}'.format(full_topic), e)
+            raise PubSubException("Error publishing to topic {}".format(full_topic), e)
 
     def create_topic(self, project, topic, fail_if_exists=False):
         """Creates a Pub/Sub topic, if it does not already exist.
@@ -95,18 +94,16 @@ class PubSubHook(GoogleCloudBaseHook):
         service = self.get_conn()
         full_topic = _format_topic(project, topic)
         try:
-            service.projects().topics().create(
-                name=full_topic, body={}).execute()
+            service.projects().topics().create(name=full_topic, body={}).execute()
         except errors.HttpError as e:
             # Status code 409 indicates that the topic already exists.
-            if str(e.resp['status']) == '409':
-                message = 'Topic already exists: {}'.format(full_topic)
+            if str(e.resp["status"]) == "409":
+                message = "Topic already exists: {}".format(full_topic)
                 self.log.warning(message)
                 if fail_if_exists:
                     raise PubSubException(message)
             else:
-                raise PubSubException(
-                    'Error creating topic {}'.format(full_topic), e)
+                raise PubSubException("Error creating topic {}".format(full_topic), e)
 
     def delete_topic(self, project, topic, fail_if_not_exists=False):
         """Deletes a Pub/Sub topic if it exists.
@@ -126,18 +123,23 @@ class PubSubHook(GoogleCloudBaseHook):
             service.projects().topics().delete(topic=full_topic).execute()
         except errors.HttpError as e:
             # Status code 409 indicates that the topic was not found
-            if str(e.resp['status']) == '404':
-                message = 'Topic does not exist: {}'.format(full_topic)
+            if str(e.resp["status"]) == "404":
+                message = "Topic does not exist: {}".format(full_topic)
                 self.log.warning(message)
                 if fail_if_not_exists:
                     raise PubSubException(message)
             else:
-                raise PubSubException(
-                    'Error deleting topic {}'.format(full_topic), e)
+                raise PubSubException("Error deleting topic {}".format(full_topic), e)
 
-    def create_subscription(self, topic_project, topic, subscription=None,
-                            subscription_project=None, ack_deadline_secs=10,
-                            fail_if_exists=False):
+    def create_subscription(
+        self,
+        topic_project,
+        topic,
+        subscription=None,
+        subscription_project=None,
+        ack_deadline_secs=10,
+        fail_if_exists=False,
+    ):
         """Creates a Pub/Sub subscription, if it does not already exist.
 
         :param topic_project: the GCP project ID of the topic that the
@@ -166,34 +168,29 @@ class PubSubHook(GoogleCloudBaseHook):
         service = self.get_conn()
         full_topic = _format_topic(topic_project, topic)
         if not subscription:
-            subscription = 'sub-{}'.format(uuid4())
+            subscription = "sub-{}".format(uuid4())
         if not subscription_project:
             subscription_project = topic_project
-        full_subscription = _format_subscription(subscription_project,
-                                                 subscription)
-        body = {
-            'topic': full_topic,
-            'ackDeadlineSeconds': ack_deadline_secs
-        }
+        full_subscription = _format_subscription(subscription_project, subscription)
+        body = {"topic": full_topic, "ackDeadlineSeconds": ack_deadline_secs}
         try:
             service.projects().subscriptions().create(
-                name=full_subscription, body=body).execute()
+                name=full_subscription, body=body
+            ).execute()
         except errors.HttpError as e:
             # Status code 409 indicates that the subscription already exists.
-            if str(e.resp['status']) == '409':
-                message = 'Subscription already exists: {}'.format(
-                    full_subscription)
+            if str(e.resp["status"]) == "409":
+                message = "Subscription already exists: {}".format(full_subscription)
                 self.log.warning(message)
                 if fail_if_exists:
                     raise PubSubException(message)
             else:
                 raise PubSubException(
-                    'Error creating subscription {}'.format(full_subscription),
-                    e)
+                    "Error creating subscription {}".format(full_subscription), e
+                )
         return subscription
 
-    def delete_subscription(self, project, subscription,
-                            fail_if_not_exists=False):
+    def delete_subscription(self, project, subscription, fail_if_not_exists=False):
         """Deletes a Pub/Sub subscription, if it exists.
 
         :param project: the GCP project ID where the subscription exists
@@ -209,22 +206,21 @@ class PubSubHook(GoogleCloudBaseHook):
         full_subscription = _format_subscription(project, subscription)
         try:
             service.projects().subscriptions().delete(
-                subscription=full_subscription).execute()
+                subscription=full_subscription
+            ).execute()
         except errors.HttpError as e:
             # Status code 404 indicates that the subscription was not found
-            if str(e.resp['status']) == '404':
-                message = 'Subscription does not exist: {}'.format(
-                    full_subscription)
+            if str(e.resp["status"]) == "404":
+                message = "Subscription does not exist: {}".format(full_subscription)
                 self.log.warning(message)
                 if fail_if_not_exists:
                     raise PubSubException(message)
             else:
                 raise PubSubException(
-                    'Error deleting subscription {}'.format(full_subscription),
-                    e)
+                    "Error deleting subscription {}".format(full_subscription), e
+                )
 
-    def pull(self, project, subscription, max_messages,
-             return_immediately=False):
+    def pull(self, project, subscription, max_messages, return_immediately=False):
         """Pulls up to ``max_messages`` messages from Pub/Sub subscription.
 
         :param project: the GCP project ID where the subscription exists
@@ -247,18 +243,20 @@ class PubSubHook(GoogleCloudBaseHook):
         """
         service = self.get_conn()
         full_subscription = _format_subscription(project, subscription)
-        body = {
-            'maxMessages': max_messages,
-            'returnImmediately': return_immediately
-        }
+        body = {"maxMessages": max_messages, "returnImmediately": return_immediately}
         try:
-            response = service.projects().subscriptions().pull(
-                subscription=full_subscription, body=body).execute()
-            return response.get('receivedMessages', [])
+            response = (
+                service.projects()
+                .subscriptions()
+                .pull(subscription=full_subscription, body=body)
+                .execute()
+            )
+            return response.get("receivedMessages", [])
         except errors.HttpError as e:
             raise PubSubException(
-                'Error pulling messages from subscription {}'.format(
-                    full_subscription), e)
+                "Error pulling messages from subscription {}".format(full_subscription),
+                e,
+            )
 
     def acknowledge(self, project, subscription, ack_ids):
         """Pulls up to ``max_messages`` messages from Pub/Sub subscription.
@@ -277,9 +275,12 @@ class PubSubHook(GoogleCloudBaseHook):
         full_subscription = _format_subscription(project, subscription)
         try:
             service.projects().subscriptions().acknowledge(
-                subscription=full_subscription, body={'ackIds': ack_ids}
+                subscription=full_subscription, body={"ackIds": ack_ids}
             ).execute()
         except errors.HttpError as e:
             raise PubSubException(
-                'Error acknowledging {} messages pulled from subscription {}'
-                .format(len(ack_ids), full_subscription), e)
+                "Error acknowledging {} messages pulled from subscription {}".format(
+                    len(ack_ids), full_subscription
+                ),
+                e,
+            )

@@ -30,5 +30,5 @@ class DagTISlotsAvailableDep(BaseTIDep):
         if ti.task.dag.concurrency_reached:
             yield self._failing_status(
                 reason="The maximum number of running tasks ({0}) for this task's DAG "
-                       "'{1}' has been reached.".format(ti.task.dag.concurrency,
-                                                        ti.dag_id))
+                "'{1}' has been reached.".format(ti.task.dag.concurrency, ti.dag_id)
+            )

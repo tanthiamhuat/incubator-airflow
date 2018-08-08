@@ -31,7 +31,7 @@ log = LoggingMixin().log
 
 
 def load_auth():
-    auth_backend = 'airflow.api.auth.backend.default'
+    auth_backend = "airflow.api.auth.backend.default"
     try:
         auth_backend = conf.get("api", "auth_backend")
     except conf.AirflowConfigException:
@@ -42,7 +42,6 @@ def load_auth():
         api_auth = import_module(auth_backend)
     except ImportError as err:
         log.critical(
-            "Cannot import %s for API authentication due to: %s",
-            auth_backend, err
+            "Cannot import %s for API authentication due to: %s", auth_backend, err
         )
         raise AirflowException(err)

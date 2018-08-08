@@ -25,8 +25,8 @@ Create Date: 2017-08-18 17:07:16.686130
 """
 
 # revision identifiers, used by Alembic.
-revision = 'd2ae31099d61'
-down_revision = '947454bf1dff'
+revision = "d2ae31099d61"
+down_revision = "947454bf1dff"
 branch_labels = None
 depends_on = None
 
@@ -37,10 +37,12 @@ from alembic import context
 
 
 def upgrade():
-    if context.config.get_main_option('sqlalchemy.url').startswith('mysql'):
-        op.alter_column(table_name='variable', column_name='val', type_=mysql.MEDIUMTEXT)
+    if context.config.get_main_option("sqlalchemy.url").startswith("mysql"):
+        op.alter_column(
+            table_name="variable", column_name="val", type_=mysql.MEDIUMTEXT
+        )
 
 
 def downgrade():
-    if context.config.get_main_option('sqlalchemy.url').startswith('mysql'):
-        op.alter_column(table_name='variable', column_name='val', type_=mysql.TEXT)
+    if context.config.get_main_option("sqlalchemy.url").startswith("mysql"):
+        op.alter_column(table_name="variable", column_name="val", type_=mysql.TEXT)

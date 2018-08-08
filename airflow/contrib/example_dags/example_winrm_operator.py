@@ -35,38 +35,31 @@ from airflow.contrib.hooks import WinRMHook
 from airflow.contrib.operators.winrm_operator import WinRMOperator
 
 
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {"owner": "airflow", "start_date": airflow.utils.dates.days_ago(2)}
 
 dag = DAG(
-    dag_id='POC_winrm_parallel', default_args=args,
-    schedule_interval='0 0 * * *',
-    dagrun_timeout=timedelta(minutes=60))
+    dag_id="POC_winrm_parallel",
+    default_args=args,
+    schedule_interval="0 0 * * *",
+    dagrun_timeout=timedelta(minutes=60),
+)
 
-cmd = 'ls -l'
-run_this_last = DummyOperator(task_id='run_this_last', dag=dag)
+cmd = "ls -l"
+run_this_last = DummyOperator(task_id="run_this_last", dag=dag)
 
-winRMHook = WinRMHook(ssh_conn_id='ssh_POC1')
+winRMHook = WinRMHook(ssh_conn_id="ssh_POC1")
 
 t1 = WinRMOperator(
-    task_id="wintask1",
-    command='ls -altr',
-    winrm_hook=winRMHook,
-    dag=dag)
+    task_id="wintask1", command="ls -altr", winrm_hook=winRMHook, dag=dag
+)
 
 t2 = WinRMOperator(
-    task_id="wintask2",
-    command='sleep 60',
-    winrm_hook=winRMHook,
-    dag=dag)
+    task_id="wintask2", command="sleep 60", winrm_hook=winRMHook, dag=dag
+)
 
 t3 = WinRMOperator(
-    task_id="wintask3",
-    command='echo \'luke test\' ',
-    winrm_hook=winRMHook,
-    dag=dag)
+    task_id="wintask3", command="echo 'luke test' ", winrm_hook=winRMHook, dag=dag
+)
 
 t1.set_downstream(run_this_last)
 t2.set_downstream(run_this_last)

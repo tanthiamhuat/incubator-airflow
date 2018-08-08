@@ -21,4 +21,4 @@ from flask_appbuilder.widgets import RenderTemplateWidget
 
 
 class AirflowModelListWidget(RenderTemplateWidget):
-    template = 'airflow/model_list.html'
+    template = "airflow/model_list.html"

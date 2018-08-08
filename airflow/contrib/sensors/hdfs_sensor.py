@@ -20,10 +20,7 @@ from airflow.sensors.hdfs_sensor import HdfsSensor
 
 
 class HdfsSensorRegex(HdfsSensor):
-    def __init__(self,
-                 regex,
-                 *args,
-                 **kwargs):
+    def __init__(self, regex, *args, **kwargs):
         super(HdfsSensorRegex, self).__init__(*args, **kwargs)
         self.regex = regex
 
@@ -35,24 +32,24 @@ class HdfsSensorRegex(HdfsSensor):
         """
         sb = self.hook(self.hdfs_conn_id).get_conn()
         self.log.info(
-            'Poking for {self.filepath} to be a directory '
-            'with files matching {self.regex.pattern}'.
-            format(**locals())
+            "Poking for {self.filepath} to be a directory "
+            "with files matching {self.regex.pattern}".format(**locals())
         )
-        result = [f for f in sb.ls([self.filepath], include_toplevel=False) if
-                  f['file_type'] == 'f' and
-                  self.regex.match(f['path'].replace('%s/' % self.filepath, ''))]
-        result = self.filter_for_ignored_ext(result, self.ignored_ext,
-                                             self.ignore_copying)
+        result = [
+            f
+            for f in sb.ls([self.filepath], include_toplevel=False)
+            if f["file_type"] == "f"
+            and self.regex.match(f["path"].replace("%s/" % self.filepath, ""))
+        ]
+        result = self.filter_for_ignored_ext(
+            result, self.ignored_ext, self.ignore_copying
+        )
         result = self.filter_for_filesize(result, self.file_size)
         return bool(result)
 
 
 class HdfsSensorFolder(HdfsSensor):
-    def __init__(self,
-                 be_empty=False,
-                 *args,
-                 **kwargs):
+    def __init__(self, be_empty=False, *args, **kwargs):
         super(HdfsSensorFolder, self).__init__(*args, **kwargs)
         self.be_empty = be_empty
 
@@ -64,15 +61,22 @@ class HdfsSensorFolder(HdfsSensor):
         """
         sb = self.hook(self.hdfs_conn_id).get_conn()
         result = [f for f in sb.ls([self.filepath], include_toplevel=True)]
-        result = self.filter_for_ignored_ext(result, self.ignored_ext,
-                                             self.ignore_copying)
+        result = self.filter_for_ignored_ext(
+            result, self.ignored_ext, self.ignore_copying
+        )
         result = self.filter_for_filesize(result, self.file_size)
         if self.be_empty:
-            self.log.info('Poking for filepath {self.filepath} to a empty directory'
-                          .format(**locals()))
-            return len(result) == 1 and result[0]['path'] == self.filepath
+            self.log.info(
+                "Poking for filepath {self.filepath} to a empty directory".format(
+                    **locals()
+                )
+            )
+            return len(result) == 1 and result[0]["path"] == self.filepath
         else:
-            self.log.info('Poking for filepath {self.filepath} to a non empty directory'
-                          .format(**locals()))
+            self.log.info(
+                "Poking for filepath {self.filepath} to a non empty directory".format(
+                    **locals()
+                )
+            )
             result.pop(0)
-            return bool(result) and result[0]['file_type'] == 'f'
+            return bool(result) and result[0]["file_type"] == "f"

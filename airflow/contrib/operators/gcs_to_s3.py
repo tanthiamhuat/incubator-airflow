@@ -48,21 +48,24 @@ class GoogleCloudStorageToS3Operator(GoogleCloudStorageListOperator):
     :param dest_s3_key: The base S3 key to be used to store the files. (templated)
     :type dest_s3_key: str
     """
-    template_fields = ('bucket', 'prefix', 'delimiter', 'dest_s3_key')
-    ui_color = '#f0eee4'
+
+    template_fields = ("bucket", "prefix", "delimiter", "dest_s3_key")
+    ui_color = "#f0eee4"
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 prefix=None,
-                 delimiter=None,
-                 google_cloud_storage_conn_id='google_cloud_storage_default',
-                 delegate_to=None,
-                 dest_aws_conn_id=None,
-                 dest_s3_key=None,
-                 replace=False,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        bucket,
+        prefix=None,
+        delimiter=None,
+        google_cloud_storage_conn_id="google_cloud_storage_default",
+        delegate_to=None,
+        dest_aws_conn_id=None,
+        dest_s3_key=None,
+        replace=False,
+        *args,
+        **kwargs
+    ):
 
         super(GoogleCloudStorageToS3Operator, self).__init__(
             bucket=bucket,
@@ -93,7 +96,7 @@ class GoogleCloudStorageToS3Operator(GoogleCloudStorageListOperator):
         if files:
             hook = GoogleCloudStorageHook(
                 google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-                delegate_to=self.delegate_to
+                delegate_to=self.delegate_to,
             )
 
             for file in files:
@@ -102,9 +105,7 @@ class GoogleCloudStorageToS3Operator(GoogleCloudStorageListOperator):
                 dest_key = self.dest_s3_key + file
                 self.log.info("Saving file to %s", dest_key)
 
-                s3_hook.load_bytes(file_bytes,
-                                   key=dest_key,
-                                   replace=self.replace)
+                s3_hook.load_bytes(file_bytes, key=dest_key, replace=self.replace)
 
             self.log.info("All done, uploaded %d files to S3", len(files))
         else:

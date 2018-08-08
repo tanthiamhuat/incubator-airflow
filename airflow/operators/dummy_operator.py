@@ -28,7 +28,7 @@ class DummyOperator(BaseOperator):
     """
 
     template_fields = tuple()
-    ui_color = '#e8f7e4'
+    ui_color = "#e8f7e4"
 
     @apply_defaults
     def __init__(self, *args, **kwargs):

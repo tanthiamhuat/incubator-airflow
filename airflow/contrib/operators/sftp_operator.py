@@ -23,8 +23,8 @@ from airflow.utils.decorators import apply_defaults
 
 
 class SFTPOperation(object):
-    PUT = 'put'
-    GET = 'get'
+    PUT = "put"
+    GET = "get"
 
 
 class SFTPOperator(BaseOperator):
@@ -48,19 +48,22 @@ class SFTPOperator(BaseOperator):
     :param confirm: specify if the SFTP operation should be confirmed, defaults to True
     :type confirm: bool
     """
-    template_fields = ('local_filepath', 'remote_filepath')
+
+    template_fields = ("local_filepath", "remote_filepath")
 
     @apply_defaults
-    def __init__(self,
-                 ssh_hook=None,
-                 ssh_conn_id=None,
-                 remote_host=None,
-                 local_filepath=None,
-                 remote_filepath=None,
-                 operation=SFTPOperation.PUT,
-                 confirm=True,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        ssh_hook=None,
+        ssh_conn_id=None,
+        remote_host=None,
+        local_filepath=None,
+        remote_filepath=None,
+        operation=SFTPOperation.PUT,
+        confirm=True,
+        *args,
+        **kwargs
+    ):
         super(SFTPOperator, self).__init__(*args, **kwargs)
         self.ssh_hook = ssh_hook
         self.ssh_conn_id = ssh_conn_id
@@ -69,10 +72,15 @@ class SFTPOperator(BaseOperator):
         self.remote_filepath = remote_filepath
         self.operation = operation
         self.confirm = confirm
-        if not (self.operation.lower() == SFTPOperation.GET or
-                self.operation.lower() == SFTPOperation.PUT):
-            raise TypeError("unsupported operation value {0}, expected {1} or {2}"
-                            .format(self.operation, SFTPOperation.GET, SFTPOperation.PUT))
+        if not (
+            self.operation.lower() == SFTPOperation.GET
+            or self.operation.lower() == SFTPOperation.PUT
+        ):
+            raise TypeError(
+                "unsupported operation value {0}, expected {1} or {2}".format(
+                    self.operation, SFTPOperation.GET, SFTPOperation.PUT
+                )
+            )
 
     def execute(self, context):
         file_msg = None
@@ -81,7 +89,9 @@ class SFTPOperator(BaseOperator):
                 self.ssh_hook = SSHHook(ssh_conn_id=self.ssh_conn_id)
 
             if not self.ssh_hook:
-                raise AirflowException("can not operate without ssh_hook or ssh_conn_id")
+                raise AirflowException(
+                    "can not operate without ssh_hook or ssh_conn_id"
+                )
 
             if self.remote_host is not None:
                 self.ssh_hook.remote_host = self.remote_host
@@ -89,20 +99,23 @@ class SFTPOperator(BaseOperator):
             with self.ssh_hook.get_conn() as ssh_client:
                 sftp_client = ssh_client.open_sftp()
                 if self.operation.lower() == SFTPOperation.GET:
-                    file_msg = "from {0} to {1}".format(self.remote_filepath,
-                                                        self.local_filepath)
+                    file_msg = "from {0} to {1}".format(
+                        self.remote_filepath, self.local_filepath
+                    )
                     self.log.debug("Starting to transfer %s", file_msg)
                     sftp_client.get(self.remote_filepath, self.local_filepath)
                 else:
-                    file_msg = "from {0} to {1}".format(self.local_filepath,
-                                                        self.remote_filepath)
+                    file_msg = "from {0} to {1}".format(
+                        self.local_filepath, self.remote_filepath
+                    )
                     self.log.debug("Starting to transfer file %s", file_msg)
-                    sftp_client.put(self.local_filepath,
-                                    self.remote_filepath,
-                                    confirm=self.confirm)
+                    sftp_client.put(
+                        self.local_filepath, self.remote_filepath, confirm=self.confirm
+                    )
 
         except Exception as e:
-            raise AirflowException("Error while transferring {0}, error: {1}"
-                                   .format(file_msg, str(e)))
+            raise AirflowException(
+                "Error while transferring {0}, error: {1}".format(file_msg, str(e))
+            )
 
         return None

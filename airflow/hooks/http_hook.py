@@ -37,11 +37,7 @@ class HttpHook(BaseHook):
     :type method: str
     """
 
-    def __init__(
-        self,
-        method='POST',
-        http_conn_id='http_default'
-    ):
+    def __init__(self, method="POST", http_conn_id="http_default"):
         self.http_conn_id = http_conn_id
         self.method = method
         self.base_url = None
@@ -96,23 +92,15 @@ class HttpHook(BaseHook):
 
         url = self.base_url + endpoint
         req = None
-        if self.method == 'GET':
+        if self.method == "GET":
             # GET uses params
-            req = requests.Request(self.method,
-                                   url,
-                                   params=data,
-                                   headers=headers)
-        elif self.method == 'HEAD':
+            req = requests.Request(self.method, url, params=data, headers=headers)
+        elif self.method == "HEAD":
             # HEAD doesn't use params
-            req = requests.Request(self.method,
-                                   url,
-                                   headers=headers)
+            req = requests.Request(self.method, url, headers=headers)
         else:
             # Others use data
-            req = requests.Request(self.method,
-                                   url,
-                                   data=data,
-                                   headers=headers)
+            req = requests.Request(self.method, url, data=data, headers=headers)
 
         prepped_request = session.prepare_request(req)
         self.log.info("Sending '%s' to url: %s", self.method, url)
@@ -129,7 +117,7 @@ class HttpHook(BaseHook):
             response.raise_for_status()
         except requests.exceptions.HTTPError:
             self.log.error("HTTP error: %s", response.reason)
-            if self.method not in ['GET', 'HEAD']:
+            if self.method not in ["GET", "HEAD"]:
                 self.log.error(response.text)
             raise AirflowException(str(response.status_code) + ":" + response.reason)
 
@@ -156,14 +144,15 @@ class HttpHook(BaseHook):
                 proxies=extra_options.get("proxies", {}),
                 cert=extra_options.get("cert"),
                 timeout=extra_options.get("timeout"),
-                allow_redirects=extra_options.get("allow_redirects", True))
+                allow_redirects=extra_options.get("allow_redirects", True),
+            )
 
-            if extra_options.get('check_response', True):
+            if extra_options.get("check_response", True):
                 self.check_response(response)
             return response
 
         except requests.exceptions.ConnectionError as ex:
-            self.log.warn(str(ex) + ' Tenacity will retry to execute the operation')
+            self.log.warn(str(ex) + " Tenacity will retry to execute the operation")
             raise ex
 
     def run_with_advanced_retry(self, _retry_args, *args, **kwargs):
@@ -188,8 +177,6 @@ class HttpHook(BaseHook):
                      _retry_args=retry_args
                  )
         """
-        self._retry_obj = tenacity.Retrying(
-            **_retry_args
-        )
+        self._retry_obj = tenacity.Retrying(**_retry_args)
 
         self._retry_obj(self.run, *args, **kwargs)

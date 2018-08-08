@@ -39,8 +39,8 @@ class TimeDeltaSensor(BaseSensorOperator):
         self.delta = delta
 
     def poke(self, context):
-        dag = context['dag']
-        target_dttm = dag.following_schedule(context['execution_date'])
+        dag = context["dag"]
+        target_dttm = dag.following_schedule(context["execution_date"])
         target_dttm += self.delta
-        self.log.info('Checking if the time (%s) has come', target_dttm)
+        self.log.info("Checking if the time (%s) has come", target_dttm)
         return timezone.utcnow() > target_dttm

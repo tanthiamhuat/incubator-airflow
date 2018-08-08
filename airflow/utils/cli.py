@@ -55,6 +55,7 @@ def action_logging(f):
     :param f: function instance
     :return: wrapped function
     """
+
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         """
@@ -65,18 +66,19 @@ def action_logging(f):
         :param kwargs: A passthrough keyword argument
         """
         assert args
-        assert isinstance(args[0], Namespace), \
-            "1st positional argument should be argparse.Namespace instance, " \
+        assert isinstance(args[0], Namespace), (
+            "1st positional argument should be argparse.Namespace instance, "
             "but {}".format(args[0])
+        )
         metrics = _build_metrics(f.__name__, args[0])
         cli_action_loggers.on_pre_execution(**metrics)
         try:
             return f(*args, **kwargs)
         except Exception as e:
-            metrics['error'] = e
+            metrics["error"] = e
             raise
         finally:
-            metrics['end_datetime'] = datetime.utcnow()
+            metrics["end_datetime"] = datetime.utcnow()
             cli_action_loggers.on_post_execution(**metrics)
 
     return wrapper
@@ -94,24 +96,29 @@ def _build_metrics(func_name, namespace):
     :return: dict with metrics
     """
 
-    metrics = {'sub_command': func_name, 'start_datetime': datetime.utcnow(),
-               'full_command': '{}'.format(list(sys.argv)), 'user': getpass.getuser()}
+    metrics = {
+        "sub_command": func_name,
+        "start_datetime": datetime.utcnow(),
+        "full_command": "{}".format(list(sys.argv)),
+        "user": getpass.getuser(),
+    }
 
     assert isinstance(namespace, Namespace)
     tmp_dic = vars(namespace)
-    metrics['dag_id'] = tmp_dic.get('dag_id')
-    metrics['task_id'] = tmp_dic.get('task_id')
-    metrics['execution_date'] = tmp_dic.get('execution_date')
-    metrics['host_name'] = socket.gethostname()
+    metrics["dag_id"] = tmp_dic.get("dag_id")
+    metrics["task_id"] = tmp_dic.get("task_id")
+    metrics["execution_date"] = tmp_dic.get("execution_date")
+    metrics["host_name"] = socket.gethostname()
 
-    extra = json.dumps(dict((k, metrics[k]) for k in ('host_name', 'full_command')))
+    extra = json.dumps(dict((k, metrics[k]) for k in ("host_name", "full_command")))
     log = airflow.models.Log(
-        event='cli_{}'.format(func_name),
+        event="cli_{}".format(func_name),
         task_instance=None,
-        owner=metrics['user'],
+        owner=metrics["user"],
         extra=extra,
-        task_id=metrics.get('task_id'),
-        dag_id=metrics.get('dag_id'),
-        execution_date=metrics.get('execution_date'))
-    metrics['log'] = log
+        task_id=metrics.get("task_id"),
+        dag_id=metrics.get("dag_id"),
+        execution_date=metrics.get("execution_date"),
+    )
+    metrics["log"] = log
     return metrics

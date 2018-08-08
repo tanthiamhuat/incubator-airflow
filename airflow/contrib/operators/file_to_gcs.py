@@ -40,18 +40,21 @@ class FileToGoogleCloudStorageOperator(BaseOperator):
     :param delegate_to: The account to impersonate, if any
     :type delegate_to: string
     """
-    template_fields = ('src', 'dst', 'bucket')
+
+    template_fields = ("src", "dst", "bucket")
 
     @apply_defaults
-    def __init__(self,
-                 src,
-                 dst,
-                 bucket,
-                 google_cloud_storage_conn_id='google_cloud_default',
-                 mime_type='application/octet-stream',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        src,
+        dst,
+        bucket,
+        google_cloud_storage_conn_id="google_cloud_default",
+        mime_type="application/octet-stream",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(FileToGoogleCloudStorageOperator, self).__init__(*args, **kwargs)
         self.src = src
         self.dst = dst
@@ -66,10 +69,12 @@ class FileToGoogleCloudStorageOperator(BaseOperator):
         """
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to)
+            delegate_to=self.delegate_to,
+        )
 
         hook.upload(
             bucket=self.bucket,
             object=self.dst,
             mime_type=self.mime_type,
-            filename=self.src)
+            filename=self.src,
+        )

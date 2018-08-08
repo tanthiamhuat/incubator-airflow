@@ -39,16 +39,20 @@ class GoogleCloudStorageObjectSensor(BaseSensorOperator):
             domain-wide delegation enabled.
         :type delegate_to: string
     """
-    template_fields = ('bucket', 'object')
-    ui_color = '#f0eee4'
+
+    template_fields = ("bucket", "object")
+    ui_color = "#f0eee4"
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 object,  # pylint:disable=redefined-builtin
-                 google_cloud_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        bucket,
+        object,  # pylint:disable=redefined-builtin
+        google_cloud_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
 
         super(GoogleCloudStorageObjectSensor, self).__init__(*args, **kwargs)
         self.bucket = bucket
@@ -57,10 +61,11 @@ class GoogleCloudStorageObjectSensor(BaseSensorOperator):
         self.delegate_to = delegate_to
 
     def poke(self, context):
-        self.log.info('Sensor checks existence of : %s, %s', self.bucket, self.object)
+        self.log.info("Sensor checks existence of : %s, %s", self.bucket, self.object)
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_conn_id,
-            delegate_to=self.delegate_to)
+            delegate_to=self.delegate_to,
+        )
         return hook.exists(self.bucket, self.object)
 
 
@@ -70,7 +75,7 @@ def ts_function(context):
     behaviour is check for the object being updated after execution_date +
     schedule_interval.
     """
-    return context['execution_date'] + context['dag'].schedule_interval
+    return context["execution_date"] + context["dag"].schedule_interval
 
 
 class GoogleCloudStorageObjectUpdatedSensor(BaseSensorOperator):
@@ -95,18 +100,22 @@ class GoogleCloudStorageObjectUpdatedSensor(BaseSensorOperator):
             delegation enabled.
         :type delegate_to: string
     """
-    template_fields = ('bucket', 'object')
-    template_ext = ('.sql',)
-    ui_color = '#f0eee4'
+
+    template_fields = ("bucket", "object")
+    template_ext = (".sql",)
+    ui_color = "#f0eee4"
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 object,  # pylint:disable=redefined-builtin
-                 ts_func=ts_function,
-                 google_cloud_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        bucket,
+        object,  # pylint:disable=redefined-builtin
+        ts_func=ts_function,
+        google_cloud_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
 
         super(GoogleCloudStorageObjectUpdatedSensor, self).__init__(*args, **kwargs)
         self.bucket = bucket
@@ -116,10 +125,11 @@ class GoogleCloudStorageObjectUpdatedSensor(BaseSensorOperator):
         self.delegate_to = delegate_to
 
     def poke(self, context):
-        self.log.info('Sensor checks existence of : %s, %s', self.bucket, self.object)
+        self.log.info("Sensor checks existence of : %s, %s", self.bucket, self.object)
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_conn_id,
-            delegate_to=self.delegate_to)
+            delegate_to=self.delegate_to,
+        )
         return hook.is_updated_after(self.bucket, self.object, self.ts_func(context))
 
 
@@ -141,16 +151,20 @@ class GoogleCloudStoragePrefixSensor(BaseSensorOperator):
             domain-wide delegation enabled.
         :type delegate_to: string
     """
-    template_fields = ('bucket', 'prefix')
-    ui_color = '#f0eee4'
+
+    template_fields = ("bucket", "prefix")
+    ui_color = "#f0eee4"
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 prefix,
-                 google_cloud_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        bucket,
+        prefix,
+        google_cloud_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(GoogleCloudStoragePrefixSensor, self).__init__(*args, **kwargs)
         self.bucket = bucket
         self.prefix = prefix
@@ -158,9 +172,11 @@ class GoogleCloudStoragePrefixSensor(BaseSensorOperator):
         self.delegate_to = delegate_to
 
     def poke(self, context):
-        self.log.info('Sensor checks existence of objects: %s, %s',
-                      self.bucket, self.prefix)
+        self.log.info(
+            "Sensor checks existence of objects: %s, %s", self.bucket, self.prefix
+        )
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_conn_id,
-            delegate_to=self.delegate_to)
+            delegate_to=self.delegate_to,
+        )
         return bool(hook.list(self.bucket, prefix=self.prefix))

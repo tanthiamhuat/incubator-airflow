@@ -33,10 +33,11 @@ class DbApiHook(BaseHook):
     """
     Abstract base class for sql hooks.
     """
+
     # Override to provide the connection name.
     conn_name_attr = None
     # Override to have a default connection id for a particular dbHook
-    default_conn_name = 'default_conn_id'
+    default_conn_name = "default_conn_id"
     # Override if this db supports autocommit.
     supports_autocommit = False
     # Override with the object that exposes the connect method
@@ -57,21 +58,20 @@ class DbApiHook(BaseHook):
         """
         db = self.get_connection(getattr(self, self.conn_name_attr))
         return self.connector.connect(
-            host=db.host,
-            port=db.port,
-            username=db.login,
-            schema=db.schema)
+            host=db.host, port=db.port, username=db.login, schema=db.schema
+        )
 
     def get_uri(self):
         conn = self.get_connection(getattr(self, self.conn_name_attr))
-        login = ''
+        login = ""
         if conn.login:
-            login = '{conn.login}:{conn.password}@'.format(conn=conn)
+            login = "{conn.login}:{conn.password}@".format(conn=conn)
         host = conn.host
         if conn.port is not None:
-            host += ':{port}'.format(port=conn.port)
-        return '{conn.conn_type}://{login}{host}/{conn.schema}'.format(
-            conn=conn, login=login, host=host)
+            host += ":{port}".format(port=conn.port)
+        return "{conn.conn_type}://{login}{host}/{conn.schema}".format(
+            conn=conn, login=login, host=host
+        )
 
     def get_sqlalchemy_engine(self, engine_kwargs=None):
         if engine_kwargs is None:
@@ -89,7 +89,7 @@ class DbApiHook(BaseHook):
         :type parameters: mapping or iterable
         """
         if sys.version_info[0] < 3:
-            sql = sql.encode('utf-8')
+            sql = sql.encode("utf-8")
         import pandas.io.sql as psql
 
         with closing(self.get_conn()) as conn:
@@ -106,7 +106,7 @@ class DbApiHook(BaseHook):
         :type parameters: mapping or iterable
         """
         if sys.version_info[0] < 3:
-            sql = sql.encode('utf-8')
+            sql = sql.encode("utf-8")
 
         with closing(self.get_conn()) as conn:
             with closing(conn.cursor()) as cur:
@@ -127,7 +127,7 @@ class DbApiHook(BaseHook):
         :type parameters: mapping or iterable
         """
         if sys.version_info[0] < 3:
-            sql = sql.encode('utf-8')
+            sql = sql.encode("utf-8")
 
         with closing(self.get_conn()) as conn:
             with closing(conn.cursor()) as cur:
@@ -162,7 +162,7 @@ class DbApiHook(BaseHook):
             with closing(conn.cursor()) as cur:
                 for s in sql:
                     if sys.version_info[0] < 3:
-                        s = s.encode('utf-8')
+                        s = s.encode("utf-8")
                     self.log.info(s)
                     if parameters is not None:
                         cur.execute(s, parameters)
@@ -180,9 +180,12 @@ class DbApiHook(BaseHook):
         """
         if not self.supports_autocommit and autocommit:
             self.log.warn(
-                ("%s connection doesn't support "
-                 "autocommit but autocommit activated."),
-                getattr(self, self.conn_name_attr))
+                (
+                    "%s connection doesn't support "
+                    "autocommit but autocommit activated."
+                ),
+                getattr(self, self.conn_name_attr),
+            )
         conn.autocommit = autocommit
 
     def get_autocommit(self, conn):
@@ -197,7 +200,7 @@ class DbApiHook(BaseHook):
         :rtype bool.
         """
 
-        return getattr(conn, 'autocommit', False) and self.supports_autocommit
+        return getattr(conn, "autocommit", False) and self.supports_autocommit
 
     def get_cursor(self):
         """
@@ -205,8 +208,9 @@ class DbApiHook(BaseHook):
         """
         return self.get_conn().cursor()
 
-    def insert_rows(self, table, rows, target_fields=None, commit_every=1000,
-                    replace=False):
+    def insert_rows(
+        self, table, rows, target_fields=None, commit_every=1000, replace=False
+    ):
         """
         A generic way to insert a set of tuples into a table,
         a new transaction is created every commit_every rows
@@ -227,7 +231,7 @@ class DbApiHook(BaseHook):
             target_fields = ", ".join(target_fields)
             target_fields = "({})".format(target_fields)
         else:
-            target_fields = ''
+            target_fields = ""
         i = 0
         with closing(self.get_conn()) as conn:
             if self.supports_autocommit:
@@ -241,15 +245,14 @@ class DbApiHook(BaseHook):
                     for cell in row:
                         lst.append(self._serialize_cell(cell, conn))
                     values = tuple(lst)
-                    placeholders = ["%s", ] * len(values)
+                    placeholders = ["%s"] * len(values)
                     if not replace:
                         sql = "INSERT INTO "
                     else:
                         sql = "REPLACE INTO "
                     sql += "{0} {1} VALUES ({2})".format(
-                        table,
-                        target_fields,
-                        ",".join(placeholders))
+                        table, target_fields, ",".join(placeholders)
+                    )
                     cur.execute(sql, values)
                     if commit_every and i % commit_every == 0:
                         conn.commit()
@@ -258,8 +261,7 @@ class DbApiHook(BaseHook):
                         )
 
             conn.commit()
-        self.log.info(
-            "Done loading. Loaded a total of {i} rows".format(**locals()))
+        self.log.info("Done loading. Loaded a total of {i} rows".format(**locals()))
 
     @staticmethod
     def _serialize_cell(cell, conn=None):

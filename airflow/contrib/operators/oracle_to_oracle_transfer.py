@@ -42,19 +42,21 @@ class OracleToOracleTransfer(BaseOperator):
     :type rows_chunk: int
     """
 
-    template_fields = ('source_sql', 'source_sql_params')
-    ui_color = '#e08c8c'
+    template_fields = ("source_sql", "source_sql_params")
+    ui_color = "#e08c8c"
 
     @apply_defaults
     def __init__(
-            self,
-            oracle_destination_conn_id,
-            destination_table,
-            oracle_source_conn_id,
-            source_sql,
-            source_sql_params=None,
-            rows_chunk=5000,
-            *args, **kwargs):
+        self,
+        oracle_destination_conn_id,
+        destination_table,
+        oracle_source_conn_id,
+        source_sql,
+        source_sql_params=None,
+        rows_chunk=5000,
+        *args,
+        **kwargs
+    ):
         super(OracleToOracleTransfer, self).__init__(*args, **kwargs)
         if source_sql_params is None:
             source_sql_params = {}
@@ -68,8 +70,9 @@ class OracleToOracleTransfer(BaseOperator):
     def _execute(self, src_hook, dest_hook, context):
         with src_hook.get_conn() as src_conn:
             cursor = src_conn.cursor()
-            self.log.info("Querying data from source: {0}".format(
-                self.oracle_source_conn_id))
+            self.log.info(
+                "Querying data from source: {0}".format(self.oracle_source_conn_id)
+            )
             cursor.execute(self.source_sql, self.source_sql_params)
             target_fields = list(map(lambda field: field[0], cursor.description))
 
@@ -77,9 +80,12 @@ class OracleToOracleTransfer(BaseOperator):
             rows = cursor.fetchmany(self.rows_chunk)
             while len(rows) > 0:
                 rows_total = rows_total + len(rows)
-                dest_hook.bulk_insert_rows(self.destination_table, rows,
-                                           target_fields=target_fields,
-                                           commit_every=self.rows_chunk)
+                dest_hook.bulk_insert_rows(
+                    self.destination_table,
+                    rows,
+                    target_fields=target_fields,
+                    commit_every=self.rows_chunk,
+                )
                 rows = cursor.fetchmany(self.rows_chunk)
                 self.log.info("Total inserted: {0} rows".format(rows_total))
 

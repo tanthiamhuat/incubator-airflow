@@ -28,8 +28,8 @@ class SqliteHook(DbApiHook):
     Interact with SQLite.
     """
 
-    conn_name_attr = 'sqlite_conn_id'
-    default_conn_name = 'sqlite_default'
+    conn_name_attr = "sqlite_conn_id"
+    default_conn_name = "sqlite_default"
     supports_autocommit = False
 
     def get_conn(self):

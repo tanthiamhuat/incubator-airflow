@@ -33,7 +33,7 @@ class timeout(LoggingMixin):
     To be used in a ``with`` block and timeout its content.
     """
 
-    def __init__(self, seconds=1, error_message='Timeout'):
+    def __init__(self, seconds=1, error_message="Timeout"):
         self.seconds = seconds
         self.error_message = error_message
 

@@ -40,43 +40,47 @@ class NamedHivePartitionSensor(BaseSensorOperator):
     :type metastore_conn_id: str
     """
 
-    template_fields = ('partition_names',)
-    ui_color = '#8d99ae'
+    template_fields = ("partition_names",)
+    ui_color = "#8d99ae"
 
     @apply_defaults
-    def __init__(self,
-                 partition_names,
-                 metastore_conn_id='metastore_default',
-                 poke_interval=60 * 3,
-                 hook=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        partition_names,
+        metastore_conn_id="metastore_default",
+        poke_interval=60 * 3,
+        hook=None,
+        *args,
+        **kwargs
+    ):
         super(NamedHivePartitionSensor, self).__init__(
-            poke_interval=poke_interval, *args, **kwargs)
+            poke_interval=poke_interval, *args, **kwargs
+        )
 
         if isinstance(partition_names, basestring):
-            raise TypeError('partition_names must be an array of strings')
+            raise TypeError("partition_names must be an array of strings")
 
         self.metastore_conn_id = metastore_conn_id
         self.partition_names = partition_names
         self.hook = hook
-        if self.hook and metastore_conn_id != 'metastore_default':
-            self.log.warning('A hook was passed but a non default'
-                             'metastore_conn_id='
-                             '{} was used'.format(metastore_conn_id))
+        if self.hook and metastore_conn_id != "metastore_default":
+            self.log.warning(
+                "A hook was passed but a non default"
+                "metastore_conn_id="
+                "{} was used".format(metastore_conn_id)
+            )
 
     @staticmethod
     def parse_partition_name(partition):
-        first_split = partition.split('.', 1)
+        first_split = partition.split(".", 1)
         if len(first_split) == 1:
-            schema = 'default'
+            schema = "default"
             table_partition = max(first_split)  # poor man first
         else:
             schema, table_partition = first_split
-        second_split = table_partition.split('/', 1)
+        second_split = table_partition.split("/", 1)
         if len(second_split) == 1:
-            raise ValueError('Could not parse ' + partition +
-                             'into table, partition')
+            raise ValueError("Could not parse " + partition + "into table, partition")
         else:
             table, partition = second_split
         return schema, table, partition
@@ -84,21 +88,19 @@ class NamedHivePartitionSensor(BaseSensorOperator):
     def poke_partition(self, partition):
         if not self.hook:
             from airflow.hooks.hive_hooks import HiveMetastoreHook
-            self.hook = HiveMetastoreHook(
-                metastore_conn_id=self.metastore_conn_id)
+
+            self.hook = HiveMetastoreHook(metastore_conn_id=self.metastore_conn_id)
 
         schema, table, partition = self.parse_partition_name(partition)
 
-        self.log.info(
-            'Poking for {schema}.{table}/{partition}'.format(**locals())
-        )
-        return self.hook.check_for_named_partition(
-            schema, table, partition)
+        self.log.info("Poking for {schema}.{table}/{partition}".format(**locals()))
+        return self.hook.check_for_named_partition(schema, table, partition)
 
     def poke(self, context):
 
         self.partition_names = [
-            partition_name for partition_name in self.partition_names
+            partition_name
+            for partition_name in self.partition_names
             if not self.poke_partition(partition_name)
         ]
         return not self.partition_names

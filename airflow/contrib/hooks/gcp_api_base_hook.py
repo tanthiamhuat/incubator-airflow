@@ -29,7 +29,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
-_DEFAULT_SCOPES = ('https://www.googleapis.com/auth/cloud-platform',)
+_DEFAULT_SCOPES = ("https://www.googleapis.com/auth/cloud-platform",)
 
 
 class GoogleCloudBaseHook(BaseHook, LoggingMixin):
@@ -55,7 +55,7 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
     Legacy P12 key files are not supported.
     """
 
-    def __init__(self, gcp_conn_id='google_cloud_default', delegate_to=None):
+    def __init__(self, gcp_conn_id="google_cloud_default", delegate_to=None):
         """
         :param gcp_conn_id: The connection ID to use when fetching connection info.
         :type gcp_conn_id: string
@@ -72,31 +72,33 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
         """
         Returns the Credentials object for Google API
         """
-        key_path = self._get_field('key_path', False)
-        keyfile_dict = self._get_field('keyfile_dict', False)
-        scope = self._get_field('scope', None)
+        key_path = self._get_field("key_path", False)
+        keyfile_dict = self._get_field("keyfile_dict", False)
+        scope = self._get_field("scope", None)
         if scope is not None:
-            scopes = [s.strip() for s in scope.split(',')]
+            scopes = [s.strip() for s in scope.split(",")]
         else:
             scopes = _DEFAULT_SCOPES
 
         if not key_path and not keyfile_dict:
-            self.log.info('Getting connection using `google.auth.default()` '
-                          'since no key file is defined for hook.')
+            self.log.info(
+                "Getting connection using `google.auth.default()` "
+                "since no key file is defined for hook."
+            )
             credentials, _ = google.auth.default(scopes=scopes)
         elif key_path:
             # Get credentials from a JSON file.
-            if key_path.endswith('.json'):
-                self.log.info('Getting connection using a JSON key file.')
-                credentials = (
-                    google.oauth2.service_account.Credentials.from_service_account_file(
-                        key_path, scopes=scopes)
+            if key_path.endswith(".json"):
+                self.log.info("Getting connection using a JSON key file.")
+                credentials = google.oauth2.service_account.Credentials.from_service_account_file(
+                    key_path, scopes=scopes
                 )
-            elif key_path.endswith('.p12'):
-                raise AirflowException('Legacy P12 key file are not supported, '
-                                       'use a JSON key file.')
+            elif key_path.endswith(".p12"):
+                raise AirflowException(
+                    "Legacy P12 key file are not supported, " "use a JSON key file."
+                )
             else:
-                raise AirflowException('Unrecognised extension for key file.')
+                raise AirflowException("Unrecognised extension for key file.")
         else:
             # Get credentials from JSON data provided in the UI.
             try:
@@ -104,18 +106,21 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
 
                 # Depending on how the JSON was formatted, it may contain
                 # escaped newlines. Convert those to actual newlines.
-                keyfile_dict['private_key'] = keyfile_dict['private_key'].replace(
-                    '\\n', '\n')
+                keyfile_dict["private_key"] = keyfile_dict["private_key"].replace(
+                    "\\n", "\n"
+                )
 
-                credentials = (
-                    google.oauth2.service_account.Credentials.from_service_account_info(
-                        keyfile_dict, scopes=scopes)
+                credentials = google.oauth2.service_account.Credentials.from_service_account_info(
+                    keyfile_dict, scopes=scopes
                 )
             except json.decoder.JSONDecodeError:
-                raise AirflowException('Invalid key JSON.')
+                raise AirflowException("Invalid key JSON.")
 
-        return credentials.with_subject(self.delegate_to) \
-            if self.delegate_to else credentials
+        return (
+            credentials.with_subject(self.delegate_to)
+            if self.delegate_to
+            else credentials
+        )
 
     def _get_access_token(self):
         """
@@ -130,8 +135,7 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
         """
         credentials = self._get_credentials()
         http = httplib2.Http()
-        authed_http = google_auth_httplib2.AuthorizedHttp(
-            credentials, http=http)
+        authed_http = google_auth_httplib2.AuthorizedHttp(credentials, http=http)
         return authed_http
 
     def _get_field(self, f, default=None):
@@ -141,7 +145,7 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
         to the hook page, which allow admins to specify service_account,
         key_path, etc. They get formatted as shown below.
         """
-        long_f = 'extra__google_cloud_platform__{}'.format(f)
+        long_f = "extra__google_cloud_platform__{}".format(f)
         if long_f in self.extras:
             return self.extras[long_f]
         else:
@@ -149,4 +153,4 @@ class GoogleCloudBaseHook(BaseHook, LoggingMixin):
 
     @property
     def project_id(self):
-        return self._get_field('project')
+        return self._get_field("project")

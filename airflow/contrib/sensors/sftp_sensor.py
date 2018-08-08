@@ -32,16 +32,17 @@ class SFTPSensor(BaseSensorOperator):
     :param sftp_conn_id: The connection to run the sensor against
     :type sftp_conn_id: str
     """
-    template_fields = ('path',)
+
+    template_fields = ("path",)
 
     @apply_defaults
-    def __init__(self, path, sftp_conn_id='sftp_default', *args, **kwargs):
+    def __init__(self, path, sftp_conn_id="sftp_default", *args, **kwargs):
         super(SFTPSensor, self).__init__(*args, **kwargs)
         self.path = path
         self.hook = SFTPHook(sftp_conn_id)
 
     def poke(self, context):
-        logging.info('Poking for %s', self.path)
+        logging.info("Poking for %s", self.path)
         try:
             self.hook.get_mod_time(self.path)
         except IOError as e:

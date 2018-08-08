@@ -67,19 +67,22 @@ class BigQueryGetDataOperator(BaseOperator):
         delegation enabled.
     :type delegate_to: string
     """
-    template_fields = ('dataset_id', 'table_id', 'max_results')
-    ui_color = '#e4f0e8'
+
+    template_fields = ("dataset_id", "table_id", "max_results")
+    ui_color = "#e4f0e8"
 
     @apply_defaults
-    def __init__(self,
-                 dataset_id,
-                 table_id,
-                 max_results='100',
-                 selected_fields=None,
-                 bigquery_conn_id='bigquery_default',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        dataset_id,
+        table_id,
+        max_results="100",
+        selected_fields=None,
+        bigquery_conn_id="bigquery_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(BigQueryGetDataOperator, self).__init__(*args, **kwargs)
         self.dataset_id = dataset_id
         self.table_id = table_id
@@ -89,28 +92,35 @@ class BigQueryGetDataOperator(BaseOperator):
         self.delegate_to = delegate_to
 
     def execute(self, context):
-        self.log.info('Fetching Data from:')
-        self.log.info('Dataset: %s ; Table: %s ; Max Results: %s',
-                      self.dataset_id, self.table_id, self.max_results)
+        self.log.info("Fetching Data from:")
+        self.log.info(
+            "Dataset: %s ; Table: %s ; Max Results: %s",
+            self.dataset_id,
+            self.table_id,
+            self.max_results,
+        )
 
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id, delegate_to=self.delegate_to
+        )
 
         conn = hook.get_conn()
         cursor = conn.cursor()
-        response = cursor.get_tabledata(dataset_id=self.dataset_id,
-                                        table_id=self.table_id,
-                                        max_results=self.max_results,
-                                        selected_fields=self.selected_fields)
+        response = cursor.get_tabledata(
+            dataset_id=self.dataset_id,
+            table_id=self.table_id,
+            max_results=self.max_results,
+            selected_fields=self.selected_fields,
+        )
 
-        self.log.info('Total Extracted rows: %s', response['totalRows'])
-        rows = response['rows']
+        self.log.info("Total Extracted rows: %s", response["totalRows"])
+        rows = response["rows"]
 
         table_data = []
         for dict_row in rows:
             single_row = []
-            for fields in dict_row['f']:
-                single_row.append(fields['v'])
+            for fields in dict_row["f"]:
+                single_row.append(fields["v"])
             table_data.append(single_row)
 
         return table_data

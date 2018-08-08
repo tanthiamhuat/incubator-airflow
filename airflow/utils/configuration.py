@@ -35,7 +35,7 @@ def tmp_configuration_copy():
     cfg_dict = conf.as_dict(display_sensitive=True)
     temp_fd, cfg_path = mkstemp()
 
-    with os.fdopen(temp_fd, 'w') as temp_file:
+    with os.fdopen(temp_fd, "w") as temp_file:
         json.dump(cfg_dict, temp_file)
 
     return cfg_path

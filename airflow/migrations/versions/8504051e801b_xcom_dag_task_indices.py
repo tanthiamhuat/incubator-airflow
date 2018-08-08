@@ -26,8 +26,8 @@ Create Date: 2016-11-29 08:13:03.253312
 """
 
 # revision identifiers, used by Alembic.
-revision = '8504051e801b'
-down_revision = '4addfa1236f1'
+revision = "8504051e801b"
+down_revision = "4addfa1236f1"
 branch_labels = None
 depends_on = None
 
@@ -36,8 +36,13 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_index('idx_xcom_dag_task_date', 'xcom', ['dag_id', 'task_id', 'execution_date'], unique=False)
+    op.create_index(
+        "idx_xcom_dag_task_date",
+        "xcom",
+        ["dag_id", "task_id", "execution_date"],
+        unique=False,
+    )
 
 
 def downgrade():
-    op.drop_index('idx_xcom_dag_task_date', table_name='xcom')
+    op.drop_index("idx_xcom_dag_task_date", table_name="xcom")

@@ -66,23 +66,25 @@ class MySqlToHiveTransfer(BaseOperator):
     :type tblproperties: dict
     """
 
-    template_fields = ('sql', 'partition', 'hive_table')
-    template_ext = ('.sql',)
-    ui_color = '#a0e08c'
+    template_fields = ("sql", "partition", "hive_table")
+    template_ext = (".sql",)
+    ui_color = "#a0e08c"
 
     @apply_defaults
     def __init__(
-            self,
-            sql,
-            hive_table,
-            create=True,
-            recreate=False,
-            partition=None,
-            delimiter=chr(1),
-            mysql_conn_id='mysql_default',
-            hive_cli_conn_id='hive_cli_default',
-            tblproperties=None,
-            *args, **kwargs):
+        self,
+        sql,
+        hive_table,
+        create=True,
+        recreate=False,
+        partition=None,
+        delimiter=chr(1),
+        mysql_conn_id="mysql_default",
+        hive_cli_conn_id="hive_cli_default",
+        tblproperties=None,
+        *args,
+        **kwargs
+    ):
         super(MySqlToHiveTransfer, self).__init__(*args, **kwargs)
         self.sql = sql
         self.hive_table = hive_table
@@ -99,19 +101,19 @@ class MySqlToHiveTransfer(BaseOperator):
     def type_map(cls, mysql_type):
         t = MySQLdb.constants.FIELD_TYPE
         d = {
-            t.BIT: 'INT',
-            t.DECIMAL: 'DOUBLE',
-            t.DOUBLE: 'DOUBLE',
-            t.FLOAT: 'DOUBLE',
-            t.INT24: 'INT',
-            t.LONG: 'BIGINT',
-            t.LONGLONG: 'DECIMAL(38,0)',
-            t.SHORT: 'INT',
-            t.TINY: 'SMALLINT',
-            t.YEAR: 'INT',
-            t.TIMESTAMP: 'TIMESTAMP',
+            t.BIT: "INT",
+            t.DECIMAL: "DOUBLE",
+            t.DOUBLE: "DOUBLE",
+            t.FLOAT: "DOUBLE",
+            t.INT24: "INT",
+            t.LONG: "BIGINT",
+            t.LONGLONG: "DECIMAL(38,0)",
+            t.SHORT: "INT",
+            t.TINY: "SMALLINT",
+            t.YEAR: "INT",
+            t.TIMESTAMP: "TIMESTAMP",
         }
-        return d[mysql_type] if mysql_type in d else 'STRING'
+        return d[mysql_type] if mysql_type in d else "STRING"
 
     def execute(self, context):
         hive = HiveCliHook(hive_cli_conn_id=self.hive_cli_conn_id)
@@ -139,4 +141,5 @@ class MySqlToHiveTransfer(BaseOperator):
                 partition=self.partition,
                 delimiter=self.delimiter,
                 recreate=self.recreate,
-                tblproperties=self.tblproperties)
+                tblproperties=self.tblproperties,
+            )

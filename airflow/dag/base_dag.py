@@ -29,6 +29,7 @@ class BaseDag(object):
     """
     Base DAG object that both the SimpleDag and DAG inherit.
     """
+
     __metaclass__ = ABCMeta
 
     @abstractproperty
@@ -84,6 +85,7 @@ class BaseDagBag(object):
     """
     Base object that both the SimpleDagBag and DagBag inherit.
     """
+
     @abstractproperty
     def dag_ids(self):
         """

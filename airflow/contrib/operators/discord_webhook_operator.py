@@ -53,25 +53,27 @@ class DiscordWebhookOperator(SimpleHttpOperator):
     :type proxy: str
     """
 
-    template_fields = ('username', 'message')
+    template_fields = ("username", "message")
 
     @apply_defaults
-    def __init__(self,
-                 http_conn_id=None,
-                 webhook_endpoint=None,
-                 message="",
-                 username=None,
-                 avatar_url=None,
-                 tts=False,
-                 proxy=None,
-                 *args,
-                 **kwargs):
-        super(DiscordWebhookOperator, self).__init__(endpoint=webhook_endpoint,
-                                                     *args,
-                                                     **kwargs)
+    def __init__(
+        self,
+        http_conn_id=None,
+        webhook_endpoint=None,
+        message="",
+        username=None,
+        avatar_url=None,
+        tts=False,
+        proxy=None,
+        *args,
+        **kwargs
+    ):
+        super(DiscordWebhookOperator, self).__init__(
+            endpoint=webhook_endpoint, *args, **kwargs
+        )
 
         if not http_conn_id:
-            raise AirflowException('No valid Discord http_conn_id supplied.')
+            raise AirflowException("No valid Discord http_conn_id supplied.")
 
         self.http_conn_id = http_conn_id
         self.webhook_endpoint = webhook_endpoint
@@ -93,6 +95,6 @@ class DiscordWebhookOperator(SimpleHttpOperator):
             self.username,
             self.avatar_url,
             self.tts,
-            self.proxy
+            self.proxy,
         )
         self.hook.execute()

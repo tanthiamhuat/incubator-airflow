@@ -48,20 +48,27 @@ class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
     might have the same timestamp.
     """
 
-    def __init__(self, base_log_folder, filename_template,
-                 log_id_template, end_of_log_mark,
-                 host='localhost:9200'):
+    def __init__(
+        self,
+        base_log_folder,
+        filename_template,
+        log_id_template,
+        end_of_log_mark,
+        host="localhost:9200",
+    ):
         """
         :param base_log_folder: base folder to store logs locally
         :param log_id_template: log id template
         :param host: Elasticsearch host name
         """
         super(ElasticsearchTaskHandler, self).__init__(
-            base_log_folder, filename_template)
+            base_log_folder, filename_template
+        )
         self.closed = False
 
-        self.log_id_template, self.log_id_jinja_template = \
-            parse_template_string(log_id_template)
+        self.log_id_template, self.log_id_jinja_template = parse_template_string(
+            log_id_template
+        )
 
         self.client = elasticsearch.Elasticsearch([host])
 
@@ -71,14 +78,15 @@ class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
     def _render_log_id(self, ti, try_number):
         if self.log_id_jinja_template:
             jinja_context = ti.get_template_context()
-            jinja_context['try_number'] = try_number
+            jinja_context["try_number"] = try_number
             return self.log_id_jinja_template.render(**jinja_context)
 
-        return self.log_id_template.format(dag_id=ti.dag_id,
-                                           task_id=ti.task_id,
-                                           execution_date=ti
-                                           .execution_date.isoformat(),
-                                           try_number=try_number)
+        return self.log_id_template.format(
+            dag_id=ti.dag_id,
+            task_id=ti.task_id,
+            execution_date=ti.execution_date.isoformat(),
+            try_number=try_number,
+        )
 
     def _read(self, ti, try_number, metadata=None):
         """
@@ -90,36 +98,37 @@ class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
         :return a list of log documents and metadata.
         """
         if not metadata:
-            metadata = {'offset': 0}
-        if 'offset' not in metadata:
-            metadata['offset'] = 0
+            metadata = {"offset": 0}
+        if "offset" not in metadata:
+            metadata["offset"] = 0
 
-        offset = metadata['offset']
+        offset = metadata["offset"]
         log_id = self._render_log_id(ti, try_number)
 
         logs = self.es_read(log_id, offset)
 
         next_offset = offset if not logs else logs[-1].offset
 
-        metadata['offset'] = next_offset
+        metadata["offset"] = next_offset
         # end_of_log_mark may contain characters like '\n' which is needed to
         # have the log uploaded but will not be stored in elasticsearch.
-        metadata['end_of_log'] = False if not logs \
-            else logs[-1].message == self.end_of_log_mark.strip()
+        metadata["end_of_log"] = (
+            False if not logs else logs[-1].message == self.end_of_log_mark.strip()
+        )
 
         cur_ts = pendulum.now()
         # Assume end of log after not receiving new log for 5 min,
         # as executor heartbeat is 1 min and there might be some
         # delay before Elasticsearch makes the log available.
-        if 'last_log_timestamp' in metadata:
-            last_log_ts = timezone.parse(metadata['last_log_timestamp'])
+        if "last_log_timestamp" in metadata:
+            last_log_ts = timezone.parse(metadata["last_log_timestamp"])
             if cur_ts.diff(last_log_ts).in_minutes() >= 5:
-                metadata['end_of_log'] = True
+                metadata["end_of_log"] = True
 
-        if offset != next_offset or 'last_log_timestamp' not in metadata:
-            metadata['last_log_timestamp'] = str(cur_ts)
+        if offset != next_offset or "last_log_timestamp" not in metadata:
+            metadata["last_log_timestamp"] = str(cur_ts)
 
-        message = '\n'.join([log.message for log in logs])
+        message = "\n".join([log.message for log in logs])
 
         return message, metadata
 
@@ -134,21 +143,21 @@ class ElasticsearchTaskHandler(FileTaskHandler, LoggingMixin):
         """
 
         # Offset is the unique key for sorting logs given log_id.
-        s = Search(using=self.client) \
-            .query('match', log_id=log_id) \
-            .sort('offset')
+        s = Search(using=self.client).query("match", log_id=log_id).sort("offset")
 
-        s = s.filter('range', offset={'gt': offset})
+        s = s.filter("range", offset={"gt": offset})
 
         logs = []
         if s.count() != 0:
             try:
 
-                logs = s[self.MAX_LINE_PER_PAGE * self.PAGE:self.MAX_LINE_PER_PAGE] \
-                    .execute()
+                logs = s[
+                    self.MAX_LINE_PER_PAGE * self.PAGE : self.MAX_LINE_PER_PAGE
+                ].execute()
             except Exception as e:
-                msg = 'Could not read log with log_id: {}, ' \
-                      'error: {}'.format(log_id, str(e))
+                msg = "Could not read log with log_id: {}, " "error: {}".format(
+                    log_id, str(e)
+                )
                 self.log.exception(msg)
 
         return logs

@@ -48,20 +48,24 @@ class SimpleHttpOperator(BaseOperator):
         depends on the option that's being modified.
     """
 
-    template_fields = ('endpoint', 'data',)
+    template_fields = ("endpoint", "data")
     template_ext = ()
-    ui_color = '#f4a460'
+    ui_color = "#f4a460"
 
     @apply_defaults
-    def __init__(self,
-                 endpoint,
-                 method='POST',
-                 data=None,
-                 headers=None,
-                 response_check=None,
-                 extra_options=None,
-                 xcom_push=False,
-                 http_conn_id='http_default', *args, **kwargs):
+    def __init__(
+        self,
+        endpoint,
+        method="POST",
+        data=None,
+        headers=None,
+        response_check=None,
+        extra_options=None,
+        xcom_push=False,
+        http_conn_id="http_default",
+        *args,
+        **kwargs
+    ):
         """
         If xcom_push is True, response of an HTTP request will also
         be pushed to an XCom.
@@ -81,10 +85,7 @@ class SimpleHttpOperator(BaseOperator):
 
         self.log.info("Calling HTTP method")
 
-        response = http.run(self.endpoint,
-                            self.data,
-                            self.headers,
-                            self.extra_options)
+        response = http.run(self.endpoint, self.data, self.headers, self.extra_options)
         if self.response_check:
             if not self.response_check(response):
                 raise AirflowException("Response check returned False.")

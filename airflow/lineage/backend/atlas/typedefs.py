@@ -24,9 +24,7 @@ operator_typedef = {
     "classificationDefs": [],
     "entityDefs": [
         {
-            "superTypes": [
-                "Process"
-            ],
+            "superTypes": ["Process"],
             "name": "airflow_operator",
             "description": "Airflow Operator",
             "createdBy": "airflow",
@@ -42,7 +40,7 @@ operator_typedef = {
                     "typeName": "string",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
                 {
                     "name": "task_id",
@@ -52,7 +50,7 @@ operator_typedef = {
                     "typeName": "string",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
                 {
                     "name": "command",
@@ -62,7 +60,7 @@ operator_typedef = {
                     "typeName": "string",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
                 {
                     "name": "conn_id",
@@ -72,7 +70,7 @@ operator_typedef = {
                     "typeName": "string",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
                 {
                     "name": "execution_date",
@@ -82,7 +80,7 @@ operator_typedef = {
                     "typeName": "date",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
                 {
                     "name": "start_date",
@@ -92,7 +90,7 @@ operator_typedef = {
                     "typeName": "date",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
                 {
                     "name": "end_date",
@@ -102,9 +100,9 @@ operator_typedef = {
                     "typeName": "date",
                     "valuesMaxCount": 1,
                     "cardinality": "SINGLE",
-                    "valuesMinCount": 0
+                    "valuesMinCount": 0,
                 },
             ],
-        },
+        }
     ],
 }

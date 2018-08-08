@@ -20,7 +20,9 @@
 from airflow.ti_deps.deps.dag_ti_slots_available_dep import DagTISlotsAvailableDep
 from airflow.ti_deps.deps.dag_unpaused_dep import DagUnpausedDep
 from airflow.ti_deps.deps.dagrun_exists_dep import DagrunRunningDep
-from airflow.ti_deps.deps.exec_date_after_start_date_dep import ExecDateAfterStartDateDep
+from airflow.ti_deps.deps.exec_date_after_start_date_dep import (
+    ExecDateAfterStartDateDep
+)
 from airflow.ti_deps.deps.not_running_dep import NotRunningDep
 from airflow.ti_deps.deps.not_skipped_dep import NotSkippedDep
 from airflow.ti_deps.deps.runnable_exec_date_dep import RunnableExecDateDep
@@ -64,15 +66,17 @@ class DepContext(object):
     :param ignore_ti_state: Ignore the task instance's previous failure/success
     :type ignore_ti_state: boolean
     """
+
     def __init__(
-            self,
-            deps=None,
-            flag_upstream_failed=False,
-            ignore_all_deps=False,
-            ignore_depends_on_past=False,
-            ignore_in_retry_period=False,
-            ignore_task_deps=False,
-            ignore_ti_state=False):
+        self,
+        deps=None,
+        flag_upstream_failed=False,
+        ignore_all_deps=False,
+        ignore_depends_on_past=False,
+        ignore_in_retry_period=False,
+        ignore_task_deps=False,
+        ignore_ti_state=False,
+    ):
         self.deps = deps or set()
         self.flag_upstream_failed = flag_upstream_failed
         self.ignore_all_deps = ignore_all_deps
@@ -104,10 +108,7 @@ QUEUE_DEPS = {
 
 # Dependencies that need to be met for a given task instance to be able to get run by an
 # executor. This class just extends QueueContext by adding dependencies for resources.
-RUN_DEPS = QUEUE_DEPS | {
-    DagTISlotsAvailableDep(),
-    TaskConcurrencyDep(),
-}
+RUN_DEPS = QUEUE_DEPS | {DagTISlotsAvailableDep(), TaskConcurrencyDep()}
 
 # TODO(aoen): SCHEDULER_DEPS is not coupled to actual execution in any way and
 # could easily be modified or removed from the scheduler causing this dependency to become

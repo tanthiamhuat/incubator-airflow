@@ -55,18 +55,20 @@ class DatastoreImportOperator(BaseOperator):
     """
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 file,
-                 namespace=None,
-                 entity_filter=None,
-                 labels=None,
-                 datastore_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 polling_interval_in_seconds=10,
-                 xcom_push=False,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        bucket,
+        file,
+        namespace=None,
+        entity_filter=None,
+        labels=None,
+        datastore_conn_id="google_cloud_default",
+        delegate_to=None,
+        polling_interval_in_seconds=10,
+        xcom_push=False,
+        *args,
+        **kwargs
+    ):
         super(DatastoreImportOperator, self).__init__(*args, **kwargs)
         self.datastore_conn_id = datastore_conn_id
         self.delegate_to = delegate_to
@@ -79,20 +81,23 @@ class DatastoreImportOperator(BaseOperator):
         self.xcom_push = xcom_push
 
     def execute(self, context):
-        self.log.info('Importing data from Cloud Storage bucket %s', self.bucket)
+        self.log.info("Importing data from Cloud Storage bucket %s", self.bucket)
         ds_hook = DatastoreHook(self.datastore_conn_id, self.delegate_to)
-        result = ds_hook.import_from_storage_bucket(bucket=self.bucket,
-                                                    file=self.file,
-                                                    namespace=self.namespace,
-                                                    entity_filter=self.entity_filter,
-                                                    labels=self.labels)
-        operation_name = result['name']
-        result = ds_hook.poll_operation_until_done(operation_name,
-                                                   self.polling_interval_in_seconds)
+        result = ds_hook.import_from_storage_bucket(
+            bucket=self.bucket,
+            file=self.file,
+            namespace=self.namespace,
+            entity_filter=self.entity_filter,
+            labels=self.labels,
+        )
+        operation_name = result["name"]
+        result = ds_hook.poll_operation_until_done(
+            operation_name, self.polling_interval_in_seconds
+        )
 
-        state = result['metadata']['common']['state']
-        if state != 'SUCCESSFUL':
-            raise AirflowException('Operation failed: result={}'.format(result))
+        state = result["metadata"]["common"]["state"]
+        if state != "SUCCESSFUL":
+            raise AirflowException("Operation failed: result={}".format(result))
 
         if self.xcom_push:
             return result

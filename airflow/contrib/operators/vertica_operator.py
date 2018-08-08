@@ -33,17 +33,17 @@ class VerticaOperator(BaseOperator):
         Template reference are recognized by str ending in '.sql'
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
-    ui_color = '#b4e0ff'
+    template_fields = ("sql",)
+    template_ext = (".sql",)
+    ui_color = "#b4e0ff"
 
     @apply_defaults
-    def __init__(self, sql, vertica_conn_id='vertica_default', *args, **kwargs):
+    def __init__(self, sql, vertica_conn_id="vertica_default", *args, **kwargs):
         super(VerticaOperator, self).__init__(*args, **kwargs)
         self.vertica_conn_id = vertica_conn_id
         self.sql = sql
 
     def execute(self, context):
-        self.log.info('Executing: %s', self.sql)
+        self.log.info("Executing: %s", self.sql)
         hook = VerticaHook(vertica_conn_id=self.vertica_conn_id)
         hook.run(self.sql)

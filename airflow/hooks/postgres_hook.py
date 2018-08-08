@@ -34,8 +34,9 @@ class PostgresHook(DbApiHook):
     Note: For Redshift, use keepalives_idle in the extra connection parameters
     and set it to less than 300 seconds.
     """
-    conn_name_attr = 'postgres_conn_id'
-    default_conn_name = 'postgres_default'
+
+    conn_name_attr = "postgres_conn_id"
+    default_conn_name = "postgres_default"
     supports_autocommit = True
 
     def __init__(self, *args, **kwargs):
@@ -49,12 +50,19 @@ class PostgresHook(DbApiHook):
             user=conn.login,
             password=conn.password,
             dbname=self.schema or conn.schema,
-            port=conn.port)
+            port=conn.port,
+        )
         # check for ssl parameters in conn.extra
         for arg_name, arg_val in conn.extra_dejson.items():
-            if arg_name in ['sslmode', 'sslcert', 'sslkey',
-                            'sslrootcert', 'sslcrl', 'application_name',
-                            'keepalives_idle']:
+            if arg_name in [
+                "sslmode",
+                "sslcert",
+                "sslkey",
+                "sslrootcert",
+                "sslcrl",
+                "application_name",
+                "keepalives_idle",
+            ]:
                 conn_args[arg_name] = arg_val
 
         self.conn = psycopg2.connect(**conn_args)
@@ -72,10 +80,10 @@ class PostgresHook(DbApiHook):
         they have to check its existence by themselves.
         """
         if not os.path.isfile(filename):
-            with open(filename, 'w'):
+            with open(filename, "w"):
                 pass
 
-        with open(filename, 'r+') as f:
+        with open(filename, "r+") as f:
             with closing(self.get_conn()) as conn:
                 with closing(conn.cursor()) as cur:
                     cur.copy_expert(sql, f)

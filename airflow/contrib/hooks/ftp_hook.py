@@ -52,7 +52,7 @@ def mlsd(conn, path="", facts=None):
     lines = []
     conn.retrlines(cmd, lines.append)
     for line in lines:
-        facts_found, _, name = line.rstrip(ftplib.CRLF).partition(' ')
+        facts_found, _, name = line.rstrip(ftplib.CRLF).partition(" ")
         entry = {}
         for fact in facts_found[:-1].split(";"):
             key, _, value = fact.partition("=")
@@ -68,7 +68,7 @@ class FTPHook(BaseHook, LoggingMixin):
     downstream.
     """
 
-    def __init__(self, ftp_conn_id='ftp_default'):
+    def __init__(self, ftp_conn_id="ftp_default"):
         self.ftp_conn_id = ftp_conn_id
         self.conn = None
 
@@ -167,15 +167,15 @@ class FTPHook(BaseHook, LoggingMixin):
         is_path = isinstance(local_full_path_or_buffer, basestring)
 
         if is_path:
-            output_handle = open(local_full_path_or_buffer, 'wb')
+            output_handle = open(local_full_path_or_buffer, "wb")
         else:
             output_handle = local_full_path_or_buffer
 
         remote_path, remote_file_name = os.path.split(remote_full_path)
         conn.cwd(remote_path)
-        self.log.info('Retrieving file from FTP: %s', remote_full_path)
-        conn.retrbinary('RETR %s' % remote_file_name, output_handle.write)
-        self.log.info('Finished retrieving file from FTP: %s', remote_full_path)
+        self.log.info("Retrieving file from FTP: %s", remote_full_path)
+        conn.retrbinary("RETR %s" % remote_file_name, output_handle.write)
+        self.log.info("Finished retrieving file from FTP: %s", remote_full_path)
 
         if is_path:
             output_handle.close()
@@ -199,12 +199,12 @@ class FTPHook(BaseHook, LoggingMixin):
         is_path = isinstance(local_full_path_or_buffer, basestring)
 
         if is_path:
-            input_handle = open(local_full_path_or_buffer, 'rb')
+            input_handle = open(local_full_path_or_buffer, "rb")
         else:
             input_handle = local_full_path_or_buffer
         remote_path, remote_file_name = os.path.split(remote_full_path)
         conn.cwd(remote_path)
-        conn.storbinary('STOR %s' % remote_file_name, input_handle)
+        conn.storbinary("STOR %s" % remote_file_name, input_handle)
 
         if is_path:
             input_handle.close()
@@ -231,17 +231,16 @@ class FTPHook(BaseHook, LoggingMixin):
 
     def get_mod_time(self, path):
         conn = self.get_conn()
-        ftp_mdtm = conn.sendcmd('MDTM ' + path)
+        ftp_mdtm = conn.sendcmd("MDTM " + path)
         time_val = ftp_mdtm[4:]
         # time_val optionally has microseconds
         try:
             return datetime.datetime.strptime(time_val, "%Y%m%d%H%M%S.%f")
         except ValueError:
-            return datetime.datetime.strptime(time_val, '%Y%m%d%H%M%S')
+            return datetime.datetime.strptime(time_val, "%Y%m%d%H%M%S")
 
 
 class FTPSHook(FTPHook):
-
     def get_conn(self):
         """
         Returns a FTPS connection object.
@@ -252,8 +251,6 @@ class FTPSHook(FTPHook):
             if params.port:
                 ftplib.FTP_TLS.port = params.port
 
-            self.conn = ftplib.FTP_TLS(
-                params.host, params.login, params.password
-            )
+            self.conn = ftplib.FTP_TLS(params.host, params.login, params.password)
 
         return self.conn

@@ -29,7 +29,7 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def TemporaryDirectory(suffix='', prefix=None, dir=None):
+def TemporaryDirectory(suffix="", prefix=None, dir=None):
     name = mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
     try:
         yield name

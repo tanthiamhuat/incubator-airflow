@@ -28,8 +28,8 @@ class VerticaHook(DbApiHook):
     Interact with Vertica.
     """
 
-    conn_name_attr = 'vertica_conn_id'
-    default_conn_name = 'vertica_default'
+    conn_name_attr = "vertica_conn_id"
+    default_conn_name = "vertica_default"
     supports_autocommit = True
 
     def get_conn(self):
@@ -39,9 +39,9 @@ class VerticaHook(DbApiHook):
         conn = self.get_connection(self.vertica_conn_id)
         conn_config = {
             "user": conn.login,
-            "password": conn.password or '',
+            "password": conn.password or "",
             "database": conn.schema,
-            "host": conn.host or 'localhost'
+            "host": conn.host or "localhost",
         }
 
         if not conn.port:

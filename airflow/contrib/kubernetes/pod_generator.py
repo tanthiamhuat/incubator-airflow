@@ -30,13 +30,9 @@ class PodGenerator:
         self.volume_mounts = []
         self.init_containers = []
 
-    def add_init_container(self,
-                           name,
-                           image,
-                           security_context,
-                           init_environment,
-                           volume_mounts
-                           ):
+    def add_init_container(
+        self, name, image, security_context, init_environment, volume_mounts
+    ):
         """
 
         Adds an init container to the launched pod. useful for pre-
@@ -53,11 +49,11 @@ class PodGenerator:
         """
         self.init_containers.append(
             {
-                'name': name,
-                'image': image,
-                'securityContext': security_context,
-                'env': init_environment,
-                'volumeMounts': volume_mounts
+                "name": name,
+                "image": image,
+                "securityContext": security_context,
+                "env": init_environment,
+                "volumeMounts": volume_mounts,
             }
         )
 
@@ -83,25 +79,16 @@ class PodGenerator:
         Returns:
 
         """
-        volume_map = {'name': name}
+        volume_map = {"name": name}
         for k, v in configs.items():
             volume_map[k] = v
 
         self.volumes.append(volume_map)
 
     def add_volume_with_configmap(self, name, config_map):
-        self.volumes.append(
-            {
-                'name': name,
-                'configMap': config_map
-            }
-        )
+        self.volumes.append({"name": name, "configMap": config_map})
 
-    def _add_mount(self,
-                   name,
-                   mount_path,
-                   sub_path,
-                   read_only):
+    def _add_mount(self, name, mount_path, sub_path, read_only):
         """
 
         Args:
@@ -114,15 +101,16 @@ class PodGenerator:
 
         """
 
-        self.volume_mounts.append({
-            'name': name,
-            'mountPath': mount_path,
-            'subPath': sub_path,
-            'readOnly': read_only
-        })
+        self.volume_mounts.append(
+            {
+                "name": name,
+                "mountPath": mount_path,
+                "subPath": sub_path,
+                "readOnly": read_only,
+            }
+        )
 
-    def add_mount(self,
-                  volume_mount):
+    def add_mount(self, volume_mount):
         """
         Args:
             volume_mount (VolumeMount):
@@ -131,7 +119,7 @@ class PodGenerator:
             name=volume_mount.name,
             mount_path=volume_mount.mount_path,
             sub_path=volume_mount.sub_path,
-            read_only=volume_mount.read_only
+            read_only=volume_mount.read_only,
         )
 
     def _get_volumes_and_mounts(self):
@@ -141,7 +129,7 @@ class PodGenerator:
         """Extracts any image pull secrets for fetching container(s)"""
         if not self.kube_config.image_pull_secrets:
             return []
-        return self.kube_config.image_pull_secrets.split(',')
+        return self.kube_config.image_pull_secrets.split(",")
 
     def make_pod(self, namespace, image, pod_id, cmds, arguments, labels):
         volumes, volume_mounts = self._get_volumes_and_mounts()
@@ -161,5 +149,5 @@ class PodGenerator:
             init_containers=worker_init_container_spec,
             volumes=volumes,
             volume_mounts=volume_mounts,
-            resources=None
+            resources=None,
         )

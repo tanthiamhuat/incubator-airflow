@@ -41,19 +41,24 @@ class HivePartitionSensor(BaseSensorOperator):
         connection id
     :type metastore_conn_id: str
     """
-    template_fields = ('schema', 'table', 'partition',)
-    ui_color = '#C5CAE9'
+
+    template_fields = ("schema", "table", "partition")
+    ui_color = "#C5CAE9"
 
     @apply_defaults
-    def __init__(self,
-                 table, partition="ds='{{ ds }}'",
-                 metastore_conn_id='metastore_default',
-                 schema='default',
-                 poke_interval=60 * 3,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        table,
+        partition="ds='{{ ds }}'",
+        metastore_conn_id="metastore_default",
+        schema="default",
+        poke_interval=60 * 3,
+        *args,
+        **kwargs
+    ):
         super(HivePartitionSensor, self).__init__(
-            poke_interval=poke_interval, *args, **kwargs)
+            poke_interval=poke_interval, *args, **kwargs
+        )
         if not partition:
             partition = "ds='{{ ds }}'"
         self.metastore_conn_id = metastore_conn_id
@@ -62,14 +67,14 @@ class HivePartitionSensor(BaseSensorOperator):
         self.schema = schema
 
     def poke(self, context):
-        if '.' in self.table:
-            self.schema, self.table = self.table.split('.')
+        if "." in self.table:
+            self.schema, self.table = self.table.split(".")
         self.log.info(
-            'Poking for table {self.schema}.{self.table}, '
-            'partition {self.partition}'.format(**locals()))
-        if not hasattr(self, 'hook'):
+            "Poking for table {self.schema}.{self.table}, "
+            "partition {self.partition}".format(**locals())
+        )
+        if not hasattr(self, "hook"):
             from airflow.hooks.hive_hooks import HiveMetastoreHook
-            self.hook = HiveMetastoreHook(
-                metastore_conn_id=self.metastore_conn_id)
-        return self.hook.check_for_partition(
-            self.schema, self.table, self.partition)
+
+            self.hook = HiveMetastoreHook(metastore_conn_id=self.metastore_conn_id)
+        return self.hook.check_for_partition(self.schema, self.table, self.partition)

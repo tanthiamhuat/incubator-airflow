@@ -57,24 +57,20 @@ class State(object):
         SCHEDULED,
     )
 
-    dag_states = (
-        SUCCESS,
-        RUNNING,
-        FAILED,
-    )
+    dag_states = (SUCCESS, RUNNING, FAILED)
 
     state_color = {
-        QUEUED: 'gray',
-        RUNNING: 'lime',
-        SUCCESS: 'green',
-        SHUTDOWN: 'blue',
-        FAILED: 'red',
-        UP_FOR_RETRY: 'gold',
-        UPSTREAM_FAILED: 'orange',
-        SKIPPED: 'pink',
-        REMOVED: 'lightgrey',
-        SCHEDULED: 'tan',
-        NONE: 'lightblue',
+        QUEUED: "gray",
+        RUNNING: "lime",
+        SUCCESS: "green",
+        SHUTDOWN: "blue",
+        FAILED: "red",
+        UP_FOR_RETRY: "gold",
+        UPSTREAM_FAILED: "orange",
+        SKIPPED: "pink",
+        REMOVED: "lightgrey",
+        SCHEDULED: "tan",
+        NONE: "lightblue",
     }
 
     @classmethod
@@ -82,15 +78,15 @@ class State(object):
         if state in cls.state_color:
             return cls.state_color[state]
         else:
-            return 'white'
+            return "white"
 
     @classmethod
     def color_fg(cls, state):
         color = cls.color(state)
-        if color in ['green', 'red']:
-            return 'white'
+        if color in ["green", "red"]:
+            return "white"
         else:
-            return 'black'
+            return "black"
 
     @classmethod
     def finished(cls):
@@ -99,12 +95,7 @@ class State(object):
         run attempt. Note that the attempt could have resulted in failure or
         have been interrupted; in any case, it is no longer running.
         """
-        return [
-            cls.SUCCESS,
-            cls.SHUTDOWN,
-            cls.FAILED,
-            cls.SKIPPED,
-        ]
+        return [cls.SUCCESS, cls.SHUTDOWN, cls.FAILED, cls.SKIPPED]
 
     @classmethod
     def unfinished(cls):
@@ -112,10 +103,4 @@ class State(object):
         A list of states indicating that a task either has not completed
         a run or has not even started.
         """
-        return [
-            cls.NONE,
-            cls.SCHEDULED,
-            cls.QUEUED,
-            cls.RUNNING,
-            cls.UP_FOR_RETRY
-        ]
+        return [cls.NONE, cls.SCHEDULED, cls.QUEUED, cls.RUNNING, cls.UP_FOR_RETRY]

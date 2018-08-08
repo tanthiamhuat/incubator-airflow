@@ -36,5 +36,5 @@ class TimeSensor(BaseSensorOperator):
         self.target_time = target_time
 
     def poke(self, context):
-        self.log.info('Checking if the time (%s) has come', self.target_time)
+        self.log.info("Checking if the time (%s) has come", self.target_time)
         return timezone.utcnow().time() > self.target_time

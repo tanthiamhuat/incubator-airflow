@@ -45,7 +45,7 @@ from socket import getfqdn
 
 install_aliases()
 
-client_auth = HTTPKerberosAuth(service='airflow')
+client_auth = HTTPKerberosAuth(service="airflow")
 
 _SERVICE_NAME = None
 
@@ -55,17 +55,17 @@ log = LoggingMixin().log
 def init_app(app):
     global _SERVICE_NAME
 
-    hostname = app.config.get('SERVER_NAME')
+    hostname = app.config.get("SERVER_NAME")
     if not hostname:
         hostname = getfqdn()
     log.info("Kerberos: hostname %s", hostname)
 
-    service = 'airflow'
+    service = "airflow"
 
     _SERVICE_NAME = "{}@{}".format(service, hostname)
 
-    if 'KRB5_KTNAME' not in os.environ:
-        os.environ['KRB5_KTNAME'] = conf.get('kerberos', 'keytab')
+    if "KRB5_KTNAME" not in os.environ:
+        os.environ["KRB5_KTNAME"] = conf.get("kerberos", "keytab")
 
     try:
         log.info("Kerberos init: %s %s", service, hostname)
@@ -117,18 +117,20 @@ def requires_authentication(function):
         header = request.headers.get("Authorization")
         if header:
             ctx = stack.top
-            token = ''.join(header.split()[1:])
+            token = "".join(header.split()[1:])
             rc = _gssapi_authenticate(token)
             if rc == kerberos.AUTH_GSS_COMPLETE:
                 g.user = ctx.kerberos_user
                 response = function(*args, **kwargs)
                 response = make_response(response)
                 if ctx.kerberos_token is not None:
-                    response.headers['WWW-Authenticate'] = ' '.join(['negotiate',
-                                                                     ctx.kerberos_token])
+                    response.headers["WWW-Authenticate"] = " ".join(
+                        ["negotiate", ctx.kerberos_token]
+                    )
 
                 return response
             elif rc != kerberos.AUTH_GSS_CONTINUE:
                 return _forbidden()
         return _unauthorized()
+
     return decorated
