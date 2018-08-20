@@ -16,14 +16,16 @@
 # under the License.
 
 import yaml
-from airflow.contrib.kubernetes.kubernetes_request_factory.kubernetes_request_factory \
-    import KubernetesRequestFactory
+from airflow.contrib.kubernetes.kubernetes_request_factory.kubernetes_request_factory import (
+    KubernetesRequestFactory
+)
 
 
 class SimplePodRequestFactory(KubernetesRequestFactory):
     """
     Request generator for a simple pod.
     """
+
     _yaml = """apiVersion: v1
 kind: Pod
 metadata:
@@ -64,8 +66,8 @@ spec:
 
 class ExtractXcomPodRequestFactory(KubernetesRequestFactory):
 
-    XCOM_MOUNT_PATH = '/airflow/xcom'
-    SIDECAR_CONTAINER_NAME = 'airflow-xcom-sidecar'
+    XCOM_MOUNT_PATH = "/airflow/xcom"
+    SIDECAR_CONTAINER_NAME = "airflow-xcom-sidecar"
     """
     Request generator for a pod with sidecar container.
     """
@@ -91,7 +93,9 @@ spec:
         - name: xcom
           mountPath: {xcomMountPath}
   restartPolicy: Never
-    """.format(xcomMountPath=XCOM_MOUNT_PATH, sidecarContainerName=SIDECAR_CONTAINER_NAME)
+    """.format(
+        xcomMountPath=XCOM_MOUNT_PATH, sidecarContainerName=SIDECAR_CONTAINER_NAME
+    )
 
     def __init__(self):
         pass

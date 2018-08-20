@@ -31,7 +31,8 @@ class RedisHook(BaseHook, LoggingMixin):
     """
     Hook to interact with Redis database
     """
-    def __init__(self, redis_conn_id='redis_default'):
+
+    def __init__(self, redis_conn_id="redis_default"):
         """
         Prepares hook to connect to a Redis database.
 
@@ -44,18 +45,18 @@ class RedisHook(BaseHook, LoggingMixin):
         self.host = conn.host
         self.port = int(conn.port)
         self.password = conn.password
-        self.db = int(conn.extra_dejson.get('db', 0))
+        self.db = int(conn.extra_dejson.get("db", 0))
 
         self.log.debug(
-            '''Connection "{conn}":
+            """Connection "{conn}":
             \thost: {host}
             \tport: {port}
             \textra: {extra}
-            '''.format(
+            """.format(
                 conn=self.redis_conn_id,
                 host=self.host,
                 port=self.port,
-                extra=conn.extra_dejson
+                extra=conn.extra_dejson,
             )
         )
 
@@ -66,17 +67,18 @@ class RedisHook(BaseHook, LoggingMixin):
         if not self.client:
             self.log.debug(
                 'generating Redis client for conn_id "%s" on %s:%s:%s',
-                self.redis_conn_id, self.host, self.port, self.db
+                self.redis_conn_id,
+                self.host,
+                self.port,
+                self.db,
             )
             try:
                 self.client = StrictRedis(
-                    host=self.host,
-                    port=self.port,
-                    password=self.password,
-                    db=self.db)
+                    host=self.host, port=self.port, password=self.password, db=self.db
+                )
             except Exception as general_error:
                 raise AirflowException(
-                    'Failed to create Redis client, error: {error}'.format(
+                    "Failed to create Redis client, error: {error}".format(
                         error=str(general_error)
                     )
                 )

@@ -39,19 +39,22 @@ class QuboleSensor(BaseSensorOperator):
     also use ``.txt`` files for template driven use cases.
     """
 
-    template_fields = ('data', 'qubole_conn_id')
+    template_fields = ("data", "qubole_conn_id")
 
-    template_ext = ('.txt',)
+    template_ext = (".txt",)
 
     @apply_defaults
     def __init__(self, data, qubole_conn_id="qubole_default", *args, **kwargs):
         self.data = data
         self.qubole_conn_id = qubole_conn_id
 
-        if 'poke_interval' in kwargs and kwargs['poke_interval'] < 5:
-            raise AirflowException("Sorry, poke_interval can't be less than 5 sec for "
-                                   "task '{0}' in dag '{1}'."
-                                   .format(kwargs['task_id'], kwargs['dag'].dag_id))
+        if "poke_interval" in kwargs and kwargs["poke_interval"] < 5:
+            raise AirflowException(
+                "Sorry, poke_interval can't be less than 5 sec for "
+                "task '{0}' in dag '{1}'.".format(
+                    kwargs["task_id"], kwargs["dag"].dag_id
+                )
+            )
 
         super(QuboleSensor, self).__init__(*args, **kwargs)
 
@@ -60,7 +63,7 @@ class QuboleSensor(BaseSensorOperator):
         conn = BaseHook.get_connection(self.qubole_conn_id)
         Qubole.configure(api_token=conn.password, api_url=conn.host)
 
-        self.log.info('Poking: %s', self.data)
+        self.log.info("Poking: %s", self.data)
 
         status = False
         try:
@@ -69,7 +72,7 @@ class QuboleSensor(BaseSensorOperator):
             self.log.exception(e)
             status = False
 
-        self.log.info('Status of this Poke: %s', status)
+        self.log.info("Status of this Poke: %s", status)
 
         return status
 

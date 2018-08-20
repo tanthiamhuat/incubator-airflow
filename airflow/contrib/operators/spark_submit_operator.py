@@ -84,35 +84,38 @@ class SparkSubmitOperator(BaseOperator):
     :param verbose: Whether to pass the verbose flag to spark-submit process for debugging
     :type verbose: bool
     """
-    template_fields = ('_name', '_application_args', '_packages')
-    ui_color = WEB_COLORS['LIGHTORANGE']
+
+    template_fields = ("_name", "_application_args", "_packages")
+    ui_color = WEB_COLORS["LIGHTORANGE"]
 
     @apply_defaults
-    def __init__(self,
-                 application='',
-                 conf=None,
-                 conn_id='spark_default',
-                 files=None,
-                 py_files=None,
-                 driver_classpath=None,
-                 jars=None,
-                 java_class=None,
-                 packages=None,
-                 exclude_packages=None,
-                 repositories=None,
-                 total_executor_cores=None,
-                 executor_cores=None,
-                 executor_memory=None,
-                 driver_memory=None,
-                 keytab=None,
-                 principal=None,
-                 name='airflow-spark',
-                 num_executors=None,
-                 application_args=None,
-                 env_vars=None,
-                 verbose=False,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        application="",
+        conf=None,
+        conn_id="spark_default",
+        files=None,
+        py_files=None,
+        driver_classpath=None,
+        jars=None,
+        java_class=None,
+        packages=None,
+        exclude_packages=None,
+        repositories=None,
+        total_executor_cores=None,
+        executor_cores=None,
+        executor_memory=None,
+        driver_memory=None,
+        keytab=None,
+        principal=None,
+        name="airflow-spark",
+        num_executors=None,
+        application_args=None,
+        env_vars=None,
+        verbose=False,
+        *args,
+        **kwargs
+    ):
         super(SparkSubmitOperator, self).__init__(*args, **kwargs)
         self._application = application
         self._conf = conf
@@ -163,7 +166,7 @@ class SparkSubmitOperator(BaseOperator):
             num_executors=self._num_executors,
             application_args=self._application_args,
             env_vars=self._env_vars,
-            verbose=self._verbose
+            verbose=self._verbose,
         )
         self._hook.submit(self._application)
 

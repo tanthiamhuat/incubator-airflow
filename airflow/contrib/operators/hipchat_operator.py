@@ -39,12 +39,9 @@ class HipChatAPIOperator(BaseOperator):
     :param base_url: HipChat REST API base url.
     :type base_url: str
     """
+
     @apply_defaults
-    def __init__(self,
-                 token,
-                 base_url='https://api.hipchat.com/v2',
-                 *args,
-                 **kwargs):
+    def __init__(self, token, base_url="https://api.hipchat.com/v2", *args, **kwargs):
         super(HipChatAPIOperator, self).__init__(*args, **kwargs)
         self.token = token
         self.base_url = base_url
@@ -64,17 +61,23 @@ class HipChatAPIOperator(BaseOperator):
     def execute(self, context):
         self.prepare_request()
 
-        response = requests.request(self.method,
-                                    self.url,
-                                    headers={
-                                        'Content-Type': 'application/json',
-                                        'Authorization': 'Bearer %s' % self.token},
-                                    data=self.body)
+        response = requests.request(
+            self.method,
+            self.url,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer %s" % self.token,
+            },
+            data=self.body,
+        )
         if response.status_code >= 400:
-            self.log.error('HipChat API call failed: %s %s',
-                           response.status_code, response.reason)
-            raise AirflowException('HipChat API call failed: %s %s' %
-                                   (response.status_code, response.reason))
+            self.log.error(
+                "HipChat API call failed: %s %s", response.status_code, response.reason
+            )
+            raise AirflowException(
+                "HipChat API call failed: %s %s"
+                % (response.status_code, response.reason)
+            )
 
 
 class HipChatAPISendRoomNotificationOperator(HipChatAPIOperator):
@@ -99,14 +102,34 @@ class HipChatAPISendRoomNotificationOperator(HipChatAPIOperator):
     :param card: HipChat-defined card object
     :type card: dict
     """
-    template_fields = ('token', 'room_id', 'message', 'message_format',
-                       'color', 'frm', 'attach_to', 'notify', 'card')
-    ui_color = '#2980b9'
+
+    template_fields = (
+        "token",
+        "room_id",
+        "message",
+        "message_format",
+        "color",
+        "frm",
+        "attach_to",
+        "notify",
+        "card",
+    )
+    ui_color = "#2980b9"
 
     @apply_defaults
-    def __init__(self, room_id, message, message_format='html',
-                 color='yellow', frm='airflow', attach_to=None,
-                 notify=False, card=None, *args, **kwargs):
+    def __init__(
+        self,
+        room_id,
+        message,
+        message_format="html",
+        color="yellow",
+        frm="airflow",
+        attach_to=None,
+        notify=False,
+        card=None,
+        *args,
+        **kwargs
+    ):
         super(HipChatAPISendRoomNotificationOperator, self).__init__(*args, **kwargs)
         self.room_id = room_id
         self.message = message
@@ -119,16 +142,15 @@ class HipChatAPISendRoomNotificationOperator(HipChatAPIOperator):
 
     def prepare_request(self):
         params = {
-            'message': self.message,
-            'message_format': self.message_format,
-            'color': self.color,
-            'from': self.frm,
-            'attach_to': self.attach_to,
-            'notify': self.notify,
-            'card': self.card
+            "message": self.message,
+            "message_format": self.message_format,
+            "color": self.color,
+            "from": self.frm,
+            "attach_to": self.attach_to,
+            "notify": self.notify,
+            "card": self.card,
         }
 
-        self.method = 'POST'
-        self.url = '%s/room/%s/notification' % (self.base_url, self.room_id)
-        self.body = json.dumps(dict(
-            (str(k), str(v)) for k, v in params.items() if v))
+        self.method = "POST"
+        self.url = "%s/room/%s/notification" % (self.base_url, self.room_id)
+        self.body = json.dumps(dict((str(k), str(v)) for k, v in params.items() if v))

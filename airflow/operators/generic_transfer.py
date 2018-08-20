@@ -44,19 +44,21 @@ class GenericTransfer(BaseOperator):
     :type preoperator: str or list of str
     """
 
-    template_fields = ('sql', 'destination_table', 'preoperator')
-    template_ext = ('.sql', '.hql',)
-    ui_color = '#b0f07c'
+    template_fields = ("sql", "destination_table", "preoperator")
+    template_ext = (".sql", ".hql")
+    ui_color = "#b0f07c"
 
     @apply_defaults
     def __init__(
-            self,
-            sql,
-            destination_table,
-            source_conn_id,
-            destination_conn_id,
-            preoperator=None,
-            *args, **kwargs):
+        self,
+        sql,
+        destination_table,
+        source_conn_id,
+        destination_conn_id,
+        preoperator=None,
+        *args,
+        **kwargs
+    ):
         super(GenericTransfer, self).__init__(*args, **kwargs)
         self.sql = sql
         self.destination_table = destination_table

@@ -34,7 +34,7 @@ class AzureDataLakeHook(BaseHook):
     :type azure_data_lake_conn_id: str
     """
 
-    def __init__(self, azure_data_lake_conn_id='azure_data_lake_default'):
+    def __init__(self, azure_data_lake_conn_id="azure_data_lake_default"):
         self.conn_id = azure_data_lake_conn_id
         self.connection = self.get_conn()
 
@@ -42,13 +42,16 @@ class AzureDataLakeHook(BaseHook):
         """Return a AzureDLFileSystem object."""
         conn = self.get_connection(self.conn_id)
         service_options = conn.extra_dejson
-        self.account_name = service_options.get('account_name')
+        self.account_name = service_options.get("account_name")
 
-        adlCreds = lib.auth(tenant_id=service_options.get('tenant'),
-                            client_secret=conn.password,
-                            client_id=conn.login)
-        adlsFileSystemClient = core.AzureDLFileSystem(adlCreds,
-                                                      store_name=self.account_name)
+        adlCreds = lib.auth(
+            tenant_id=service_options.get("tenant"),
+            client_secret=conn.password,
+            client_id=conn.login,
+        )
+        adlsFileSystemClient = core.AzureDLFileSystem(
+            adlCreds, store_name=self.account_name
+        )
         adlsFileSystemClient.connect()
         return adlsFileSystemClient
 
@@ -62,13 +65,22 @@ class AzureDataLakeHook(BaseHook):
         :rtype bool
         """
         try:
-            files = self.connection.glob(file_path, details=False, invalidate_cache=True)
+            files = self.connection.glob(
+                file_path, details=False, invalidate_cache=True
+            )
             return len(files) == 1
         except FileNotFoundError:
             return False
 
-    def upload_file(self, local_path, remote_path, nthreads=64, overwrite=True,
-                    buffersize=4194304, blocksize=4194304):
+    def upload_file(
+        self,
+        local_path,
+        remote_path,
+        nthreads=64,
+        overwrite=True,
+        buffersize=4194304,
+        blocksize=4194304,
+    ):
         """
         Upload a file to Azure Data Lake.
 
@@ -95,16 +107,25 @@ class AzureDataLakeHook(BaseHook):
             block for each API call. This block cannot be bigger than a chunk.
         :type blocksize: int
         """
-        multithread.ADLUploader(self.connection,
-                                lpath=local_path,
-                                rpath=remote_path,
-                                nthreads=nthreads,
-                                overwrite=overwrite,
-                                buffersize=buffersize,
-                                blocksize=blocksize)
+        multithread.ADLUploader(
+            self.connection,
+            lpath=local_path,
+            rpath=remote_path,
+            nthreads=nthreads,
+            overwrite=overwrite,
+            buffersize=buffersize,
+            blocksize=blocksize,
+        )
 
-    def download_file(self, local_path, remote_path, nthreads=64, overwrite=True,
-                      buffersize=4194304, blocksize=4194304):
+    def download_file(
+        self,
+        local_path,
+        remote_path,
+        nthreads=64,
+        overwrite=True,
+        buffersize=4194304,
+        blocksize=4194304,
+    ):
         """
         Download a file from Azure Blob Storage.
 
@@ -132,10 +153,12 @@ class AzureDataLakeHook(BaseHook):
             block for each API call. This block cannot be bigger than a chunk.
         :type blocksize: int
         """
-        multithread.ADLDownloader(self.connection,
-                                  lpath=local_path,
-                                  rpath=remote_path,
-                                  nthreads=nthreads,
-                                  overwrite=overwrite,
-                                  buffersize=buffersize,
-                                  blocksize=blocksize)
+        multithread.ADLDownloader(
+            self.connection,
+            lpath=local_path,
+            rpath=remote_path,
+            nthreads=nthreads,
+            overwrite=overwrite,
+            buffersize=buffersize,
+            blocksize=blocksize,
+        )

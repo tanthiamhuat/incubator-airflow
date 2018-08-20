@@ -26,6 +26,7 @@ class ZendeskHook(BaseHook):
     """
     A hook to talk to Zendesk
     """
+
     def __init__(self, zendesk_conn_id):
         self.__zendesk_conn_id = zendesk_conn_id
         self.__url = None
@@ -40,12 +41,8 @@ class ZendeskHook(BaseHook):
         Sleep for the time specified in the exception. If not specified, wait
         for 60 seconds.
         """
-        retry_after = int(
-            rate_limit_exception.response.headers.get('Retry-After', 60))
-        self.log.info(
-            "Hit Zendesk API rate limit. Pausing for %s seconds",
-            retry_after
-        )
+        retry_after = int(rate_limit_exception.response.headers.get("Retry-After", 60))
+        self.log.info("Hit Zendesk API rate limit. Pausing for %s seconds", retry_after)
         time.sleep(retry_after)
 
     def call(self, path, query=None, get_all_pages=True, side_loading=False):
@@ -75,9 +72,9 @@ class ZendeskHook(BaseHook):
 
         # Find the key with the results
         keys = [path.split("/")[-1].split(".json")[0]]
-        next_page = results['next_page']
+        next_page = results["next_page"]
         if side_loading:
-            keys += query['include'].split(',')
+            keys += query["include"].split(",")
         results = {key: results[key] for key in keys}
 
         if get_all_pages:
@@ -91,14 +88,14 @@ class ZendeskHook(BaseHook):
                     more_res = zendesk.call(next_url)
                     for key in results:
                         results[key].extend(more_res[key])
-                    if next_page == more_res['next_page']:
+                    if next_page == more_res["next_page"]:
                         # Unfortunately zdesk doesn't always throw ZendeskError
                         # when we are done getting all the data. Sometimes the
                         # next just refers to the current set of results.
                         # Hence, need to deal with this special case
                         break
                     else:
-                        next_page = more_res['next_page']
+                        next_page = more_res["next_page"]
                 except RateLimitError as rle:
                     self.__handle_rate_limit_exception(rle)
                 except ZendeskError as ze:

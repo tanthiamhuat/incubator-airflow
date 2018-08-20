@@ -27,6 +27,7 @@ class StandardTaskRunner(BaseTaskRunner):
     """
     Runs the raw Airflow task by invoking through the Bash shell.
     """
+
     def __init__(self, local_task_job):
         super(StandardTaskRunner, self).__init__(local_task_job)
 

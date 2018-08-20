@@ -117,22 +117,46 @@ class QuboleOperator(BaseOperator):
         handler in task definition.
     """
 
-    template_fields = ('query', 'script_location', 'sub_command', 'script', 'files',
-                       'archives', 'program', 'cmdline', 'sql', 'where_clause', 'tags',
-                       'extract_query', 'boundary_query', 'macros', 'name', 'parameters',
-                       'dbtap_id', 'hive_table', 'db_table', 'split_column', 'note_id',
-                       'db_update_keys', 'export_dir', 'partition_spec', 'qubole_conn_id',
-                       'arguments', 'user_program_arguments', 'cluster_label')
+    template_fields = (
+        "query",
+        "script_location",
+        "sub_command",
+        "script",
+        "files",
+        "archives",
+        "program",
+        "cmdline",
+        "sql",
+        "where_clause",
+        "tags",
+        "extract_query",
+        "boundary_query",
+        "macros",
+        "name",
+        "parameters",
+        "dbtap_id",
+        "hive_table",
+        "db_table",
+        "split_column",
+        "note_id",
+        "db_update_keys",
+        "export_dir",
+        "partition_spec",
+        "qubole_conn_id",
+        "arguments",
+        "user_program_arguments",
+        "cluster_label",
+    )
 
-    template_ext = ('.txt',)
-    ui_color = '#3064A1'
-    ui_fgcolor = '#fff'
+    template_ext = (".txt",)
+    ui_color = "#3064A1"
+    ui_fgcolor = "#fff"
 
     @apply_defaults
     def __init__(self, qubole_conn_id="qubole_default", *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.kwargs['qubole_conn_id'] = qubole_conn_id
+        self.kwargs["qubole_conn_id"] = qubole_conn_id
         super(QuboleOperator, self).__init__(*args, **kwargs)
 
         if self.on_failure_callback is None:
@@ -165,7 +189,7 @@ class QuboleOperator(BaseOperator):
             if name in self.kwargs:
                 return self.kwargs[name]
             else:
-                return ''
+                return ""
         else:
             return object.__getattribute__(self, name)
 

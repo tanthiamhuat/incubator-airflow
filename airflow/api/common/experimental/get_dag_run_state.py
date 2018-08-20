@@ -37,8 +37,9 @@ def get_dag_run_state(dag_id, execution_date):
     # Get DagRun object and check that it exists
     dagrun = dag.get_dagrun(execution_date=execution_date)
     if not dagrun:
-        error_message = ('Dag Run for date {} not found in dag {}'
-                         .format(execution_date, dag_id))
+        error_message = "Dag Run for date {} not found in dag {}".format(
+            execution_date, dag_id
+        )
         raise DagRunNotFound(error_message)
 
-    return {'state': dagrun.get_state()}
+    return {"state": dagrun.get_state()}

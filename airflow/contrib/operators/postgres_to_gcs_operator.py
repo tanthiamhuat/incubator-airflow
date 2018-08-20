@@ -36,24 +36,26 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
     """
     Copy data from Postgres to Google Cloud Storage in JSON format.
     """
-    template_fields = ('sql', 'bucket', 'filename', 'schema_filename',
-                       'parameters')
-    template_ext = ('.sql', )
-    ui_color = '#a0e08c'
+
+    template_fields = ("sql", "bucket", "filename", "schema_filename", "parameters")
+    template_ext = (".sql",)
+    ui_color = "#a0e08c"
 
     @apply_defaults
-    def __init__(self,
-                 sql,
-                 bucket,
-                 filename,
-                 schema_filename=None,
-                 approx_max_file_size_bytes=1900000000,
-                 postgres_conn_id='postgres_default',
-                 google_cloud_storage_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 parameters=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        sql,
+        bucket,
+        filename,
+        schema_filename=None,
+        approx_max_file_size_bytes=1900000000,
+        postgres_conn_id="postgres_default",
+        google_cloud_storage_conn_id="google_cloud_default",
+        delegate_to=None,
+        parameters=None,
+        *args,
+        **kwargs
+    ):
         """
         :param sql: The SQL to execute on the Postgres table.
         :type sql: string
@@ -144,11 +146,11 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
 
             s = json.dumps(row_dict, sort_keys=True)
             if PY3:
-                s = s.encode('utf-8')
+                s = s.encode("utf-8")
             tmp_file_handle.write(s)
 
             # Append newline to make dumps BigQuery compatible.
-            tmp_file_handle.write(b'\n')
+            tmp_file_handle.write(b"\n")
 
             # Stop if the file exceeds the file size limit.
             if tmp_file_handle.tell() >= self.approx_max_file_size_bytes:
@@ -172,19 +174,16 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
             # See PEP 249 for details about the description tuple.
             field_name = field[0]
             field_type = self.type_map(field[1])
-            field_mode = 'REPEATED' if field[1] in (1009, 1005, 1007,
-                                                    1016) else 'NULLABLE'
-            schema.append({
-                'name': field_name,
-                'type': field_type,
-                'mode': field_mode,
-            })
+            field_mode = (
+                "REPEATED" if field[1] in (1009, 1005, 1007, 1016) else "NULLABLE"
+            )
+            schema.append({"name": field_name, "type": field_type, "mode": field_mode})
 
-        self.log.info('Using schema for %s: %s', self.schema_filename, schema)
+        self.log.info("Using schema for %s: %s", self.schema_filename, schema)
         tmp_schema_file_handle = NamedTemporaryFile(delete=True)
         s = json.dumps(schema, sort_keys=True)
         if PY3:
-            s = s.encode('utf-8')
+            s = s.encode("utf-8")
         tmp_schema_file_handle.write(s)
         return {self.schema_filename: tmp_schema_file_handle}
 
@@ -195,10 +194,10 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
         """
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to)
+            delegate_to=self.delegate_to,
+        )
         for object, tmp_file_handle in files_to_upload.items():
-            hook.upload(self.bucket, object, tmp_file_handle.name,
-                        'application/json')
+            hook.upload(self.bucket, object, tmp_file_handle.name, "application/json")
 
     @classmethod
     def convert_types(cls, value):
@@ -214,7 +213,8 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
             return datetime.timedelta(
                 hours=formated_time.tm_hour,
                 minutes=formated_time.tm_min,
-                seconds=formated_time.tm_sec).seconds
+                seconds=formated_time.tm_sec,
+            ).seconds
         elif isinstance(value, Decimal):
             return float(value)
         else:
@@ -227,20 +227,20 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
         when a schema_filename is set.
         """
         d = {
-            1114: 'TIMESTAMP',
-            1184: 'TIMESTAMP',
-            1082: 'TIMESTAMP',
-            1083: 'TIMESTAMP',
-            1005: 'INTEGER',
-            1007: 'INTEGER',
-            1016: 'INTEGER',
-            20: 'INTEGER',
-            21: 'INTEGER',
-            23: 'INTEGER',
-            16: 'BOOLEAN',
-            700: 'FLOAT',
-            701: 'FLOAT',
-            1700: 'FLOAT'
+            1114: "TIMESTAMP",
+            1184: "TIMESTAMP",
+            1082: "TIMESTAMP",
+            1083: "TIMESTAMP",
+            1005: "INTEGER",
+            1007: "INTEGER",
+            1016: "INTEGER",
+            20: "INTEGER",
+            21: "INTEGER",
+            23: "INTEGER",
+            16: "BOOLEAN",
+            700: "FLOAT",
+            701: "FLOAT",
+            1700: "FLOAT",
         }
 
-        return d[postgres_type] if postgres_type in d else 'STRING'
+        return d[postgres_type] if postgres_type in d else "STRING"

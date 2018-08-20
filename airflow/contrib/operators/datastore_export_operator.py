@@ -59,19 +59,21 @@ class DatastoreExportOperator(BaseOperator):
     """
 
     @apply_defaults
-    def __init__(self,
-                 bucket,
-                 namespace=None,
-                 datastore_conn_id='google_cloud_default',
-                 cloud_storage_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 entity_filter=None,
-                 labels=None,
-                 polling_interval_in_seconds=10,
-                 overwrite_existing=False,
-                 xcom_push=False,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        bucket,
+        namespace=None,
+        datastore_conn_id="google_cloud_default",
+        cloud_storage_conn_id="google_cloud_default",
+        delegate_to=None,
+        entity_filter=None,
+        labels=None,
+        polling_interval_in_seconds=10,
+        overwrite_existing=False,
+        xcom_push=False,
+        *args,
+        **kwargs
+    ):
         super(DatastoreExportOperator, self).__init__(*args, **kwargs)
         self.datastore_conn_id = datastore_conn_id
         self.cloud_storage_conn_id = cloud_storage_conn_id
@@ -85,7 +87,7 @@ class DatastoreExportOperator(BaseOperator):
         self.xcom_push = xcom_push
 
     def execute(self, context):
-        self.log.info('Exporting data to Cloud Storage bucket ' + self.bucket)
+        self.log.info("Exporting data to Cloud Storage bucket " + self.bucket)
 
         if self.overwrite_existing and self.namespace:
             gcs_hook = GoogleCloudStorageHook(self.cloud_storage_conn_id)
@@ -94,17 +96,20 @@ class DatastoreExportOperator(BaseOperator):
                 gcs_hook.delete(self.bucket, o)
 
         ds_hook = DatastoreHook(self.datastore_conn_id, self.delegate_to)
-        result = ds_hook.export_to_storage_bucket(bucket=self.bucket,
-                                                  namespace=self.namespace,
-                                                  entity_filter=self.entity_filter,
-                                                  labels=self.labels)
-        operation_name = result['name']
-        result = ds_hook.poll_operation_until_done(operation_name,
-                                                   self.polling_interval_in_seconds)
+        result = ds_hook.export_to_storage_bucket(
+            bucket=self.bucket,
+            namespace=self.namespace,
+            entity_filter=self.entity_filter,
+            labels=self.labels,
+        )
+        operation_name = result["name"]
+        result = ds_hook.poll_operation_until_done(
+            operation_name, self.polling_interval_in_seconds
+        )
 
-        state = result['metadata']['common']['state']
-        if state != 'SUCCESSFUL':
-            raise AirflowException('Operation failed: result={}'.format(result))
+        state = result["metadata"]["common"]["state"]
+        if state != "SUCCESSFUL":
+            raise AirflowException("Operation failed: result={}".format(result))
 
         if self.xcom_push:
             return result

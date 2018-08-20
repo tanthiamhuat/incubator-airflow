@@ -45,19 +45,21 @@ class SSHOperator(BaseOperator):
     :type do_xcom_push: bool
     """
 
-    template_fields = ('command', 'remote_host')
-    template_ext = ('.sh',)
+    template_fields = ("command", "remote_host")
+    template_ext = (".sh",)
 
     @apply_defaults
-    def __init__(self,
-                 ssh_hook=None,
-                 ssh_conn_id=None,
-                 remote_host=None,
-                 command=None,
-                 timeout=10,
-                 do_xcom_push=False,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        ssh_hook=None,
+        ssh_conn_id=None,
+        remote_host=None,
+        command=None,
+        timeout=10,
+        do_xcom_push=False,
+        *args,
+        **kwargs
+    ):
         super(SSHOperator, self).__init__(*args, **kwargs)
         self.ssh_hook = ssh_hook
         self.ssh_conn_id = ssh_conn_id
@@ -69,11 +71,14 @@ class SSHOperator(BaseOperator):
     def execute(self, context):
         try:
             if self.ssh_conn_id and not self.ssh_hook:
-                self.ssh_hook = SSHHook(ssh_conn_id=self.ssh_conn_id,
-                                        timeout=self.timeout)
+                self.ssh_hook = SSHHook(
+                    ssh_conn_id=self.ssh_conn_id, timeout=self.timeout
+                )
 
             if not self.ssh_hook:
-                raise AirflowException("Cannot operate without ssh_hook or ssh_conn_id.")
+                raise AirflowException(
+                    "Cannot operate without ssh_hook or ssh_conn_id."
+                )
 
             if self.remote_host is not None:
                 self.ssh_hook.remote_host = self.remote_host
@@ -84,14 +89,13 @@ class SSHOperator(BaseOperator):
             with self.ssh_hook.get_conn() as ssh_client:
                 # Auto apply tty when its required in case of sudo
                 get_pty = False
-                if self.command.startswith('sudo'):
+                if self.command.startswith("sudo"):
                     get_pty = True
 
                 # set timeout taken as params
-                stdin, stdout, stderr = ssh_client.exec_command(command=self.command,
-                                                                get_pty=get_pty,
-                                                                timeout=self.timeout
-                                                                )
+                stdin, stdout, stderr = ssh_client.exec_command(
+                    command=self.command, get_pty=get_pty, timeout=self.timeout
+                )
                 # get channels
                 channel = stdout.channel
 
@@ -99,8 +103,8 @@ class SSHOperator(BaseOperator):
                 stdin.close()
                 channel.shutdown_write()
 
-                agg_stdout = b''
-                agg_stderr = b''
+                agg_stdout = b""
+                agg_stderr = b""
 
                 # capture any initial output in case channel is closed already
                 stdout_buffer_length = len(stdout.channel.in_buffer)
@@ -109,24 +113,28 @@ class SSHOperator(BaseOperator):
                     agg_stdout += stdout.channel.recv(stdout_buffer_length)
 
                 # read from both stdout and stderr
-                while not channel.closed or \
-                        channel.recv_ready() or \
-                        channel.recv_stderr_ready():
+                while (
+                    not channel.closed
+                    or channel.recv_ready()
+                    or channel.recv_stderr_ready()
+                ):
                     readq, _, _ = select([channel], [], [], self.timeout)
                     for c in readq:
                         if c.recv_ready():
                             line = stdout.channel.recv(len(c.in_buffer))
                             line = line
                             agg_stdout += line
-                            self.log.info(line.decode('utf-8').strip('\n'))
+                            self.log.info(line.decode("utf-8").strip("\n"))
                         if c.recv_stderr_ready():
                             line = stderr.channel.recv_stderr(len(c.in_stderr_buffer))
                             line = line
                             agg_stderr += line
-                            self.log.warning(line.decode('utf-8').strip('\n'))
-                    if stdout.channel.exit_status_ready()\
-                            and not stderr.channel.recv_stderr_ready()\
-                            and not stdout.channel.recv_ready():
+                            self.log.warning(line.decode("utf-8").strip("\n"))
+                    if (
+                        stdout.channel.exit_status_ready()
+                        and not stderr.channel.recv_stderr_ready()
+                        and not stdout.channel.recv_ready()
+                    ):
                         stdout.channel.shutdown_read()
                         stdout.channel.close()
                         break
@@ -139,17 +147,20 @@ class SSHOperator(BaseOperator):
                     # returning output if do_xcom_push is set
                     if self.do_xcom_push:
                         enable_pickling = configuration.conf.getboolean(
-                            'core', 'enable_xcom_pickling'
+                            "core", "enable_xcom_pickling"
                         )
                         if enable_pickling:
                             return agg_stdout
                         else:
-                            return b64encode(agg_stdout).decode('utf-8')
+                            return b64encode(agg_stdout).decode("utf-8")
 
                 else:
-                    error_msg = agg_stderr.decode('utf-8')
-                    raise AirflowException("error running cmd: {0}, error: {1}"
-                                           .format(self.command, error_msg))
+                    error_msg = agg_stderr.decode("utf-8")
+                    raise AirflowException(
+                        "error running cmd: {0}, error: {1}".format(
+                            self.command, error_msg
+                        )
+                    )
 
         except Exception as e:
             raise AirflowException("SSH operator error: {0}".format(str(e)))

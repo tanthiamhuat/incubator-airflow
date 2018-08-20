@@ -33,8 +33,8 @@ class JdbcHook(DbApiHook):
     Raises an airflow error if the given connection id doesn't exist.
     """
 
-    conn_name_attr = 'jdbc_conn_id'
-    default_conn_name = 'jdbc_default'
+    conn_name_attr = "jdbc_conn_id"
+    default_conn_name = "jdbc_default"
     supports_autocommit = True
 
     def get_conn(self):
@@ -42,13 +42,15 @@ class JdbcHook(DbApiHook):
         host = conn.host
         login = conn.login
         psw = conn.password
-        jdbc_driver_loc = conn.extra_dejson.get('extra__jdbc__drv_path')
-        jdbc_driver_name = conn.extra_dejson.get('extra__jdbc__drv_clsname')
+        jdbc_driver_loc = conn.extra_dejson.get("extra__jdbc__drv_path")
+        jdbc_driver_name = conn.extra_dejson.get("extra__jdbc__drv_clsname")
 
-        conn = jaydebeapi.connect(jclassname=jdbc_driver_name,
-                                  url=str(host),
-                                  driver_args=[str(login), str(psw)],
-                                  jars=jdbc_driver_loc.split(","))
+        conn = jaydebeapi.connect(
+            jclassname=jdbc_driver_name,
+            url=str(host),
+            driver_args=[str(login), str(psw)],
+            jars=jdbc_driver_loc.split(","),
+        )
         return conn
 
     def set_autocommit(self, conn, autocommit):

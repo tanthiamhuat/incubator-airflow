@@ -33,26 +33,33 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
     uploads to and reads from Wasb remote storage.
     """
 
-    def __init__(self, base_log_folder, wasb_log_folder, wasb_container,
-                 filename_template, delete_local_copy):
+    def __init__(
+        self,
+        base_log_folder,
+        wasb_log_folder,
+        wasb_container,
+        filename_template,
+        delete_local_copy,
+    ):
         super(WasbTaskHandler, self).__init__(base_log_folder, filename_template)
         self.wasb_container = wasb_container
         self.remote_base = wasb_log_folder
-        self.log_relative_path = ''
+        self.log_relative_path = ""
         self._hook = None
         self.closed = False
         self.upload_on_close = True
         self.delete_local_copy = delete_local_copy
 
     def _build_hook(self):
-        remote_conn_id = configuration.get('core', 'REMOTE_LOG_CONN_ID')
+        remote_conn_id = configuration.get("core", "REMOTE_LOG_CONN_ID")
         try:
             return WasbHook(remote_conn_id)
         except AzureHttpError:
             self.log.error(
                 'Could not create an WasbHook with connection id "%s". '
-                'Please make sure that airflow[azure] is installed and '
-                'the Wasb connection exists.', remote_conn_id
+                "Please make sure that airflow[azure] is installed and "
+                "the Wasb connection exists.",
+                remote_conn_id,
             )
 
     @property
@@ -88,7 +95,7 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
         remote_loc = os.path.join(self.remote_base, self.log_relative_path)
         if os.path.exists(local_loc):
             # read log and remove old logs to get just the latest additions
-            with open(local_loc, 'r') as logfile:
+            with open(local_loc, "r") as logfile:
                 log = logfile.read()
             self.wasb_write(log, remote_loc, append=True)
 
@@ -117,9 +124,8 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
             # local machine even if there are errors reading remote logs, as
             # returned remote_log will contain error messages.
             remote_log = self.wasb_read(remote_loc, return_error=True)
-            log = '*** Reading remote log from {}.\n{}\n'.format(
-                remote_loc, remote_log)
-            return log, {'end_of_log': True}
+            log = "*** Reading remote log from {}.\n{}\n".format(remote_loc, remote_log)
+            return log, {"end_of_log": True}
         else:
             return super(WasbTaskHandler, self)._read(ti, try_number)
 
@@ -148,7 +154,7 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
         try:
             return self.hook.read_file(self.wasb_container, remote_log_location)
         except AzureHttpError:
-            msg = 'Could not read logs from {}'.format(remote_log_location)
+            msg = "Could not read logs from {}".format(remote_log_location)
             self.log.exception(msg)
             # return error if needed
             if return_error:
@@ -168,14 +174,9 @@ class WasbTaskHandler(FileTaskHandler, LoggingMixin):
         """
         if append and self.wasb_log_exists(remote_log_location):
             old_log = self.wasb_read(remote_log_location)
-            log = '\n'.join([old_log, log]) if old_log else log
+            log = "\n".join([old_log, log]) if old_log else log
 
         try:
-            self.hook.load_string(
-                log,
-                self.wasb_container,
-                remote_log_location,
-            )
+            self.hook.load_string(log, self.wasb_container, remote_log_location)
         except AzureHttpError:
-            self.log.exception('Could not write logs to %s',
-                               remote_log_location)
+            self.log.exception("Could not write logs to %s", remote_log_location)

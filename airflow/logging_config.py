@@ -28,44 +28,46 @@ log = logging.getLogger(__name__)
 
 
 def configure_logging():
-    logging_class_path = ''
+    logging_class_path = ""
     try:
         # Prepare the classpath so we are sure that the config folder
         # is on the python classpath and it is reachable
         prepare_classpath()
 
-        logging_class_path = conf.get('core', 'logging_config_class')
+        logging_class_path = conf.get("core", "logging_config_class")
     except AirflowConfigException:
-        log.debug('Could not find key logging_config_class in config')
+        log.debug("Could not find key logging_config_class in config")
 
     if logging_class_path:
         try:
             logging_config = import_string(logging_class_path)
 
             # Make sure that the variable is in scope
-            assert (isinstance(logging_config, dict))
+            assert isinstance(logging_config, dict)
 
             log.info(
-                'Successfully imported user-defined logging config from %s',
-                logging_class_path
+                "Successfully imported user-defined logging config from %s",
+                logging_class_path,
             )
         except Exception as err:
             # Import default logging configurations.
             raise ImportError(
-                'Unable to load custom logging from {} due to {}'
-                .format(logging_class_path, err)
+                "Unable to load custom logging from {} due to {}".format(
+                    logging_class_path, err
+                )
             )
     else:
         from airflow.config_templates.airflow_local_settings import (
             DEFAULT_LOGGING_CONFIG as logging_config
         )
-        log.debug('Unable to load custom logging, using default config instead')
+
+        log.debug("Unable to load custom logging, using default config instead")
 
     try:
         # Try to init logging
         dictConfig(logging_config)
     except ValueError as e:
-        log.warning('Unable to load the config, contains a configuration error.')
+        log.warning("Unable to load the config, contains a configuration error.")
         # When there is an error in the config, escalate the exception
         # otherwise Airflow would silently fall back on the default config
         raise e

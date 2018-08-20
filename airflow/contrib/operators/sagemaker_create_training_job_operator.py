@@ -71,20 +71,23 @@ class SageMakerCreateTrainingJobOperator(BaseOperator):
                )
     """
 
-    template_fields = ['training_job_config']
+    template_fields = ["training_job_config"]
     template_ext = ()
-    ui_color = '#ededed'
+    ui_color = "#ededed"
 
     @apply_defaults
-    def __init__(self,
-                 training_job_config=None,
-                 region_name=None,
-                 sagemaker_conn_id=None,
-                 use_db_config=False,
-                 wait_for_completion=True,
-                 check_interval=5,
-                 max_ingestion_time=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        training_job_config=None,
+        region_name=None,
+        sagemaker_conn_id=None,
+        use_db_config=False,
+        wait_for_completion=True,
+        check_interval=5,
+        max_ingestion_time=None,
+        *args,
+        **kwargs
+    ):
         super(SageMakerCreateTrainingJobOperator, self).__init__(*args, **kwargs)
 
         self.sagemaker_conn_id = sagemaker_conn_id
@@ -101,19 +104,19 @@ class SageMakerCreateTrainingJobOperator(BaseOperator):
             use_db_config=self.use_db_config,
             region_name=self.region_name,
             check_interval=self.check_interval,
-            max_ingestion_time=self.max_ingestion_time
+            max_ingestion_time=self.max_ingestion_time,
         )
 
         self.log.info(
             "Creating SageMaker Training Job %s."
-            % self.training_job_config['TrainingJobName']
+            % self.training_job_config["TrainingJobName"]
         )
         response = sagemaker.create_training_job(
-            self.training_job_config,
-            wait_for_completion=self.wait_for_completion)
-        if not response['ResponseMetadata']['HTTPStatusCode'] \
-           == 200:
+            self.training_job_config, wait_for_completion=self.wait_for_completion
+        )
+        if not response["ResponseMetadata"]["HTTPStatusCode"] == 200:
             raise AirflowException(
-                'Sagemaker Training Job creation failed: %s' % response)
+                "Sagemaker Training Job creation failed: %s" % response
+            )
         else:
             return response

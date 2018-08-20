@@ -26,8 +26,8 @@ from airflow.contrib.hooks.databricks_hook import DatabricksHook
 from airflow.models import BaseOperator
 
 
-XCOM_RUN_ID_KEY = 'run_id'
-XCOM_RUN_PAGE_URL_KEY = 'run_page_url'
+XCOM_RUN_ID_KEY = "run_id"
+XCOM_RUN_PAGE_URL_KEY = "run_page_url"
 
 
 class DatabricksSubmitRunOperator(BaseOperator):
@@ -149,27 +149,29 @@ class DatabricksSubmitRunOperator(BaseOperator):
     :param do_xcom_push: Whether we should push run_id and run_page_url to xcom.
     :type do_xcom_push: boolean
     """
+
     # Used in airflow.models.BaseOperator
-    template_fields = ('json',)
+    template_fields = ("json",)
     # Databricks brand color (blue) under white text
-    ui_color = '#1CB1C2'
-    ui_fgcolor = '#fff'
+    ui_color = "#1CB1C2"
+    ui_fgcolor = "#fff"
 
     def __init__(
-            self,
-            json=None,
-            spark_jar_task=None,
-            notebook_task=None,
-            new_cluster=None,
-            existing_cluster_id=None,
-            libraries=None,
-            run_name=None,
-            timeout_seconds=None,
-            databricks_conn_id='databricks_default',
-            polling_period_seconds=30,
-            databricks_retry_limit=3,
-            do_xcom_push=False,
-            **kwargs):
+        self,
+        json=None,
+        spark_jar_task=None,
+        notebook_task=None,
+        new_cluster=None,
+        existing_cluster_id=None,
+        libraries=None,
+        run_name=None,
+        timeout_seconds=None,
+        databricks_conn_id="databricks_default",
+        polling_period_seconds=30,
+        databricks_retry_limit=3,
+        do_xcom_push=False,
+        **kwargs
+    ):
         """
         Creates a new ``DatabricksSubmitRunOperator``.
         """
@@ -179,28 +181,28 @@ class DatabricksSubmitRunOperator(BaseOperator):
         self.polling_period_seconds = polling_period_seconds
         self.databricks_retry_limit = databricks_retry_limit
         if spark_jar_task is not None:
-            self.json['spark_jar_task'] = spark_jar_task
+            self.json["spark_jar_task"] = spark_jar_task
         if notebook_task is not None:
-            self.json['notebook_task'] = notebook_task
+            self.json["notebook_task"] = notebook_task
         if new_cluster is not None:
-            self.json['new_cluster'] = new_cluster
+            self.json["new_cluster"] = new_cluster
         if existing_cluster_id is not None:
-            self.json['existing_cluster_id'] = existing_cluster_id
+            self.json["existing_cluster_id"] = existing_cluster_id
         if libraries is not None:
-            self.json['libraries'] = libraries
+            self.json["libraries"] = libraries
         if run_name is not None:
-            self.json['run_name'] = run_name
+            self.json["run_name"] = run_name
         if timeout_seconds is not None:
-            self.json['timeout_seconds'] = timeout_seconds
-        if 'run_name' not in self.json:
-            self.json['run_name'] = run_name or kwargs['task_id']
+            self.json["timeout_seconds"] = timeout_seconds
+        if "run_name" not in self.json:
+            self.json["run_name"] = run_name or kwargs["task_id"]
 
         self.json = self._deep_string_coerce(self.json)
         # This variable will be used in case our task gets killed.
         self.run_id = None
         self.do_xcom_push = do_xcom_push
 
-    def _deep_string_coerce(self, content, json_path='json'):
+    def _deep_string_coerce(self, content, json_path="json"):
         """
         Coerces content or all values of content if it is a dict to a string. The
         function will throw if content contains non-string or non-numeric types.
@@ -216,56 +218,62 @@ class DatabricksSubmitRunOperator(BaseOperator):
             # Databricks can tolerate either numeric or string types in the API backend.
             return str(content)
         elif isinstance(content, (list, tuple)):
-            return [c(e, '{0}[{1}]'.format(json_path, i)) for i, e in enumerate(content)]
+            return [
+                c(e, "{0}[{1}]".format(json_path, i)) for i, e in enumerate(content)
+            ]
         elif isinstance(content, dict):
-            return {k: c(v, '{0}[{1}]'.format(json_path, k))
-                    for k, v in list(content.items())}
+            return {
+                k: c(v, "{0}[{1}]".format(json_path, k))
+                for k, v in list(content.items())
+            }
         else:
             param_type = type(content)
-            msg = 'Type {0} used for parameter {1} is not a number or a string'\
-                .format(param_type, json_path)
+            msg = "Type {0} used for parameter {1} is not a number or a string".format(
+                param_type, json_path
+            )
             raise AirflowException(msg)
 
     def _log_run_page_url(self, url):
-        self.log.info('View run status, Spark UI, and logs at %s', url)
+        self.log.info("View run status, Spark UI, and logs at %s", url)
 
     def get_hook(self):
         return DatabricksHook(
-            self.databricks_conn_id,
-            retry_limit=self.databricks_retry_limit)
+            self.databricks_conn_id, retry_limit=self.databricks_retry_limit
+        )
 
     def execute(self, context):
         hook = self.get_hook()
         self.run_id = hook.submit_run(self.json)
         if self.do_xcom_push:
-            context['ti'].xcom_push(key=XCOM_RUN_ID_KEY, value=self.run_id)
-        self.log.info('Run submitted with run_id: %s', self.run_id)
+            context["ti"].xcom_push(key=XCOM_RUN_ID_KEY, value=self.run_id)
+        self.log.info("Run submitted with run_id: %s", self.run_id)
         run_page_url = hook.get_run_page_url(self.run_id)
         if self.do_xcom_push:
-            context['ti'].xcom_push(key=XCOM_RUN_PAGE_URL_KEY, value=run_page_url)
+            context["ti"].xcom_push(key=XCOM_RUN_PAGE_URL_KEY, value=run_page_url)
         self._log_run_page_url(run_page_url)
         while True:
             run_state = hook.get_run_state(self.run_id)
             if run_state.is_terminal:
                 if run_state.is_successful:
-                    self.log.info('%s completed successfully.', self.task_id)
+                    self.log.info("%s completed successfully.", self.task_id)
                     self._log_run_page_url(run_page_url)
                     return
                 else:
-                    error_message = '{t} failed with terminal state: {s}'.format(
-                        t=self.task_id,
-                        s=run_state)
+                    error_message = "{t} failed with terminal state: {s}".format(
+                        t=self.task_id, s=run_state
+                    )
                     raise AirflowException(error_message)
             else:
-                self.log.info('%s in run state: %s', self.task_id, run_state)
+                self.log.info("%s in run state: %s", self.task_id, run_state)
                 self._log_run_page_url(run_page_url)
-                self.log.info('Sleeping for %s seconds.', self.polling_period_seconds)
+                self.log.info("Sleeping for %s seconds.", self.polling_period_seconds)
                 time.sleep(self.polling_period_seconds)
 
     def on_kill(self):
         hook = self.get_hook()
         hook.cancel_run(self.run_id)
         self.log.info(
-            'Task: %s with run_id: %s was requested to be cancelled.',
-            self.task_id, self.run_id
+            "Task: %s with run_id: %s was requested to be cancelled.",
+            self.task_id,
+            self.run_id,
         )

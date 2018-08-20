@@ -43,8 +43,9 @@ class FileTaskHandler(logging.Handler):
         super(FileTaskHandler, self).__init__()
         self.handler = None
         self.local_base = base_log_folder
-        self.filename_template, self.filename_jinja_template = \
-            parse_template_string(filename_template)
+        self.filename_template, self.filename_jinja_template = parse_template_string(
+            filename_template
+        )
 
     def set_context(self, ti):
         """
@@ -71,13 +72,15 @@ class FileTaskHandler(logging.Handler):
     def _render_filename(self, ti, try_number):
         if self.filename_jinja_template:
             jinja_context = ti.get_template_context()
-            jinja_context['try_number'] = try_number
+            jinja_context["try_number"] = try_number
             return self.filename_jinja_template.render(**jinja_context)
 
-        return self.filename_template.format(dag_id=ti.dag_id,
-                                             task_id=ti.task_id,
-                                             execution_date=ti.execution_date.isoformat(),
-                                             try_number=try_number)
+        return self.filename_template.format(
+            dag_id=ti.dag_id,
+            task_id=ti.task_id,
+            execution_date=ti.execution_date.isoformat(),
+            try_number=try_number,
+        )
 
     def _read(self, ti, try_number, metadata=None):
         """
@@ -110,14 +113,14 @@ class FileTaskHandler(logging.Handler):
                 "http://{ti.hostname}:{worker_log_server_port}/log", log_relative_path
             ).format(
                 ti=ti,
-                worker_log_server_port=conf.get('celery', 'WORKER_LOG_SERVER_PORT')
+                worker_log_server_port=conf.get("celery", "WORKER_LOG_SERVER_PORT"),
             )
             log += "*** Log file does not exist: {}\n".format(location)
             log += "*** Fetching from: {}\n".format(url)
             try:
                 timeout = None  # No timeout
                 try:
-                    timeout = conf.getint('webserver', 'log_fetch_timeout_sec')
+                    timeout = conf.getint("webserver", "log_fetch_timeout_sec")
                 except (AirflowConfigException, ValueError):
                     pass
 
@@ -126,11 +129,11 @@ class FileTaskHandler(logging.Handler):
                 # Check if the resource was properly fetched
                 response.raise_for_status()
 
-                log += '\n' + response.text
+                log += "\n" + response.text
             except Exception as e:
                 log += "*** Failed to fetch log file from worker. {}\n".format(str(e))
 
-        return log, {'end_of_log': True}
+        return log, {"end_of_log": True}
 
     def read(self, task_instance, try_number=None, metadata=None):
         """
@@ -152,13 +155,13 @@ class FileTaskHandler(logging.Handler):
             try_numbers = list(range(1, next_try))
         elif try_number < 1:
             logs = [
-                'Error fetching the logs. Try number {} is invalid.'.format(try_number),
+                "Error fetching the logs. Try number {} is invalid.".format(try_number)
             ]
             return logs
         else:
             try_numbers = [try_number]
 
-        logs = [''] * len(try_numbers)
+        logs = [""] * len(try_numbers)
         metadatas = [{}] * len(try_numbers)
         for i, try_number in enumerate(try_numbers):
             log, metadata = self._read(task_instance, try_number, metadata)

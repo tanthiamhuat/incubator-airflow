@@ -26,13 +26,7 @@ from airflow.utils.state import State
 
 
 def _trigger_dag(
-        dag_id,
-        dag_bag,
-        dag_run,
-        run_id,
-        conf,
-        execution_date,
-        replace_microseconds,
+    dag_id, dag_bag, dag_run, run_id, conf, execution_date, replace_microseconds
 ):
     if dag_id not in dag_bag.dags:
         raise DagNotFound("Dag id {} not found".format(dag_id))
@@ -52,10 +46,9 @@ def _trigger_dag(
 
     dr = dag_run.find(dag_id=dag_id, run_id=run_id)
     if dr:
-        raise DagRunAlreadyExists("Run id {} already exists for dag id {}".format(
-            run_id,
-            dag_id
-        ))
+        raise DagRunAlreadyExists(
+            "Run id {} already exists for dag id {}".format(run_id, dag_id)
+        )
 
     run_conf = None
     if conf:
@@ -80,11 +73,7 @@ def _trigger_dag(
 
 
 def trigger_dag(
-        dag_id,
-        run_id=None,
-        conf=None,
-        execution_date=None,
-        replace_microseconds=True,
+    dag_id, run_id=None, conf=None, execution_date=None, replace_microseconds=True
 ):
     dag_model = DagModel.get_current(dag_id)
     if dag_model is None:

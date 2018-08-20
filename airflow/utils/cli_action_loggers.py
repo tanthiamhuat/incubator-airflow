@@ -66,7 +66,7 @@ def on_pre_execution(**kwargs):
         try:
             cb(**kwargs)
         except Exception:
-            logging.exception('Failed on pre-execution callback using {}'.format(cb))
+            logging.exception("Failed on pre-execution callback using {}".format(cb))
 
 
 def on_post_execution(**kwargs):
@@ -83,7 +83,7 @@ def on_post_execution(**kwargs):
         try:
             cb(**kwargs)
         except Exception:
-            logging.exception('Failed on post-execution callback using {}'.format(cb))
+            logging.exception("Failed on post-execution callback using {}".format(cb))
 
 
 def default_action_log(log, **_):

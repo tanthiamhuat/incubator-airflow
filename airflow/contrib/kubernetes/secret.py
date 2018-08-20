@@ -35,7 +35,7 @@ class Secret:
         """
         self.deploy_type = deploy_type
         self.deploy_target = deploy_target.upper()
-        if deploy_type == 'volume':
+        if deploy_type == "volume":
             self.deploy_target = deploy_target
         self.secret = secret
         self.key = key

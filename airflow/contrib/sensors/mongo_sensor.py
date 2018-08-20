@@ -31,10 +31,13 @@ class MongoSensor(BaseSensorOperator):
     ...                            mongo_conn_id="mongo_default",
     ...                            task_id="mongo_sensor")
     """
-    template_fields = ('collection', 'query')
+
+    template_fields = ("collection", "query")
 
     @apply_defaults
-    def __init__(self, collection, query, mongo_conn_id="mongo_default", *args, **kwargs):
+    def __init__(
+        self, collection, query, mongo_conn_id="mongo_default", *args, **kwargs
+    ):
         """
         Create a new MongoSensor
 
@@ -52,7 +55,10 @@ class MongoSensor(BaseSensorOperator):
         self.query = query
 
     def poke(self, context):
-        self.log.info("Sensor check existence of the document "
-                      "that matches the following query: %s", self.query)
+        self.log.info(
+            "Sensor check existence of the document "
+            "that matches the following query: %s",
+            self.query,
+        )
         hook = MongoHook(self.mongo_conn_id)
         return hook.find(self.collection, self.query, find_one=True) is not None

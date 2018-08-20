@@ -28,15 +28,15 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '5e7d17757c7a'
-down_revision = '8504051e801b'
+revision = "5e7d17757c7a"
+down_revision = "8504051e801b"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.add_column('task_instance', sa.Column('pid', sa.Integer))
+    op.add_column("task_instance", sa.Column("pid", sa.Integer))
 
 
 def downgrade():
-    op.drop_column('task_instance', 'pid')
+    op.drop_column("task_instance", "pid")

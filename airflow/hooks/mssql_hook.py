@@ -27,8 +27,8 @@ class MsSqlHook(DbApiHook):
     Interact with Microsoft SQL Server.
     """
 
-    conn_name_attr = 'mssql_conn_id'
-    default_conn_name = 'mssql_default'
+    conn_name_attr = "mssql_conn_id"
+    default_conn_name = "mssql_default"
     supports_autocommit = True
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +45,8 @@ class MsSqlHook(DbApiHook):
             user=conn.login,
             password=conn.password,
             database=self.schema or conn.schema,
-            port=conn.port)
+            port=conn.port,
+        )
         return conn
 
     def set_autocommit(self, conn, autocommit):

@@ -45,17 +45,16 @@ class GreaterEqualThan(EqualTo):
 
         if field.data < other.data:
             d = {
-                'other_label': (
-                    hasattr(other, 'label') and
-                    other.label.text or
-                    self.fieldname
+                "other_label": (
+                    hasattr(other, "label") and other.label.text or self.fieldname
                 ),
-                'other_name': self.fieldname,
+                "other_name": self.fieldname,
             }
             message = self.message
             if message is None:
-                message = field.gettext('Field must be greater than or equal '
-                                        'to %(other_label)s.' % d)
+                message = field.gettext(
+                    "Field must be greater than or equal " "to %(other_label)s." % d
+                )
             else:
                 message = message % d
 

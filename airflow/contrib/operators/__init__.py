@@ -37,17 +37,18 @@ import os
 #
 # ------------------------------------------------------------------------
 _operators = {
-    'ssh_operator': ['SSHOperator'],
-    'winrm_operator': ['WinRMOperator'],
-    'vertica_operator': ['VerticaOperator'],
-    'vertica_to_hive': ['VerticaToHiveTransfer'],
-    'qubole_operator': ['QuboleOperator'],
-    'spark_submit_operator': ['SparkSubmitOperator'],
-    'file_to_wasb': ['FileToWasbOperator'],
-    'fs_operator': ['FileSensor'],
-    'hive_to_dynamodb': ['HiveToDynamoDBTransferOperator']
+    "ssh_operator": ["SSHOperator"],
+    "winrm_operator": ["WinRMOperator"],
+    "vertica_operator": ["VerticaOperator"],
+    "vertica_to_hive": ["VerticaToHiveTransfer"],
+    "qubole_operator": ["QuboleOperator"],
+    "spark_submit_operator": ["SparkSubmitOperator"],
+    "file_to_wasb": ["FileToWasbOperator"],
+    "fs_operator": ["FileSensor"],
+    "hive_to_dynamodb": ["HiveToDynamoDBTransferOperator"],
 }
 
-if not os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
+if not os.environ.get("AIRFLOW_USE_NEW_IMPORTS", False):
     from airflow.utils.helpers import AirflowImporter
+
     airflow_importer = AirflowImporter(sys.modules[__name__], _operators)

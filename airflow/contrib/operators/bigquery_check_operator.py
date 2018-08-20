@@ -18,8 +18,11 @@
 # under the License.
 
 from airflow.contrib.hooks.bigquery_hook import BigQueryHook
-from airflow.operators.check_operator import \
-    CheckOperator, ValueCheckOperator, IntervalCheckOperator
+from airflow.operators.check_operator import (
+    CheckOperator,
+    ValueCheckOperator,
+    IntervalCheckOperator,
+)
 from airflow.utils.decorators import apply_defaults
 
 
@@ -61,19 +64,23 @@ class BigQueryCheckOperator(CheckOperator):
     """
 
     @apply_defaults
-    def __init__(self,
-                 sql,
-                 bigquery_conn_id='bigquery_default',
-                 use_legacy_sql=True,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        sql,
+        bigquery_conn_id="bigquery_default",
+        use_legacy_sql=True,
+        *args,
+        **kwargs
+    ):
         super(BigQueryCheckOperator, self).__init__(sql=sql, *args, **kwargs)
         self.bigquery_conn_id = bigquery_conn_id
         self.sql = sql
         self.use_legacy_sql = use_legacy_sql
 
     def get_db_hook(self):
-        return BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            use_legacy_sql=self.use_legacy_sql)
+        return BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id, use_legacy_sql=self.use_legacy_sql
+        )
 
 
 class BigQueryValueCheckOperator(ValueCheckOperator):
@@ -88,21 +95,26 @@ class BigQueryValueCheckOperator(ValueCheckOperator):
     """
 
     @apply_defaults
-    def __init__(self, sql,
-                 pass_value,
-                 tolerance=None,
-                 bigquery_conn_id='bigquery_default',
-                 use_legacy_sql=True,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        sql,
+        pass_value,
+        tolerance=None,
+        bigquery_conn_id="bigquery_default",
+        use_legacy_sql=True,
+        *args,
+        **kwargs
+    ):
         super(BigQueryValueCheckOperator, self).__init__(
-            sql=sql, pass_value=pass_value, tolerance=tolerance,
-            *args, **kwargs)
+            sql=sql, pass_value=pass_value, tolerance=tolerance, *args, **kwargs
+        )
         self.bigquery_conn_id = bigquery_conn_id
         self.use_legacy_sql = use_legacy_sql
 
     def get_db_hook(self):
-        return BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            use_legacy_sql=self.use_legacy_sql)
+        return BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id, use_legacy_sql=self.use_legacy_sql
+        )
 
 
 class BigQueryIntervalCheckOperator(IntervalCheckOperator):
@@ -130,16 +142,29 @@ class BigQueryIntervalCheckOperator(IntervalCheckOperator):
     """
 
     @apply_defaults
-    def __init__(self, table, metrics_thresholds, date_filter_column='ds',
-                 days_back=-7, bigquery_conn_id='bigquery_default',
-                 use_legacy_sql=True, *args, **kwargs):
+    def __init__(
+        self,
+        table,
+        metrics_thresholds,
+        date_filter_column="ds",
+        days_back=-7,
+        bigquery_conn_id="bigquery_default",
+        use_legacy_sql=True,
+        *args,
+        **kwargs
+    ):
         super(BigQueryIntervalCheckOperator, self).__init__(
-            table=table, metrics_thresholds=metrics_thresholds,
-            date_filter_column=date_filter_column, days_back=days_back,
-            *args, **kwargs)
+            table=table,
+            metrics_thresholds=metrics_thresholds,
+            date_filter_column=date_filter_column,
+            days_back=days_back,
+            *args,
+            **kwargs
+        )
         self.bigquery_conn_id = bigquery_conn_id
         self.use_legacy_sql = use_legacy_sql
 
     def get_db_hook(self):
-        return BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            use_legacy_sql=self.use_legacy_sql)
+        return BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id, use_legacy_sql=self.use_legacy_sql
+        )

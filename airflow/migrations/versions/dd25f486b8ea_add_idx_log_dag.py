@@ -27,15 +27,15 @@ Create Date: 2018-08-07 06:41:41.028249
 """
 
 # revision identifiers, used by Alembic.
-revision = 'dd25f486b8ea'
-down_revision = '9635ae0956e7'
+revision = "dd25f486b8ea"
+down_revision = "9635ae0956e7"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.create_index('idx_log_dag', 'log', ['dag_id'], unique=False)
+    op.create_index("idx_log_dag", "log", ["dag_id"], unique=False)
 
 
 def downgrade():
-    op.drop_index('idx_log_dag', table_name='log')
+    op.drop_index("idx_log_dag", table_name="log")

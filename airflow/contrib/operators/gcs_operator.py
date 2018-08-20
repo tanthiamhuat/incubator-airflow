@@ -79,21 +79,22 @@ class GoogleCloudStorageCreateBucketOperator(BaseOperator):
             )
     """
 
-    template_fields = ('bucket_name', 'storage_class',
-                       'location', 'project_id')
-    ui_color = '#f0eee4'
+    template_fields = ("bucket_name", "storage_class", "location", "project_id")
+    ui_color = "#f0eee4"
 
     @apply_defaults
-    def __init__(self,
-                 bucket_name,
-                 storage_class='MULTI_REGIONAL',
-                 location='US',
-                 project_id=None,
-                 labels=None,
-                 google_cloud_storage_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        bucket_name,
+        storage_class="MULTI_REGIONAL",
+        location="US",
+        project_id=None,
+        labels=None,
+        google_cloud_storage_conn_id="google_cloud_default",
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         super(GoogleCloudStorageCreateBucketOperator, self).__init__(*args, **kwargs)
         self.bucket_name = bucket_name
         self.storage_class = storage_class
@@ -107,16 +108,18 @@ class GoogleCloudStorageCreateBucketOperator(BaseOperator):
     def execute(self, context):
         if self.labels is not None:
             self.labels.update(
-                {'airflow-version': 'v' + version.replace('.', '-').replace('+', '-')}
+                {"airflow-version": "v" + version.replace(".", "-").replace("+", "-")}
             )
 
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to
+            delegate_to=self.delegate_to,
         )
 
-        hook.create_bucket(bucket_name=self.bucket_name,
-                           storage_class=self.storage_class,
-                           location=self.location,
-                           project_id=self.project_id,
-                           labels=self.labels)
+        hook.create_bucket(
+            bucket_name=self.bucket_name,
+            storage_class=self.storage_class,
+            location=self.location,
+            project_id=self.project_id,
+            labels=self.labels,
+        )

@@ -50,18 +50,20 @@ class SlackWebhookHook(HttpHook):
     :param proxy: Proxy to use to make the Slack webhook call
     :type proxy: str
     """
-    def __init__(self,
-                 http_conn_id=None,
-                 webhook_token=None,
-                 message="",
-                 channel=None,
-                 username=None,
-                 icon_emoji=None,
-                 link_names=False,
-                 proxy=None,
-                 *args,
-                 **kwargs
-                 ):
+
+    def __init__(
+        self,
+        http_conn_id=None,
+        webhook_token=None,
+        message="",
+        channel=None,
+        username=None,
+        icon_emoji=None,
+        link_names=False,
+        proxy=None,
+        *args,
+        **kwargs
+    ):
         super(SlackWebhookHook, self).__init__(*args, **kwargs)
         self.http_conn_id = http_conn_id
         self.webhook_token = self._get_token(webhook_token, http_conn_id)
@@ -84,10 +86,11 @@ class SlackWebhookHook(HttpHook):
         elif http_conn_id:
             conn = self.get_connection(http_conn_id)
             extra = conn.extra_dejson
-            return extra.get('webhook_token', '')
+            return extra.get("webhook_token", "")
         else:
-            raise AirflowException('Cannot get token: No valid Slack '
-                                   'webhook token nor conn_id supplied')
+            raise AirflowException(
+                "Cannot get token: No valid Slack " "webhook token nor conn_id supplied"
+            )
 
     def _build_slack_message(self):
         """
@@ -98,16 +101,16 @@ class SlackWebhookHook(HttpHook):
         cmd = {}
 
         if self.channel:
-            cmd['channel'] = self.channel
+            cmd["channel"] = self.channel
         if self.username:
-            cmd['username'] = self.username
+            cmd["username"] = self.username
         if self.icon_emoji:
-            cmd['icon_emoji'] = self.icon_emoji
+            cmd["icon_emoji"] = self.icon_emoji
         if self.link_names:
-            cmd['link_names'] = 1
+            cmd["link_names"] = 1
 
         # there should always be a message to post ;-)
-        cmd['text'] = self.message
+        cmd["text"] = self.message
         return json.dumps(cmd)
 
     def execute(self):
@@ -120,10 +123,12 @@ class SlackWebhookHook(HttpHook):
         proxies = {}
         if self.proxy:
             # we only need https proxy for Slack, as the endpoint is https
-            proxies = {'https': self.proxy}
+            proxies = {"https": self.proxy}
 
         slack_message = self._build_slack_message()
-        self.run(endpoint=self.webhook_token,
-                 data=slack_message,
-                 headers={'Content-type': 'application/json'},
-                 extra_options={'proxies': proxies})
+        self.run(
+            endpoint=self.webhook_token,
+            data=slack_message,
+            headers={"Content-type": "application/json"},
+            extra_options={"proxies": proxies},
+        )

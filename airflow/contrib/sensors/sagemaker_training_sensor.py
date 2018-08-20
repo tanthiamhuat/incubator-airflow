@@ -31,36 +31,31 @@ class SageMakerTrainingSensor(SageMakerBaseSensor):
     :type job_name: string
     """
 
-    template_fields = ['job_name']
+    template_fields = ["job_name"]
     template_ext = ()
 
     @apply_defaults
-    def __init__(self,
-                 job_name,
-                 region_name=None,
-                 *args,
-                 **kwargs):
+    def __init__(self, job_name, region_name=None, *args, **kwargs):
         super(SageMakerTrainingSensor, self).__init__(*args, **kwargs)
         self.job_name = job_name
         self.region_name = region_name
 
     def non_terminal_states(self):
-        return ['InProgress', 'Stopping', 'Stopped']
+        return ["InProgress", "Stopping", "Stopped"]
 
     def failed_states(self):
-        return ['Failed']
+        return ["Failed"]
 
     def get_sagemaker_response(self):
         sagemaker = SageMakerHook(
-            aws_conn_id=self.aws_conn_id,
-            region_name=self.region_name
+            aws_conn_id=self.aws_conn_id, region_name=self.region_name
         )
 
-        self.log.info('Poking Sagemaker Training Job %s', self.job_name)
+        self.log.info("Poking Sagemaker Training Job %s", self.job_name)
         return sagemaker.describe_training_job(self.job_name)
 
     def get_failed_reason_from_response(self, response):
-        return response['FailureReason']
+        return response["FailureReason"]
 
     def state_from_response(self, response):
-        return response['TrainingJobStatus']
+        return response["TrainingJobStatus"]

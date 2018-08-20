@@ -55,7 +55,7 @@ class BaseTIDep(object):
         The human-readable name for the dependency. Use the classname as the default name
         if this method is not overridden in the subclass.
         """
-        return getattr(self, 'NAME', self.__class__.__name__)
+        return getattr(self, "NAME", self.__class__.__name__)
 
     def _get_dep_statuses(self, ti, session, dep_context=None):
         """
@@ -95,12 +95,14 @@ class BaseTIDep(object):
 
         if self.IGNOREABLE and dep_context.ignore_all_deps:
             yield self._passing_status(
-                reason="Context specified all dependencies should be ignored.")
+                reason="Context specified all dependencies should be ignored."
+            )
             return
 
         if self.IS_TASK_DEP and dep_context.ignore_task_deps:
             yield self._passing_status(
-                reason="Context specified all task dependencies should be ignored.")
+                reason="Context specified all task dependencies should be ignored."
+            )
             return
 
         for dep_status in self._get_dep_statuses(ti, session, dep_context):
@@ -121,8 +123,9 @@ class BaseTIDep(object):
             state that can be used by this dependency.
         :type dep_context: BaseDepContext
         """
-        return all(status.passed for status in
-                   self.get_dep_statuses(ti, session, dep_context))
+        return all(
+            status.passed for status in self.get_dep_statuses(ti, session, dep_context)
+        )
 
     @provide_session
     def get_failure_reasons(self, ti, session, dep_context=None):
@@ -141,13 +144,13 @@ class BaseTIDep(object):
             if not dep_status.passed:
                 yield dep_status.reason
 
-    def _failing_status(self, reason=''):
+    def _failing_status(self, reason=""):
         return TIDepStatus(self.name, False, reason)
 
-    def _passing_status(self, reason=''):
+    def _passing_status(self, reason=""):
         return TIDepStatus(self.name, True, reason)
 
 
 # Dependency status for a specific task instance indicating whether or not the task
 # instance passed the dependency.
-TIDepStatus = namedtuple('TIDepStatus', ['dep_name', 'passed', 'reason'])
+TIDepStatus = namedtuple("TIDepStatus", ["dep_name", "passed", "reason"])

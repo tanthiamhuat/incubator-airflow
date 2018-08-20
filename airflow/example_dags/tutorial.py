@@ -31,14 +31,14 @@ from datetime import timedelta
 # these args will get passed on to each operator
 # you can override them on a per-task basis during operator initialization
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': airflow.utils.dates.days_ago(2),
-    'email': ['airflow@example.com'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    "owner": "airflow",
+    "depends_on_past": False,
+    "start_date": airflow.utils.dates.days_ago(2),
+    "email": ["airflow@example.com"],
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
     # 'queue': 'bash_queue',
     # 'pool': 'backfill',
     # 'priority_weight': 10,
@@ -55,16 +55,14 @@ default_args = {
 }
 
 dag = DAG(
-    'tutorial',
+    "tutorial",
     default_args=default_args,
-    description='A simple tutorial DAG',
-    schedule_interval=timedelta(days=1))
+    description="A simple tutorial DAG",
+    schedule_interval=timedelta(days=1),
+)
 
 # t1, t2 and t3 are examples of tasks created by instantiating operators
-t1 = BashOperator(
-    task_id='print_date',
-    bash_command='date',
-    dag=dag)
+t1 = BashOperator(task_id="print_date", bash_command="date", dag=dag)
 
 t1.doc_md = """\
 #### Task Documentation
@@ -77,10 +75,8 @@ rendered in the UI's Task Instance Details page.
 dag.doc_md = __doc__
 
 t2 = BashOperator(
-    task_id='sleep',
-    depends_on_past=False,
-    bash_command='sleep 5',
-    dag=dag)
+    task_id="sleep", depends_on_past=False, bash_command="sleep 5", dag=dag
+)
 
 templated_command = """
 {% for i in range(5) %}
@@ -91,11 +87,12 @@ templated_command = """
 """
 
 t3 = BashOperator(
-    task_id='templated',
+    task_id="templated",
     depends_on_past=False,
     bash_command=templated_command,
-    params={'my_param': 'Parameter I passed in'},
-    dag=dag)
+    params={"my_param": "Parameter I passed in"},
+    dag=dag,
+)
 
 t2.set_upstream(t1)
 t3.set_upstream(t1)

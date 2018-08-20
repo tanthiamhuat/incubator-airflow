@@ -56,9 +56,9 @@ class AirflowPlugin(object):
             raise AirflowPluginException("Your plugin needs a name.")
 
 
-plugins_folder = configuration.conf.get('core', 'plugins_folder')
+plugins_folder = configuration.conf.get("core", "plugins_folder")
 if not plugins_folder:
-    plugins_folder = configuration.conf.get('core', 'airflow_home') + '/plugins'
+    plugins_folder = configuration.conf.get("core", "airflow_home") + "/plugins"
 plugins_folder = os.path.expanduser(plugins_folder)
 
 if plugins_folder not in sys.path:
@@ -66,7 +66,7 @@ if plugins_folder not in sys.path:
 
 plugins = []
 
-norm_pattern = re.compile(r'[/|.]')
+norm_pattern = re.compile(r"[/|.]")
 
 # Crawl through the plugins folder to find AirflowPlugin derivatives
 for root, dirs, files in os.walk(plugins_folder, followlinks=True):
@@ -75,35 +75,35 @@ for root, dirs, files in os.walk(plugins_folder, followlinks=True):
             filepath = os.path.join(root, f)
             if not os.path.isfile(filepath):
                 continue
-            mod_name, file_ext = os.path.splitext(
-                os.path.split(filepath)[-1])
-            if file_ext != '.py':
+            mod_name, file_ext = os.path.splitext(os.path.split(filepath)[-1])
+            if file_ext != ".py":
                 continue
 
-            log.debug('Importing plugin module %s', filepath)
+            log.debug("Importing plugin module %s", filepath)
             # normalize root path as namespace
-            namespace = '_'.join([re.sub(norm_pattern, '__', root), mod_name])
+            namespace = "_".join([re.sub(norm_pattern, "__", root), mod_name])
 
             m = imp.load_source(namespace, filepath)
             for obj in list(m.__dict__.values()):
                 if (
-                        inspect.isclass(obj) and
-                        issubclass(obj, AirflowPlugin) and
-                        obj is not AirflowPlugin):
+                    inspect.isclass(obj)
+                    and issubclass(obj, AirflowPlugin)
+                    and obj is not AirflowPlugin
+                ):
                     obj.validate()
                     if obj not in plugins:
                         plugins.append(obj)
 
         except Exception as e:
             log.exception(e)
-            log.error('Failed to import plugin %s', filepath)
+            log.error("Failed to import plugin %s", filepath)
 
 
 def make_module(name, objects):
-    log.debug('Creating module %s', name)
+    log.debug("Creating module %s", name)
     name = name.lower()
     module = imp.new_module(name)
-    module._name = name.split('.')[-1]
+    module._name = name.split(".")[-1]
     module._objects = objects
     module.__dict__.update((o.__name__, o) for o in objects)
     return module
@@ -123,14 +123,12 @@ menu_links = []
 
 for p in plugins:
     operators_modules.append(
-        make_module('airflow.operators.' + p.name, p.operators + p.sensors))
-    sensors_modules.append(
-        make_module('airflow.sensors.' + p.name, p.sensors)
+        make_module("airflow.operators." + p.name, p.operators + p.sensors)
     )
-    hooks_modules.append(make_module('airflow.hooks.' + p.name, p.hooks))
-    executors_modules.append(
-        make_module('airflow.executors.' + p.name, p.executors))
-    macros_modules.append(make_module('airflow.macros.' + p.name, p.macros))
+    sensors_modules.append(make_module("airflow.sensors." + p.name, p.sensors))
+    hooks_modules.append(make_module("airflow.hooks." + p.name, p.hooks))
+    executors_modules.append(make_module("airflow.executors." + p.name, p.executors))
+    macros_modules.append(make_module("airflow.macros." + p.name, p.macros))
 
     admin_views.extend(p.admin_views)
     flask_blueprints.extend(p.flask_blueprints)

@@ -20,8 +20,9 @@ import time
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.state import State
 from datetime import datetime as dt
-from airflow.contrib.kubernetes.kubernetes_request_factory import \
+from airflow.contrib.kubernetes.kubernetes_request_factory import (
     pod_request_factory as pod_factory
+)
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream as kubernetes_stream
@@ -31,31 +32,40 @@ from .kube_client import get_kube_client
 
 
 class PodStatus(object):
-    PENDING = 'pending'
-    RUNNING = 'running'
-    FAILED = 'failed'
-    SUCCEEDED = 'succeeded'
+    PENDING = "pending"
+    RUNNING = "running"
+    FAILED = "failed"
+    SUCCEEDED = "succeeded"
 
 
 class PodLauncher(LoggingMixin):
-    def __init__(self, kube_client=None, in_cluster=True, cluster_context=None,
-                 extract_xcom=False):
+    def __init__(
+        self,
+        kube_client=None,
+        in_cluster=True,
+        cluster_context=None,
+        extract_xcom=False,
+    ):
         super(PodLauncher, self).__init__()
-        self._client = kube_client or get_kube_client(in_cluster=in_cluster,
-                                                      cluster_context=cluster_context)
+        self._client = kube_client or get_kube_client(
+            in_cluster=in_cluster, cluster_context=cluster_context
+        )
         self._watch = watch.Watch()
         self.extract_xcom = extract_xcom
-        self.kube_req_factory = pod_factory.ExtractXcomPodRequestFactory(
-        ) if extract_xcom else pod_factory.SimplePodRequestFactory()
+        self.kube_req_factory = (
+            pod_factory.ExtractXcomPodRequestFactory()
+            if extract_xcom
+            else pod_factory.SimplePodRequestFactory()
+        )
 
     def run_pod_async(self, pod):
         req = self.kube_req_factory.create(pod)
-        self.log.debug('Pod Creation Request: \n%s', json.dumps(req, indent=2))
+        self.log.debug("Pod Creation Request: \n%s", json.dumps(req, indent=2))
         try:
             resp = self._client.create_namespaced_pod(body=req, namespace=pod.namespace)
-            self.log.debug('Pod Creation Response: %s', resp)
+            self.log.debug("Pod Creation Response: %s", resp)
         except ApiException:
-            self.log.exception('Exception when attempting to create Namespaced Pod.')
+            self.log.exception("Exception when attempting to create Namespaced Pod.")
             raise
         return resp
 
@@ -76,7 +86,7 @@ class PodLauncher(LoggingMixin):
                 if delta.seconds >= startup_timeout:
                     raise AirflowException("Pod took too long to start")
                 time.sleep(1)
-            self.log.debug('Pod not yet started')
+            self.log.debug("Pod not yet started")
 
         return self._monitor_pod(pod, get_logs)
 
@@ -87,29 +97,30 @@ class PodLauncher(LoggingMixin):
             logs = self._client.read_namespaced_pod_log(
                 name=pod.name,
                 namespace=pod.namespace,
-                container='base',
+                container="base",
                 follow=True,
                 tail_lines=10,
-                _preload_content=False)
+                _preload_content=False,
+            )
             for line in logs:
                 self.log.info(line)
         result = None
         if self.extract_xcom:
             while self.base_container_is_running(pod):
-                self.log.info('Container %s has state %s', pod.name, State.RUNNING)
+                self.log.info("Container %s has state %s", pod.name, State.RUNNING)
                 time.sleep(2)
             result = self._extract_xcom(pod)
             self.log.info(result)
             result = json.loads(result)
         while self.pod_is_running(pod):
-            self.log.info('Pod %s has state %s', pod.name, State.RUNNING)
+            self.log.info("Pod %s has state %s", pod.name, State.RUNNING)
             time.sleep(2)
         return self._task_status(self.read_pod(pod)), result
 
     def _task_status(self, event):
         self.log.info(
-            'Event: %s had an event of type %s',
-            event.metadata.name, event.status.phase)
+            "Event: %s had an event of type %s", event.metadata.name, event.status.phase
+        )
         status = self.process_status(event.metadata.name, event.status.phase)
         return status
 
@@ -123,8 +134,10 @@ class PodLauncher(LoggingMixin):
 
     def base_container_is_running(self, pod):
         event = self.read_pod(pod)
-        status = next(iter(filter(lambda s: s.name == 'base',
-                                  event.status.container_statuses)), None)
+        status = next(
+            iter(filter(lambda s: s.name == "base", event.status.container_statuses)),
+            None,
+        )
         return status.state.running is not None
 
     def read_pod(self, pod):
@@ -132,30 +145,39 @@ class PodLauncher(LoggingMixin):
             return self._client.read_namespaced_pod(pod.name, pod.namespace)
         except HTTPError as e:
             raise AirflowException(
-                'There was an error reading the kubernetes API: {}'.format(e)
+                "There was an error reading the kubernetes API: {}".format(e)
             )
 
     def _extract_xcom(self, pod):
-        resp = kubernetes_stream(self._client.connect_get_namespaced_pod_exec,
-                                 pod.name, pod.namespace,
-                                 container=self.kube_req_factory.SIDECAR_CONTAINER_NAME,
-                                 command=['/bin/sh'], stdin=True, stdout=True,
-                                 stderr=True, tty=False,
-                                 _preload_content=False)
+        resp = kubernetes_stream(
+            self._client.connect_get_namespaced_pod_exec,
+            pod.name,
+            pod.namespace,
+            container=self.kube_req_factory.SIDECAR_CONTAINER_NAME,
+            command=["/bin/sh"],
+            stdin=True,
+            stdout=True,
+            stderr=True,
+            tty=False,
+            _preload_content=False,
+        )
         try:
             result = self._exec_pod_command(
-                resp, 'cat {}/return.json'.format(self.kube_req_factory.XCOM_MOUNT_PATH))
-            self._exec_pod_command(resp, 'kill -s SIGINT 1')
+                resp, "cat {}/return.json".format(self.kube_req_factory.XCOM_MOUNT_PATH)
+            )
+            self._exec_pod_command(resp, "kill -s SIGINT 1")
         finally:
             resp.close()
         if result is None:
-            raise AirflowException('Failed to extract xcom from pod: {}'.format(pod.name))
+            raise AirflowException(
+                "Failed to extract xcom from pod: {}".format(pod.name)
+            )
         return result
 
     def _exec_pod_command(self, resp, command):
         if resp.is_open():
-            self.log.info('Running command... %s\n' % command)
-            resp.write_stdin(command + '\n')
+            self.log.info("Running command... %s\n" % command)
+            resp.write_stdin(command + "\n")
             while resp.is_open():
                 resp.update(timeout=1)
                 if resp.peek_stdout():
@@ -169,13 +191,13 @@ class PodLauncher(LoggingMixin):
         if status == PodStatus.PENDING:
             return State.QUEUED
         elif status == PodStatus.FAILED:
-            self.log.info('Event with job id %s Failed', job_id)
+            self.log.info("Event with job id %s Failed", job_id)
             return State.FAILED
         elif status == PodStatus.SUCCEEDED:
-            self.log.info('Event with job id %s Succeeded', job_id)
+            self.log.info("Event with job id %s Succeeded", job_id)
             return State.SUCCESS
         elif status == PodStatus.RUNNING:
             return State.RUNNING
         else:
-            self.log.info('Event: Invalid state %s on job %s', status, job_id)
+            self.log.info("Event: Invalid state %s on job %s", status, job_id)
             return State.FAILED

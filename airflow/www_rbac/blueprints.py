@@ -20,15 +20,15 @@
 from flask import Markup, Blueprint, redirect
 import markdown
 
-routes = Blueprint('routes', __name__)
+routes = Blueprint("routes", __name__)
 
 
-@routes.route('/')
+@routes.route("/")
 def index():
-    return redirect('/home')
+    return redirect("/home")
 
 
-@routes.route('/health')
+@routes.route("/health")
 def health():
     """ We can add an array of tests here to check the server's health """
     content = Markup(markdown.markdown("The server is healthy!"))

@@ -41,9 +41,10 @@ class FileProcessorHandler(logging.Handler):
         super(FileProcessorHandler, self).__init__()
         self.handler = None
         self.base_log_folder = base_log_folder
-        self.dag_dir = os.path.expanduser(conf.get('core', 'DAGS_FOLDER'))
-        self.filename_template, self.filename_jinja_template = \
-            parse_template_string(filename_template)
+        self.dag_dir = os.path.expanduser(conf.get("core", "DAGS_FOLDER"))
+        self.filename_template, self.filename_jinja_template = parse_template_string(
+            filename_template
+        )
 
         self._cur_date = datetime.today()
         if not os.path.exists(self._get_log_directory()):
@@ -87,12 +88,12 @@ class FileProcessorHandler(logging.Handler):
     def _render_filename(self, filename):
         filename = os.path.relpath(filename, self.dag_dir)
         ctx = dict()
-        ctx['filename'] = filename
+        ctx["filename"] = filename
 
         if self.filename_jinja_template:
             return self.filename_jinja_template.render(**ctx)
 
-        return self.filename_template.format(filename=ctx['filename'])
+        return self.filename_template.format(filename=ctx["filename"])
 
     def _get_log_directory(self):
         now = datetime.utcnow()
@@ -115,17 +116,19 @@ class FileProcessorHandler(logging.Handler):
                     if os.readlink(latest_log_directory_path) != log_directory:
                         os.unlink(latest_log_directory_path)
                         os.symlink(log_directory, latest_log_directory_path)
-                elif (os.path.isdir(latest_log_directory_path) or
-                          os.path.isfile(latest_log_directory_path)):
+                elif os.path.isdir(latest_log_directory_path) or os.path.isfile(
+                    latest_log_directory_path
+                ):
                     logging.warning(
                         "%s already exists as a dir/file. Skip creating symlink.",
-                        latest_log_directory_path
+                        latest_log_directory_path,
                     )
                 else:
                     os.symlink(log_directory, latest_log_directory_path)
             except OSError:
-                logging.warning("OSError while attempting to symlink "
-                                "the latest log directory")
+                logging.warning(
+                    "OSError while attempting to symlink " "the latest log directory"
+                )
 
     def _init_file(self, filename):
         """

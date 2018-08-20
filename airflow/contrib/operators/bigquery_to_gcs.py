@@ -58,24 +58,30 @@ class BigQueryToCloudStorageOperator(BaseOperator):
         passed to BigQuery
     :type labels: dict
     """
-    template_fields = ('source_project_dataset_table',
-                       'destination_cloud_storage_uris', 'labels')
-    template_ext = ('.sql',)
-    ui_color = '#e4e6f0'
+
+    template_fields = (
+        "source_project_dataset_table",
+        "destination_cloud_storage_uris",
+        "labels",
+    )
+    template_ext = (".sql",)
+    ui_color = "#e4e6f0"
 
     @apply_defaults
-    def __init__(self,
-                 source_project_dataset_table,
-                 destination_cloud_storage_uris,
-                 compression='NONE',
-                 export_format='CSV',
-                 field_delimiter=',',
-                 print_header=True,
-                 bigquery_conn_id='bigquery_default',
-                 delegate_to=None,
-                 labels=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        source_project_dataset_table,
+        destination_cloud_storage_uris,
+        compression="NONE",
+        export_format="CSV",
+        field_delimiter=",",
+        print_header=True,
+        bigquery_conn_id="bigquery_default",
+        delegate_to=None,
+        labels=None,
+        *args,
+        **kwargs
+    ):
         super(BigQueryToCloudStorageOperator, self).__init__(*args, **kwargs)
         self.source_project_dataset_table = source_project_dataset_table
         self.destination_cloud_storage_uris = destination_cloud_storage_uris
@@ -88,11 +94,14 @@ class BigQueryToCloudStorageOperator(BaseOperator):
         self.labels = labels
 
     def execute(self, context):
-        self.log.info('Executing extract of %s into: %s',
-                      self.source_project_dataset_table,
-                      self.destination_cloud_storage_uris)
-        hook = BigQueryHook(bigquery_conn_id=self.bigquery_conn_id,
-                            delegate_to=self.delegate_to)
+        self.log.info(
+            "Executing extract of %s into: %s",
+            self.source_project_dataset_table,
+            self.destination_cloud_storage_uris,
+        )
+        hook = BigQueryHook(
+            bigquery_conn_id=self.bigquery_conn_id, delegate_to=self.delegate_to
+        )
         conn = hook.get_conn()
         cursor = conn.cursor()
         cursor.run_extract(
@@ -102,4 +111,5 @@ class BigQueryToCloudStorageOperator(BaseOperator):
             self.export_format,
             self.field_delimiter,
             self.print_header,
-            self.labels)
+            self.labels,
+        )

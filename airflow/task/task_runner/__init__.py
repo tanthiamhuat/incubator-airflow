@@ -21,7 +21,7 @@ from airflow import configuration
 from airflow.task.task_runner.standard_task_runner import StandardTaskRunner
 from airflow.exceptions import AirflowException
 
-_TASK_RUNNER = configuration.conf.get('core', 'TASK_RUNNER')
+_TASK_RUNNER = configuration.conf.get("core", "TASK_RUNNER")
 
 
 def get_task_runner(local_task_job):
@@ -38,6 +38,7 @@ def get_task_runner(local_task_job):
         return StandardTaskRunner(local_task_job)
     elif _TASK_RUNNER == "CgroupTaskRunner":
         from airflow.contrib.task_runner.cgroup_task_runner import CgroupTaskRunner
+
         return CgroupTaskRunner(local_task_job)
     else:
         raise AirflowException("Unknown task runner type {}".format(_TASK_RUNNER))

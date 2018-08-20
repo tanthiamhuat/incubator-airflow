@@ -55,28 +55,34 @@ def apply_lineage(func):
 
     @wraps(func)
     def wrapper(self, context, *args, **kwargs):
-        self.log.debug("Lineage called with inlets: %s, outlets: %s",
-                       self.inlets, self.outlets)
+        self.log.debug(
+            "Lineage called with inlets: %s, outlets: %s", self.inlets, self.outlets
+        )
         ret_val = func(self, context, *args, **kwargs)
 
         outlets = [x.as_dict() for x in self.outlets]
         inlets = [x.as_dict() for x in self.inlets]
 
         if len(self.outlets) > 0:
-            self.xcom_push(context,
-                           key=PIPELINE_OUTLETS,
-                           value=outlets,
-                           execution_date=context['ti'].execution_date)
+            self.xcom_push(
+                context,
+                key=PIPELINE_OUTLETS,
+                value=outlets,
+                execution_date=context["ti"].execution_date,
+            )
 
         if len(self.inlets) > 0:
-            self.xcom_push(context,
-                           key=PIPELINE_INLETS,
-                           value=inlets,
-                           execution_date=context['ti'].execution_date)
+            self.xcom_push(
+                context,
+                key=PIPELINE_INLETS,
+                value=inlets,
+                execution_date=context["ti"].execution_date,
+            )
 
         if backend:
-            backend.send_lineage(operator=self, inlets=self.inlets,
-                                 outlets=self.outlets, context=context)
+            backend.send_lineage(
+                operator=self, inlets=self.inlets, outlets=self.outlets, context=context
+            )
 
         return ret_val
 
@@ -93,43 +99,44 @@ def prepare_lineage(func):
         "list of task_ids" -> picks up outlets from the upstream task_ids
         "list of datasets" -> manually defined list of DataSet
     """
+
     @wraps(func)
     def wrapper(self, context, *args, **kwargs):
         self.log.debug("Preparing lineage inlets and outlets")
 
-        task_ids = set(self._inlets['task_ids']).intersection(
+        task_ids = set(self._inlets["task_ids"]).intersection(
             self.get_flat_relative_ids(upstream=True)
         )
         if task_ids:
-            inlets = self.xcom_pull(context,
-                                    task_ids=task_ids,
-                                    dag_id=self.dag_id,
-                                    key=PIPELINE_OUTLETS)
+            inlets = self.xcom_pull(
+                context, task_ids=task_ids, dag_id=self.dag_id, key=PIPELINE_OUTLETS
+            )
             inlets = [item for sublist in inlets if sublist for item in sublist]
-            inlets = [DataSet.map_type(i['typeName'])(data=i['attributes'])
-                      for i in inlets]
+            inlets = [
+                DataSet.map_type(i["typeName"])(data=i["attributes"]) for i in inlets
+            ]
             self.inlets.extend(inlets)
 
-        if self._inlets['auto']:
+        if self._inlets["auto"]:
             # dont append twice
-            task_ids = set(self._inlets['task_ids']).symmetric_difference(
+            task_ids = set(self._inlets["task_ids"]).symmetric_difference(
                 self.upstream_task_ids
             )
-            inlets = self.xcom_pull(context,
-                                    task_ids=task_ids,
-                                    dag_id=self.dag_id,
-                                    key=PIPELINE_OUTLETS)
+            inlets = self.xcom_pull(
+                context, task_ids=task_ids, dag_id=self.dag_id, key=PIPELINE_OUTLETS
+            )
             inlets = [item for sublist in inlets if sublist for item in sublist]
-            inlets = [DataSet.map_type(i['typeName'])(data=i['attributes'])
-                      for i in inlets]
+            inlets = [
+                DataSet.map_type(i["typeName"])(data=i["attributes"]) for i in inlets
+            ]
             self.inlets.extend(inlets)
 
-        if len(self._inlets['datasets']) > 0:
-            self.inlets.extend(self._inlets['datasets'])
+        if len(self._inlets["datasets"]) > 0:
+            self.inlets.extend(self._inlets["datasets"])
 
         # outlets
-        if len(self._outlets['datasets']) > 0:
-            self.outlets.extend(self._outlets['datasets'])
+        if len(self._outlets["datasets"]) > 0:
+            self.outlets.extend(self._outlets["datasets"])
 
         self.log.debug("inlets: %s, outlets: %s", self.inlets, self.outlets)
 

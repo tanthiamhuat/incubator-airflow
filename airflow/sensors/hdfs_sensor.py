@@ -32,22 +32,25 @@ class HdfsSensor(BaseSensorOperator):
     """
     Waits for a file or folder to land in HDFS
     """
-    template_fields = ('filepath',)
-    ui_color = settings.WEB_COLORS['LIGHTBLUE']
+
+    template_fields = ("filepath",)
+    ui_color = settings.WEB_COLORS["LIGHTBLUE"]
 
     @apply_defaults
-    def __init__(self,
-                 filepath,
-                 hdfs_conn_id='hdfs_default',
-                 ignored_ext=None,
-                 ignore_copying=True,
-                 file_size=None,
-                 hook=HDFSHook,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        filepath,
+        hdfs_conn_id="hdfs_default",
+        ignored_ext=None,
+        ignore_copying=True,
+        file_size=None,
+        hook=HDFSHook,
+        *args,
+        **kwargs
+    ):
         super(HdfsSensor, self).__init__(*args, **kwargs)
         if ignored_ext is None:
-            ignored_ext = ['_COPYING_']
+            ignored_ext = ["_COPYING_"]
         self.filepath = filepath
         self.hdfs_conn_id = hdfs_conn_id
         self.file_size = file_size
@@ -67,12 +70,13 @@ class HdfsSensor(BaseSensorOperator):
         if size:
             log = LoggingMixin().log
             log.debug(
-                'Filtering for file size >= %s in files: %s',
-                size, map(lambda x: x['path'], result)
+                "Filtering for file size >= %s in files: %s",
+                size,
+                map(lambda x: x["path"], result),
             )
             size *= settings.MEGABYTE
-            result = [x for x in result if x['length'] >= size]
-            log.debug('HdfsSensor.poke: after size filter result is %s', result)
+            result = [x for x in result if x["length"] >= size]
+            log.debug("HdfsSensor.poke: after size filter result is %s", result)
         return result
 
     @staticmethod
@@ -87,19 +91,22 @@ class HdfsSensor(BaseSensorOperator):
         """
         if ignore_copying:
             log = LoggingMixin().log
-            regex_builder = "^.*\.(%s$)$" % '$|'.join(ignored_ext)
+            regex_builder = "^.*\.(%s$)$" % "$|".join(ignored_ext)
             ignored_extensions_regex = re.compile(regex_builder)
             log.debug(
-                'Filtering result for ignored extensions: %s in files %s',
-                ignored_extensions_regex.pattern, map(lambda x: x['path'], result)
+                "Filtering result for ignored extensions: %s in files %s",
+                ignored_extensions_regex.pattern,
+                map(lambda x: x["path"], result),
             )
-            result = [x for x in result if not ignored_extensions_regex.match(x['path'])]
-            log.debug('HdfsSensor.poke: after ext filter result is %s', result)
+            result = [
+                x for x in result if not ignored_extensions_regex.match(x["path"])
+            ]
+            log.debug("HdfsSensor.poke: after ext filter result is %s", result)
         return result
 
     def poke(self, context):
         sb = self.hook(self.hdfs_conn_id).get_conn()
-        self.log.info('Poking for file {self.filepath}'.format(**locals()))
+        self.log.info("Poking for file {self.filepath}".format(**locals()))
         try:
             # IMOO it's not right here, as there no raise of any kind.
             # if the filepath is let's say '/data/mydirectory',
@@ -107,7 +114,7 @@ class HdfsSensor(BaseSensorOperator):
             # it's not correct as the directory exists and sb does not raise any error
             # here is a quick fix
             result = [f for f in sb.ls([self.filepath], include_toplevel=False)]
-            self.log.debug('HdfsSensor.poke: result is %s', result)
+            self.log.debug("HdfsSensor.poke: result is %s", result)
             result = self.filter_for_ignored_ext(
                 result, self.ignored_ext, self.ignore_copying
             )

@@ -27,6 +27,7 @@ from airflow.hooks.base_hook import BaseHook
 snakebite_imported = False
 if PY2:
     from snakebite.client import Client, HAClient, Namenode, AutoConfigClient
+
     snakebite_imported = True
 
 
@@ -45,14 +46,15 @@ class HDFSHook(BaseHook):
     :param autoconfig: use snakebite's automatically configured client
     :type autoconfig: bool
     """
-    def __init__(self, hdfs_conn_id='hdfs_default', proxy_user=None,
-                 autoconfig=False):
+
+    def __init__(self, hdfs_conn_id="hdfs_default", proxy_user=None, autoconfig=False):
         if not snakebite_imported:
             raise ImportError(
-                'This HDFSHook implementation requires snakebite, but '
-                'snakebite is not compatible with Python 3 '
-                '(as of August 2015). Please use Python 2 if you require '
-                'this hook  -- or help by submitting a PR!')
+                "This HDFSHook implementation requires snakebite, but "
+                "snakebite is not compatible with Python 3 "
+                "(as of August 2015). Please use Python 2 if you require "
+                "this hook  -- or help by submitting a PR!"
+            )
         self.hdfs_conn_id = hdfs_conn_id
         self.proxy_user = proxy_user
         self.autoconfig = autoconfig
@@ -65,7 +67,7 @@ class HDFSHook(BaseHook):
         # take the first.
         effective_user = self.proxy_user
         autoconfig = self.autoconfig
-        use_sasl = configuration.conf.get('core', 'security') == 'kerberos'
+        use_sasl = configuration.conf.get("core", "security") == "kerberos"
 
         try:
             connections = self.get_connections(self.hdfs_conn_id)
@@ -73,29 +75,37 @@ class HDFSHook(BaseHook):
             if not effective_user:
                 effective_user = connections[0].login
             if not autoconfig:
-                autoconfig = connections[0].extra_dejson.get('autoconfig',
-                                                             False)
+                autoconfig = connections[0].extra_dejson.get("autoconfig", False)
             hdfs_namenode_principal = connections[0].extra_dejson.get(
-                'hdfs_namenode_principal')
+                "hdfs_namenode_principal"
+            )
         except AirflowException:
             if not autoconfig:
                 raise
 
         if autoconfig:
             # will read config info from $HADOOP_HOME conf files
-            client = AutoConfigClient(effective_user=effective_user,
-                                      use_sasl=use_sasl)
+            client = AutoConfigClient(effective_user=effective_user, use_sasl=use_sasl)
         elif len(connections) == 1:
-            client = Client(connections[0].host, connections[0].port,
-                            effective_user=effective_user, use_sasl=use_sasl,
-                            hdfs_namenode_principal=hdfs_namenode_principal)
+            client = Client(
+                connections[0].host,
+                connections[0].port,
+                effective_user=effective_user,
+                use_sasl=use_sasl,
+                hdfs_namenode_principal=hdfs_namenode_principal,
+            )
         elif len(connections) > 1:
             nn = [Namenode(conn.host, conn.port) for conn in connections]
-            client = HAClient(nn, effective_user=effective_user,
-                              use_sasl=use_sasl,
-                              hdfs_namenode_principal=hdfs_namenode_principal)
+            client = HAClient(
+                nn,
+                effective_user=effective_user,
+                use_sasl=use_sasl,
+                hdfs_namenode_principal=hdfs_namenode_principal,
+            )
         else:
-            raise HDFSHookException("conn_id doesn't exist in the repository "
-                                    "and autoconfig is not specified")
+            raise HDFSHookException(
+                "conn_id doesn't exist in the repository "
+                "and autoconfig is not specified"
+            )
 
         return client

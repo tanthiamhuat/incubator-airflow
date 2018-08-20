@@ -36,11 +36,9 @@ class PigCliHook(BaseHook):
 
     """
 
-    def __init__(
-            self,
-            pig_cli_conn_id="pig_cli_default"):
+    def __init__(self, pig_cli_conn_id="pig_cli_default"):
         conn = self.get_connection(pig_cli_conn_id)
-        self.pig_properties = conn.extra_dejson.get('pig_properties', '')
+        self.pig_properties = conn.extra_dejson.get("pig_properties", "")
         self.conn = conn
 
     def run_cli(self, pig, verbose=True):
@@ -53,15 +51,15 @@ class PigCliHook(BaseHook):
         True
         """
 
-        with TemporaryDirectory(prefix='airflow_pigop_') as tmp_dir:
+        with TemporaryDirectory(prefix="airflow_pigop_") as tmp_dir:
             with NamedTemporaryFile(dir=tmp_dir) as f:
-                f.write(pig.encode('utf-8'))
+                f.write(pig.encode("utf-8"))
                 f.flush()
                 fname = f.name
-                pig_bin = 'pig'
+                pig_bin = "pig"
                 cmd_extra = []
 
-                pig_cmd = [pig_bin, '-f', fname] + cmd_extra
+                pig_cmd = [pig_bin, "-f", fname] + cmd_extra
 
                 if self.pig_properties:
                     pig_properties_list = self.pig_properties.split()
@@ -73,11 +71,12 @@ class PigCliHook(BaseHook):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     cwd=tmp_dir,
-                    close_fds=True)
+                    close_fds=True,
+                )
                 self.sp = sp
-                stdout = ''
-                for line in iter(sp.stdout.readline, b''):
-                    stdout += line.decode('utf-8')
+                stdout = ""
+                for line in iter(sp.stdout.readline, b""):
+                    stdout += line.decode("utf-8")
                     if verbose:
                         self.log.info(line.strip())
                 sp.wait()
@@ -88,7 +87,7 @@ class PigCliHook(BaseHook):
                 return stdout
 
     def kill(self):
-        if hasattr(self, 'sp'):
+        if hasattr(self, "sp"):
             if self.sp.poll() is None:
                 print("Killing the Pig job")
                 self.sp.kill()

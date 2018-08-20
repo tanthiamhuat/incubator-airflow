@@ -43,7 +43,7 @@ from airflow.exceptions import AirflowException
 # When killing processes, time to wait after issuing a SIGTERM before issuing a
 # SIGKILL.
 DEFAULT_TIME_TO_WAIT_AFTER_SIGTERM = configuration.conf.getint(
-    'core', 'KILLED_TASK_CLEANUP_TIME'
+    "core", "KILLED_TASK_CLEANUP_TIME"
 )
 
 
@@ -52,11 +52,13 @@ def validate_key(k, max_length=250):
         raise TypeError("The key has to be a string")
     elif len(k) > max_length:
         raise AirflowException(
-            "The key has to be less than {0} characters".format(max_length))
-    elif not re.match(r'^[A-Za-z0-9_\-\.]+$', k):
+            "The key has to be less than {0} characters".format(max_length)
+        )
+    elif not re.match(r"^[A-Za-z0-9_\-\.]+$", k):
         raise AirflowException(
             "The key ({k}) has to be made of alphanumeric characters, dashes, "
-            "dots and underscores exclusively".format(**locals()))
+            "dots and underscores exclusively".format(**locals())
+        )
     else:
         return True
 
@@ -77,8 +79,8 @@ def alchemy_to_dict(obj):
 
 
 def ask_yesno(question):
-    yes = set(['yes', 'y'])
-    no = set(['no', 'n'])
+    yes = set(["yes", "y"])
+    no = set(["no", "n"])
 
     done = False
     print(question)
@@ -108,7 +110,7 @@ def is_container(obj):
     """
     Test if an object is a container (iterable) but not a string
     """
-    return hasattr(obj, '__iter__') and not isinstance(obj, basestring)
+    return hasattr(obj, "__iter__") and not isinstance(obj, basestring)
 
 
 def as_tuple(obj):
@@ -127,9 +129,9 @@ def chunks(items, chunk_size):
     Yield successive chunks of a given size from a list of items
     """
     if chunk_size <= 0:
-        raise ValueError('Chunk size must be a positive integer')
+        raise ValueError("Chunk size must be a positive integer")
     for i in range(0, len(items), chunk_size):
-        yield items[i:i + chunk_size]
+        yield items[i : i + chunk_size]
 
 
 def reduce_in_chunks(fn, iterable, initializer, chunk_size=0):
@@ -177,7 +179,7 @@ def pprinttable(rows):
     """
     if not rows:
         return
-    if hasattr(rows[0], '_fields'):  # if namedtuple
+    if hasattr(rows[0], "_fields"):  # if namedtuple
         headers = rows[0]._fields
     else:
         headers = ["col{}".format(i) for i in range(len(rows[0]))]
@@ -198,23 +200,24 @@ def pprinttable(rows):
         hformats.append("%%-%ds" % lens[i])
     pattern = " | ".join(formats)
     hpattern = " | ".join(hformats)
-    separator = "-+-".join(['-' * n for n in lens])
+    separator = "-+-".join(["-" * n for n in lens])
     s = ""
-    s += separator + '\n'
-    s += (hpattern % tuple(headers)) + '\n'
-    s += separator + '\n'
+    s += separator + "\n"
+    s += (hpattern % tuple(headers)) + "\n"
+    s += separator + "\n"
 
     def f(t):
         return "{}".format(t) if isinstance(t, basestring) else t
 
     for line in rows:
-        s += pattern % tuple(f(t) for t in line) + '\n'
-    s += separator + '\n'
+        s += pattern % tuple(f(t) for t in line) + "\n"
+    s += separator + "\n"
     return s
 
 
-def reap_process_group(pid, log, sig=signal.SIGTERM,
-                       timeout=DEFAULT_TIME_TO_WAIT_AFTER_SIGTERM):
+def reap_process_group(
+    pid, log, sig=signal.SIGTERM, timeout=DEFAULT_TIME_TO_WAIT_AFTER_SIGTERM
+):
     """
     Tries really hard to terminate all children (including grandchildren). Will send
     sig (SIGTERM) to the process group of pid. If any process is alive after timeout
@@ -244,7 +247,9 @@ def reap_process_group(pid, log, sig=signal.SIGTERM,
 
     if alive:
         for p in alive:
-            log.warn("process %s (%s) did not respond to SIGTERM. Trying SIGKILL", p, pid)
+            log.warn(
+                "process %s (%s) did not respond to SIGTERM. Trying SIGKILL", p, pid
+            )
 
         os.killpg(os.getpgid(pid), signal.SIGKILL)
 
@@ -333,7 +338,9 @@ class AirflowImporter(object):
             path = os.path.realpath(self._parent_module.__file__)
             folder = os.path.dirname(path)
             f, filename, description = imp.find_module(module, [folder])
-            self._loaded_modules[module] = imp.load_module(module, f, filename, description)
+            self._loaded_modules[module] = imp.load_module(
+                module, f, filename, description
+            )
 
             # This functionality is deprecated, and AirflowImporter should be
             # removed in 2.0.
@@ -342,8 +349,10 @@ class AirflowImporter(object):
                 "deprecated. Please import from "
                 "'{m}.[operator_module]' instead. Support for direct "
                 "imports will be dropped entirely in Airflow 2.0.".format(
-                    i=attribute, m=self._parent_module.__name__),
-                DeprecationWarning)
+                    i=attribute, m=self._parent_module.__name__
+                ),
+                DeprecationWarning,
+            )
 
         loaded_module = self._loaded_modules[module]
 

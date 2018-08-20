@@ -48,23 +48,25 @@ def create_app(config=None, testing=False):
 
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app)
-    app.secret_key = configuration.conf.get('webserver', 'SECRET_KEY')
-    app.config['LOGIN_DISABLED'] = not configuration.conf.getboolean(
-        'webserver', 'AUTHENTICATE')
+    app.secret_key = configuration.conf.get("webserver", "SECRET_KEY")
+    app.config["LOGIN_DISABLED"] = not configuration.conf.getboolean(
+        "webserver", "AUTHENTICATE"
+    )
 
     csrf.init_app(app)
 
-    app.config['TESTING'] = testing
+    app.config["TESTING"] = testing
 
     airflow.load_login()
     airflow.login.login_manager.init_app(app)
 
     from airflow import api
+
     api.load_auth()
     api.api_auth.init_app(app)
 
     # flake8: noqa: F841
-    cache = Cache(app=app, config={'CACHE_TYPE': 'filesystem', 'CACHE_DIR': '/tmp'})
+    cache = Cache(app=app, config={"CACHE_TYPE": "filesystem", "CACHE_DIR": "/tmp"})
 
     app.register_blueprint(routes)
 
@@ -74,56 +76,80 @@ def create_app(config=None, testing=False):
         from airflow.www import views
 
         admin = Admin(
-            app, name='Airflow',
-            static_url_path='/admin',
-            index_view=views.HomeView(endpoint='', url='/admin', name="DAGs"),
-            template_mode='bootstrap3',
+            app,
+            name="Airflow",
+            static_url_path="/admin",
+            index_view=views.HomeView(endpoint="", url="/admin", name="DAGs"),
+            template_mode="bootstrap3",
         )
         av = admin.add_view
         vs = views
-        av(vs.Airflow(name='DAGs', category='DAGs'))
+        av(vs.Airflow(name="DAGs", category="DAGs"))
 
-        if not conf.getboolean('core', 'secure_mode'):
-            av(vs.QueryView(name='Ad Hoc Query', category="Data Profiling"))
-            av(vs.ChartModelView(
-                models.Chart, Session, name="Charts", category="Data Profiling"))
-        av(vs.KnownEventView(
-            models.KnownEvent,
-            Session, name="Known Events", category="Data Profiling"))
-        av(vs.SlaMissModelView(
-            models.SlaMiss,
-            Session, name="SLA Misses", category="Browse"))
-        av(vs.TaskInstanceModelView(models.TaskInstance,
-            Session, name="Task Instances", category="Browse"))
-        av(vs.LogModelView(
-            models.Log, Session, name="Logs", category="Browse"))
-        av(vs.JobModelView(
-            jobs.BaseJob, Session, name="Jobs", category="Browse"))
-        av(vs.PoolModelView(
-            models.Pool, Session, name="Pools", category="Admin"))
-        av(vs.ConfigurationView(
-            name='Configuration', category="Admin"))
-        av(vs.UserModelView(
-            models.User, Session, name="Users", category="Admin"))
-        av(vs.ConnectionModelView(
-            models.Connection, Session, name="Connections", category="Admin"))
-        av(vs.VariableView(
-            models.Variable, Session, name="Variables", category="Admin"))
-        av(vs.XComView(
-            models.XCom, Session, name="XComs", category="Admin"))
+        if not conf.getboolean("core", "secure_mode"):
+            av(vs.QueryView(name="Ad Hoc Query", category="Data Profiling"))
+            av(
+                vs.ChartModelView(
+                    models.Chart, Session, name="Charts", category="Data Profiling"
+                )
+            )
+        av(
+            vs.KnownEventView(
+                models.KnownEvent,
+                Session,
+                name="Known Events",
+                category="Data Profiling",
+            )
+        )
+        av(
+            vs.SlaMissModelView(
+                models.SlaMiss, Session, name="SLA Misses", category="Browse"
+            )
+        )
+        av(
+            vs.TaskInstanceModelView(
+                models.TaskInstance, Session, name="Task Instances", category="Browse"
+            )
+        )
+        av(vs.LogModelView(models.Log, Session, name="Logs", category="Browse"))
+        av(vs.JobModelView(jobs.BaseJob, Session, name="Jobs", category="Browse"))
+        av(vs.PoolModelView(models.Pool, Session, name="Pools", category="Admin"))
+        av(vs.ConfigurationView(name="Configuration", category="Admin"))
+        av(vs.UserModelView(models.User, Session, name="Users", category="Admin"))
+        av(
+            vs.ConnectionModelView(
+                models.Connection, Session, name="Connections", category="Admin"
+            )
+        )
+        av(
+            vs.VariableView(
+                models.Variable, Session, name="Variables", category="Admin"
+            )
+        )
+        av(vs.XComView(models.XCom, Session, name="XComs", category="Admin"))
 
-        admin.add_link(base.MenuLink(
-            category='Docs', name='Documentation',
-            url='https://airflow.incubator.apache.org/'))
         admin.add_link(
-            base.MenuLink(category='Docs',
-                          name='Github',
-                          url='https://github.com/apache/incubator-airflow'))
+            base.MenuLink(
+                category="Docs",
+                name="Documentation",
+                url="https://airflow.incubator.apache.org/",
+            )
+        )
+        admin.add_link(
+            base.MenuLink(
+                category="Docs",
+                name="Github",
+                url="https://github.com/apache/incubator-airflow",
+            )
+        )
 
-        av(vs.VersionView(name='Version', category="About"))
+        av(vs.VersionView(name="Version", category="About"))
 
-        av(vs.DagRunModelView(
-            models.DagRun, Session, name="DAG Runs", category="Browse"))
+        av(
+            vs.DagRunModelView(
+                models.DagRun, Session, name="DAG Runs", category="Browse"
+            )
+        )
         av(vs.DagModelView(models.DagModel, Session, name=None))
         # Hack to not add this view to the menu
         admin._menu = admin._menu[:-1]
@@ -131,36 +157,42 @@ def create_app(config=None, testing=False):
         def integrate_plugins():
             """Integrate plugins to the context"""
             from airflow.plugins_manager import (
-                admin_views, flask_blueprints, menu_links)
+                admin_views,
+                flask_blueprints,
+                menu_links,
+            )
+
             for v in admin_views:
-                log.debug('Adding view %s', v.name)
+                log.debug("Adding view %s", v.name)
                 admin.add_view(v)
             for bp in flask_blueprints:
-                log.debug('Adding blueprint %s', bp.name)
+                log.debug("Adding blueprint %s", bp.name)
                 app.register_blueprint(bp)
             for ml in sorted(menu_links, key=lambda x: x.name):
-                log.debug('Adding menu link %s', ml.name)
+                log.debug("Adding menu link %s", ml.name)
                 admin.add_link(ml)
 
         integrate_plugins()
 
         import airflow.www.api.experimental.endpoints as e
+
         # required for testing purposes otherwise the module retains
         # a link to the default_auth
-        if app.config['TESTING']:
+        if app.config["TESTING"]:
             if six.PY2:
                 reload(e)
             else:
                 import importlib
+
                 importlib.reload(e)
 
-        app.register_blueprint(e.api_experimental, url_prefix='/api/experimental')
+        app.register_blueprint(e.api_experimental, url_prefix="/api/experimental")
 
         @app.context_processor
         def jinja_globals():
             return {
-                'hostname': get_hostname(),
-                'navbar_color': configuration.get('webserver', 'NAVBAR_COLOR'),
+                "hostname": get_hostname(),
+                "navbar_color": configuration.get("webserver", "NAVBAR_COLOR"),
             }
 
         @app.teardown_appcontext
@@ -174,15 +206,15 @@ app = None
 
 
 def root_app(env, resp):
-    resp(b'404 Not Found', [(b'Content-Type', b'text/plain')])
-    return [b'Apache Airflow is not at this location']
+    resp(b"404 Not Found", [(b"Content-Type", b"text/plain")])
+    return [b"Apache Airflow is not at this location"]
 
 
 def cached_app(config=None, testing=False):
     global app
     if not app:
-        base_url = urlparse(configuration.conf.get('webserver', 'base_url'))[2]
-        if not base_url or base_url == '/':
+        base_url = urlparse(configuration.conf.get("webserver", "base_url"))[2]
+        if not base_url or base_url == "/":
             base_url = ""
 
         app = create_app(config, testing)

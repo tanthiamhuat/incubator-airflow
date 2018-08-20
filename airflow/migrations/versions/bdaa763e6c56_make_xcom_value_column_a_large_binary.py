@@ -28,8 +28,8 @@ import dill
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = 'bdaa763e6c56'
-down_revision = 'cc1e65623dc7'
+revision = "bdaa763e6c56"
+down_revision = "cc1e65623dc7"
 branch_labels = None
 depends_on = None
 
@@ -39,10 +39,10 @@ def upgrade():
     # type.
     # use batch_alter_table to support SQLite workaround
     with op.batch_alter_table("xcom") as batch_op:
-        batch_op.alter_column('value', type_=sa.LargeBinary())
+        batch_op.alter_column("value", type_=sa.LargeBinary())
 
 
 def downgrade():
     # use batch_alter_table to support SQLite workaround
     with op.batch_alter_table("xcom") as batch_op:
-        batch_op.alter_column('value', type_=sa.PickleType(pickler=dill))
+        batch_op.alter_column("value", type_=sa.PickleType(pickler=dill))

@@ -30,26 +30,28 @@ class EmrJobFlowSensor(EmrBaseSensor):
     :type job_flow_id: string
     """
 
-    NON_TERMINAL_STATES = ['STARTING', 'BOOTSTRAPPING', 'RUNNING',
-                           'WAITING', 'TERMINATING']
-    FAILED_STATE = ['TERMINATED_WITH_ERRORS']
-    template_fields = ['job_flow_id']
+    NON_TERMINAL_STATES = [
+        "STARTING",
+        "BOOTSTRAPPING",
+        "RUNNING",
+        "WAITING",
+        "TERMINATING",
+    ]
+    FAILED_STATE = ["TERMINATED_WITH_ERRORS"]
+    template_fields = ["job_flow_id"]
     template_ext = ()
 
     @apply_defaults
-    def __init__(self,
-                 job_flow_id,
-                 *args,
-                 **kwargs):
+    def __init__(self, job_flow_id, *args, **kwargs):
         super(EmrJobFlowSensor, self).__init__(*args, **kwargs)
         self.job_flow_id = job_flow_id
 
     def get_emr_response(self):
         emr = EmrHook(aws_conn_id=self.aws_conn_id).get_conn()
 
-        self.log.info('Poking cluster %s', self.job_flow_id)
+        self.log.info("Poking cluster %s", self.job_flow_id)
         return emr.describe_cluster(ClusterId=self.job_flow_id)
 
     @staticmethod
     def state_from_response(response):
-        return response['Cluster']['Status']['State']
+        return response["Cluster"]["Status"]["State"]

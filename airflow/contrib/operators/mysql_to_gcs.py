@@ -39,23 +39,26 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
     """
     Copy data from MySQL to Google cloud storage in JSON format.
     """
-    template_fields = ('sql', 'bucket', 'filename', 'schema_filename', 'schema')
-    template_ext = ('.sql',)
-    ui_color = '#a0e08c'
+
+    template_fields = ("sql", "bucket", "filename", "schema_filename", "schema")
+    template_ext = (".sql",)
+    ui_color = "#a0e08c"
 
     @apply_defaults
-    def __init__(self,
-                 sql,
-                 bucket,
-                 filename,
-                 schema_filename=None,
-                 approx_max_file_size_bytes=1900000000,
-                 mysql_conn_id='mysql_default',
-                 google_cloud_storage_conn_id='google_cloud_default',
-                 schema=None,
-                 delegate_to=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        sql,
+        bucket,
+        filename,
+        schema_filename=None,
+        approx_max_file_size_bytes=1900000000,
+        mysql_conn_id="mysql_default",
+        google_cloud_storage_conn_id="google_cloud_default",
+        schema=None,
+        delegate_to=None,
+        *args,
+        **kwargs
+    ):
         """
         :param sql: The SQL to execute on the MySQL table.
         :type sql: string
@@ -152,11 +155,11 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             # TODO validate that row isn't > 2MB. BQ enforces a hard row size of 2MB.
             s = json.dumps(row_dict)
             if PY3:
-                s = s.encode('utf-8')
+                s = s.encode("utf-8")
             tmp_file_handle.write(s)
 
             # Append newline to make dumps BigQuery compatible.
-            tmp_file_handle.write(b'\n')
+            tmp_file_handle.write(b"\n")
 
             # Stop if the file exceeds the file size limit.
             if tmp_file_handle.tell() >= self.approx_max_file_size_bytes:
@@ -190,21 +193,19 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
                 # Always allow TIMESTAMP to be nullable. MySQLdb returns None types
                 # for required fields because some MySQL timestamps can't be
                 # represented by Python's datetime (e.g. 0000-00-00 00:00:00).
-                if field[6] or field_type == 'TIMESTAMP':
-                    field_mode = 'NULLABLE'
+                if field[6] or field_type == "TIMESTAMP":
+                    field_mode = "NULLABLE"
                 else:
-                    field_mode = 'REQUIRED'
-                schema.append({
-                    'name': field_name,
-                    'type': field_type,
-                    'mode': field_mode,
-                })
+                    field_mode = "REQUIRED"
+                schema.append(
+                    {"name": field_name, "type": field_type, "mode": field_mode}
+                )
             schema_str = json.dumps(schema)
         if PY3:
-            schema_str = schema_str.encode('utf-8')
+            schema_str = schema_str.encode("utf-8")
         tmp_schema_file_handle.write(schema_str)
 
-        self.log.info('Using schema for %s: %s', self.schema_filename, schema_str)
+        self.log.info("Using schema for %s: %s", self.schema_filename, schema_str)
         return {self.schema_filename: tmp_schema_file_handle}
 
     def _upload_to_gcs(self, files_to_upload):
@@ -214,9 +215,10 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
         """
         hook = GoogleCloudStorageHook(
             google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
-            delegate_to=self.delegate_to)
+            delegate_to=self.delegate_to,
+        )
         for object, tmp_file_handle in files_to_upload.items():
-            hook.upload(self.bucket, object, tmp_file_handle.name, 'application/json')
+            hook.upload(self.bucket, object, tmp_file_handle.name, "application/json")
 
     @staticmethod
     def _convert_types(schema, col_type_dict, row):
@@ -236,7 +238,7 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
             elif col_type_dict.get(col_name) == "BYTES":
                 col_val = base64.standard_b64encode(col_val)
                 if PY3:
-                    col_val = col_val.decode('ascii')
+                    col_val = col_val.decode("ascii")
             else:
                 col_val = col_val
             converted_row.append(col_val)
@@ -252,16 +254,20 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
         elif isinstance(self.schema, list):
             schema = self.schema
         elif self.schema is not None:
-            self.log.warn('Using default schema due to unexpected type.'
-                          'Should be a string or list.')
+            self.log.warn(
+                "Using default schema due to unexpected type."
+                "Should be a string or list."
+            )
 
         col_type_dict = {}
         try:
-            col_type_dict = {col['name']: col['type'] for col in schema}
+            col_type_dict = {col["name"]: col["type"] for col in schema}
         except KeyError:
-            self.log.warn('Using default schema due to missing name or type. Please '
-                          'refer to: https://cloud.google.com/bigquery/docs/schemas'
-                          '#specifying_a_json_schema_file')
+            self.log.warn(
+                "Using default schema due to missing name or type. Please "
+                "refer to: https://cloud.google.com/bigquery/docs/schemas"
+                "#specifying_a_json_schema_file"
+            )
         return col_type_dict
 
     @classmethod
@@ -271,19 +277,19 @@ class MySqlToGoogleCloudStorageOperator(BaseOperator):
         when a schema_filename is set.
         """
         d = {
-            FIELD_TYPE.INT24: 'INTEGER',
-            FIELD_TYPE.TINY: 'INTEGER',
-            FIELD_TYPE.BIT: 'INTEGER',
-            FIELD_TYPE.DATETIME: 'TIMESTAMP',
-            FIELD_TYPE.DATE: 'TIMESTAMP',
-            FIELD_TYPE.DECIMAL: 'FLOAT',
-            FIELD_TYPE.NEWDECIMAL: 'FLOAT',
-            FIELD_TYPE.DOUBLE: 'FLOAT',
-            FIELD_TYPE.FLOAT: 'FLOAT',
-            FIELD_TYPE.LONG: 'INTEGER',
-            FIELD_TYPE.LONGLONG: 'INTEGER',
-            FIELD_TYPE.SHORT: 'INTEGER',
-            FIELD_TYPE.TIMESTAMP: 'TIMESTAMP',
-            FIELD_TYPE.YEAR: 'INTEGER',
+            FIELD_TYPE.INT24: "INTEGER",
+            FIELD_TYPE.TINY: "INTEGER",
+            FIELD_TYPE.BIT: "INTEGER",
+            FIELD_TYPE.DATETIME: "TIMESTAMP",
+            FIELD_TYPE.DATE: "TIMESTAMP",
+            FIELD_TYPE.DECIMAL: "FLOAT",
+            FIELD_TYPE.NEWDECIMAL: "FLOAT",
+            FIELD_TYPE.DOUBLE: "FLOAT",
+            FIELD_TYPE.FLOAT: "FLOAT",
+            FIELD_TYPE.LONG: "INTEGER",
+            FIELD_TYPE.LONGLONG: "INTEGER",
+            FIELD_TYPE.SHORT: "INTEGER",
+            FIELD_TYPE.TIMESTAMP: "TIMESTAMP",
+            FIELD_TYPE.YEAR: "INTEGER",
         }
-        return d[mysql_type] if mysql_type in d else 'STRING'
+        return d[mysql_type] if mysql_type in d else "STRING"

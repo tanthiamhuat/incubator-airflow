@@ -22,14 +22,10 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.models import DAG
 import os
 
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {"owner": "airflow", "start_date": airflow.utils.dates.days_ago(2)}
 
 dag = DAG(
-    dag_id='example_kubernetes_executor', default_args=args,
-    schedule_interval=None
+    dag_id="example_kubernetes_executor", default_args=args, schedule_interval=None
 )
 
 
@@ -43,27 +39,32 @@ def use_zip_binary():
 
 
 # You don't have to use any special KubernetesExecutor configuration if you don't want to
-start_task = PythonOperator(
-    task_id="start_task", python_callable=print_stuff, dag=dag
-)
+start_task = PythonOperator(task_id="start_task", python_callable=print_stuff, dag=dag)
 
 # But you can if you want to
 one_task = PythonOperator(
-    task_id="one_task", python_callable=print_stuff, dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "airflow/ci:latest"}}
+    task_id="one_task",
+    python_callable=print_stuff,
+    dag=dag,
+    executor_config={"KubernetesExecutor": {"image": "airflow/ci:latest"}},
 )
 
 # Use the zip binary, which is only found in this special docker image
 two_task = PythonOperator(
-    task_id="two_task", python_callable=use_zip_binary, dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "airflow/ci_zip:latest"}}
+    task_id="two_task",
+    python_callable=use_zip_binary,
+    dag=dag,
+    executor_config={"KubernetesExecutor": {"image": "airflow/ci_zip:latest"}},
 )
 
 # Limit resources on this operator/task
 three_task = PythonOperator(
-    task_id="three_task", python_callable=print_stuff, dag=dag,
+    task_id="three_task",
+    python_callable=print_stuff,
+    dag=dag,
     executor_config={
-        "KubernetesExecutor": {"request_memory": "128Mi", "limit_memory": "128Mi"}}
+        "KubernetesExecutor": {"request_memory": "128Mi", "limit_memory": "128Mi"}
+    },
 )
 
 start_task.set_downstream([one_task, two_task, three_task])

@@ -31,18 +31,21 @@ class MongoToS3Operator(BaseOperator):
                 to perform transformations unique to those operators needs
     """
 
-    template_fields = ['s3_key', 'mongo_query']
+    template_fields = ["s3_key", "mongo_query"]
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self,
-                 mongo_conn_id,
-                 s3_conn_id,
-                 mongo_collection,
-                 mongo_query,
-                 s3_bucket,
-                 s3_key,
-                 mongo_db=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        mongo_conn_id,
+        s3_conn_id,
+        mongo_collection,
+        mongo_query,
+        s3_bucket,
+        s3_key,
+        mongo_db=None,
+        *args,
+        **kwargs
+    ):
         super(MongoToS3Operator, self).__init__(*args, **kwargs)
         # Conn Ids
         self.mongo_conn_id = mongo_conn_id
@@ -52,15 +55,14 @@ class MongoToS3Operator(BaseOperator):
         self.mongo_collection = mongo_collection
         # Grab query and determine if we need to run an aggregate pipeline
         self.mongo_query = mongo_query
-        self.is_pipeline = True if isinstance(
-            self.mongo_query, list) else False
+        self.is_pipeline = True if isinstance(self.mongo_query, list) else False
 
         # S3 Settings
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
 
         # KWARGS
-        self.replace = kwargs.pop('replace', False)
+        self.replace = kwargs.pop("replace", False)
 
     def execute(self, context):
         """
@@ -73,14 +75,14 @@ class MongoToS3Operator(BaseOperator):
             results = MongoHook(self.mongo_conn_id).aggregate(
                 mongo_collection=self.mongo_collection,
                 aggregate_query=self.mongo_query,
-                mongo_db=self.mongo_db
+                mongo_db=self.mongo_db,
             )
 
         else:
             results = MongoHook(self.mongo_conn_id).find(
                 mongo_collection=self.mongo_collection,
                 query=self.mongo_query,
-                mongo_db=self.mongo_db
+                mongo_db=self.mongo_db,
             )
 
         # Performs transform then stringifies the docs results into json format
@@ -91,13 +93,13 @@ class MongoToS3Operator(BaseOperator):
             string_data=docs_str,
             key=self.s3_key,
             bucket_name=self.s3_bucket,
-            replace=self.replace
+            replace=self.replace,
         )
 
         return True
 
     @staticmethod
-    def _stringify(iterable, joinable='\n'):
+    def _stringify(iterable, joinable="\n"):
         """
         Takes an iterable (pymongo Cursor or Array) containing dictionaries and
         returns a stringified version using python join

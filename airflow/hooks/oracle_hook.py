@@ -30,8 +30,9 @@ class OracleHook(DbApiHook):
     """
     Interact with Oracle SQL.
     """
-    conn_name_attr = 'oracle_conn_id'
-    default_conn_name = 'oracle_default'
+
+    conn_name_attr = "oracle_conn_id"
+    default_conn_name = "oracle_default"
     supports_autocommit = False
 
     def get_conn(self):
@@ -50,11 +51,11 @@ class OracleHook(DbApiHook):
         as in ``{ "dsn":"some.host.address" , "service_name":"some.service.name" }``
         """
         conn = self.get_connection(self.oracle_conn_id)
-        dsn = conn.extra_dejson.get('dsn', None)
-        sid = conn.extra_dejson.get('sid', None)
-        mod = conn.extra_dejson.get('module', None)
+        dsn = conn.extra_dejson.get("dsn", None)
+        sid = conn.extra_dejson.get("sid", None)
+        mod = conn.extra_dejson.get("module", None)
 
-        service_name = conn.extra_dejson.get('service_name', None)
+        service_name = conn.extra_dejson.get("service_name", None)
         if dsn and sid and not service_name:
             dsn = cx_Oracle.makedsn(dsn, conn.port, sid)
             conn = cx_Oracle.connect(conn.login, conn.password, dsn=dsn)
@@ -80,14 +81,14 @@ class OracleHook(DbApiHook):
         - Coerce datetime cells to Oracle DATETIME format during insert
         """
         if target_fields:
-            target_fields = ', '.join(target_fields)
-            target_fields = '({})'.format(target_fields)
+            target_fields = ", ".join(target_fields)
+            target_fields = "({})".format(target_fields)
         else:
-            target_fields = ''
+            target_fields = ""
         conn = self.get_conn()
         cur = conn.cursor()
         if self.supports_autocommit:
-            cur.execute('SET autocommit = 0')
+            cur.execute("SET autocommit = 0")
         conn.commit()
         i = 0
         for row in rows:
@@ -97,31 +98,33 @@ class OracleHook(DbApiHook):
                 if isinstance(cell, basestring):
                     lst.append("'" + str(cell).replace("'", "''") + "'")
                 elif cell is None:
-                    lst.append('NULL')
-                elif type(cell) == float and \
-                        numpy.isnan(cell):  # coerce numpy NaN to NULL
-                    lst.append('NULL')
+                    lst.append("NULL")
+                elif type(cell) == float and numpy.isnan(
+                    cell
+                ):  # coerce numpy NaN to NULL
+                    lst.append("NULL")
                 elif isinstance(cell, numpy.datetime64):
                     lst.append("'" + str(cell) + "'")
                 elif isinstance(cell, datetime):
-                    lst.append("to_date('" +
-                               cell.strftime('%Y-%m-%d %H:%M:%S') +
-                               "','YYYY-MM-DD HH24:MI:SS')")
+                    lst.append(
+                        "to_date('"
+                        + cell.strftime("%Y-%m-%d %H:%M:%S")
+                        + "','YYYY-MM-DD HH24:MI:SS')"
+                    )
                 else:
                     lst.append(str(cell))
             values = tuple(lst)
-            sql = 'INSERT /*+ APPEND */ ' \
-                  'INTO {0} {1} VALUES ({2})'.format(table,
-                                                     target_fields,
-                                                     ','.join(values))
+            sql = "INSERT /*+ APPEND */ " "INTO {0} {1} VALUES ({2})".format(
+                table, target_fields, ",".join(values)
+            )
             cur.execute(sql)
             if i % commit_every == 0:
                 conn.commit()
-                self.log.info('Loaded {i} into {table} rows so far'.format(**locals()))
+                self.log.info("Loaded {i} into {table} rows so far".format(**locals()))
         conn.commit()
         cur.close()
         conn.close()
-        self.log.info('Done loading. Loaded a total of {i} rows'.format(**locals()))
+        self.log.info("Done loading. Loaded a total of {i} rows".format(**locals()))
 
     def bulk_insert_rows(self, table, rows, target_fields=None, commit_every=5000):
         """
@@ -131,11 +134,9 @@ class OracleHook(DbApiHook):
         """
         conn = self.get_conn()
         cursor = conn.cursor()
-        values = ', '.join(':%s' % i for i in range(1, len(target_fields) + 1))
-        prepared_stm = 'insert into {tablename} ({columns}) values ({values})'.format(
-            tablename=table,
-            columns=', '.join(target_fields),
-            values=values,
+        values = ", ".join(":%s" % i for i in range(1, len(target_fields) + 1))
+        prepared_stm = "insert into {tablename} ({columns}) values ({values})".format(
+            tablename=table, columns=", ".join(target_fields), values=values
         )
         row_count = 0
         # Chunk the rows
@@ -147,13 +148,13 @@ class OracleHook(DbApiHook):
                 cursor.prepare(prepared_stm)
                 cursor.executemany(None, row_chunk)
                 conn.commit()
-                self.log.info('[%s] inserted %s rows', table, row_count)
+                self.log.info("[%s] inserted %s rows", table, row_count)
                 # Empty chunk
                 row_chunk = []
         # Commit the leftover chunk
         cursor.prepare(prepared_stm)
         cursor.executemany(None, row_chunk)
         conn.commit()
-        self.log.info('[%s] inserted %s rows', table, row_count)
+        self.log.info("[%s] inserted %s rows", table, row_count)
         cursor.close()
         conn.close()

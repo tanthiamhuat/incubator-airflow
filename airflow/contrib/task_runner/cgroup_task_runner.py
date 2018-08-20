@@ -82,7 +82,8 @@ class CgroupTaskRunner(BaseTaskRunner):
             else:
                 self.log.debug(
                     "Not creating cgroup %s in %s since it already exists",
-                    path_element, node.path
+                    path_element,
+                    node.path,
                 )
                 node = name_to_node[path_element]
         return node
@@ -115,15 +116,16 @@ class CgroupTaskRunner(BaseTaskRunner):
             self.log.debug(
                 "Already running in a cgroup (cpu: %s memory: %s) so not "
                 "creating another one",
-                cgroups.get("cpu"), cgroups.get("memory")
+                cgroups.get("cpu"),
+                cgroups.get("memory"),
             )
             self.process = self.run_command()
             return
 
         # Create a unique cgroup name
-        cgroup_name = "airflow/{}/{}".format(datetime.datetime.utcnow().
-                                             strftime("%Y-%m-%d"),
-                                             str(uuid.uuid1()))
+        cgroup_name = "airflow/{}/{}".format(
+            datetime.datetime.utcnow().strftime("%Y-%m-%d"), str(uuid.uuid1())
+        )
 
         self.mem_cgroup_name = "memory/{}".format(cgroup_name)
         self.cpu_cgroup_name = "cpu/{}".format(cgroup_name)
@@ -141,7 +143,8 @@ class CgroupTaskRunner(BaseTaskRunner):
         if self._mem_mb_limit > 0:
             self.log.debug(
                 "Setting %s with %s MB of memory",
-                self.mem_cgroup_name, self._mem_mb_limit
+                self.mem_cgroup_name,
+                self._mem_mb_limit,
             )
             mem_cgroup_node.controller.limit_in_bytes = self._mem_mb_limit * 1024 * 1024
 
@@ -150,18 +153,14 @@ class CgroupTaskRunner(BaseTaskRunner):
         self._created_cpu_cgroup = True
         if self._cpu_shares > 0:
             self.log.debug(
-                "Setting %s with %s CPU shares",
-                self.cpu_cgroup_name, self._cpu_shares
+                "Setting %s with %s CPU shares", self.cpu_cgroup_name, self._cpu_shares
             )
             cpu_cgroup_node.controller.shares = self._cpu_shares
 
         # Start the process w/ cgroups
-        self.log.debug(
-            "Starting task process with cgroups cpu,memory: %s",
-            cgroup_name
-        )
+        self.log.debug("Starting task process with cgroups cpu,memory: %s", cgroup_name)
         self.process = self.run_command(
-            ['cgexec', '-g', 'cpu,memory:{}'.format(cgroup_name)]
+            ["cgexec", "-g", "cpu,memory:{}".format(cgroup_name)]
         )
 
     def return_code(self):
@@ -174,10 +173,12 @@ class CgroupTaskRunner(BaseTaskRunner):
         # I wasn't able to track down the root cause of the package install failures, but
         # we might want to revisit that approach at some other point.
         if return_code == 137:
-            self.log.warning("Task failed with return code of 137. This may indicate "
-                             "that it was killed due to excessive memory usage. "
-                             "Please consider optimizing your task or using the "
-                             "resources argument to reserve more memory for your task")
+            self.log.warning(
+                "Task failed with return code of 137. This may indicate "
+                "that it was killed due to excessive memory usage. "
+                "Please consider optimizing your task or using the "
+                "resources argument to reserve more memory for your task"
+            )
         return return_code
 
     def terminate(self):

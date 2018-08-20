@@ -39,8 +39,8 @@ class PrestoHook(DbApiHook):
     [[340698]]
     """
 
-    conn_name_attr = 'presto_conn_id'
-    default_conn_name = 'presto_default'
+    conn_name_attr = "presto_conn_id"
+    default_conn_name = "presto_default"
 
     def get_conn(self):
         """Returns a connection object"""
@@ -49,24 +49,27 @@ class PrestoHook(DbApiHook):
             host=db.host,
             port=db.port,
             username=db.login,
-            catalog=db.extra_dejson.get('catalog', 'hive'),
-            schema=db.schema)
+            catalog=db.extra_dejson.get("catalog", "hive"),
+            schema=db.schema,
+        )
 
     @staticmethod
     def _strip_sql(sql):
-        return sql.strip().rstrip(';')
+        return sql.strip().rstrip(";")
 
     @staticmethod
     def _get_pretty_exception_message(e):
         """
         Parses some DatabaseError to provide a better error message
         """
-        if (hasattr(e, 'message') and
-            'errorName' in e.message and
-                'message' in e.message):
-            return ('{name}: {message}'.format(
-                    name=e.message['errorName'],
-                    message=e.message['message']))
+        if (
+            hasattr(e, "message")
+            and "errorName" in e.message
+            and "message" in e.message
+        ):
+            return "{name}: {message}".format(
+                name=e.message["errorName"], message=e.message["message"]
+            )
         else:
             return str(e)
 
@@ -75,8 +78,7 @@ class PrestoHook(DbApiHook):
         Get a set of records from Presto
         """
         try:
-            return super(PrestoHook, self).get_records(
-                self._strip_sql(hql), parameters)
+            return super(PrestoHook, self).get_records(self._strip_sql(hql), parameters)
         except DatabaseError as e:
             raise PrestoException(self._get_pretty_exception_message(e))
 
@@ -86,8 +88,7 @@ class PrestoHook(DbApiHook):
         returns.
         """
         try:
-            return super(PrestoHook, self).get_first(
-                self._strip_sql(hql), parameters)
+            return super(PrestoHook, self).get_first(self._strip_sql(hql), parameters)
         except DatabaseError as e:
             raise PrestoException(self._get_pretty_exception_message(e))
 
@@ -96,6 +97,7 @@ class PrestoHook(DbApiHook):
         Get a pandas dataframe from a sql query.
         """
         import pandas
+
         cursor = self.get_cursor()
         try:
             cursor.execute(self._strip_sql(hql), parameters)

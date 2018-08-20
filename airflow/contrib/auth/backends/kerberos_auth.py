@@ -37,7 +37,7 @@ from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 login_manager = flask_login.LoginManager()
-login_manager.login_view = 'airflow.login'  # Calls login() below
+login_manager.login_view = "airflow.login"  # Calls login() below
 login_manager.login_message = None
 
 
@@ -52,21 +52,22 @@ class KerberosUser(models.User, LoggingMixin):
     @staticmethod
     def authenticate(username, password):
         service_principal = "%s/%s" % (
-            configuration.conf.get('kerberos', 'principal'),
-            utils.get_fqdn()
+            configuration.conf.get("kerberos", "principal"),
+            utils.get_fqdn(),
         )
         realm = configuration.conf.get("kerberos", "default_realm")
         user_principal = utils.principal_from_username(username)
 
         try:
             # this is pykerberos specific, verify = True is needed to prevent KDC spoofing
-            if not kerberos.checkPassword(user_principal,
-                                          password,
-                                          service_principal, realm, True):
+            if not kerberos.checkPassword(
+                user_principal, password, service_principal, realm, True
+            ):
                 raise AuthenticationError()
         except kerberos.KrbError as e:
             logging.error(
-                'Password validation for principal %s failed %s', user_principal, e)
+                "Password validation for principal %s failed %s", user_principal, e
+            )
             raise AuthenticationError(e)
 
         return
@@ -99,7 +100,7 @@ class KerberosUser(models.User, LoggingMixin):
 @login_manager.user_loader
 @provide_session
 def load_user(userid, session=None):
-    if not userid or userid == 'None':
+    if not userid or userid == "None":
         return None
 
     user = session.query(models.User).filter(models.User.id == int(userid)).first()
@@ -110,32 +111,29 @@ def load_user(userid, session=None):
 def login(self, request, session=None):
     if current_user.is_authenticated():
         flash("You are already logged in")
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
     username = None
     password = None
 
     form = LoginForm(request.form)
 
-    if request.method == 'POST' and form.validate():
+    if request.method == "POST" and form.validate():
         username = request.form.get("username")
         password = request.form.get("password")
 
     if not username or not password:
-        return self.render('airflow/login.html',
-                           title="Airflow - Login",
-                           form=form)
+        return self.render("airflow/login.html", title="Airflow - Login", form=form)
 
     try:
         KerberosUser.authenticate(username, password)
 
-        user = session.query(models.User).filter(
-            models.User.username == username).first()
+        user = (
+            session.query(models.User).filter(models.User.username == username).first()
+        )
 
         if not user:
-            user = models.User(
-                username=username,
-                is_superuser=False)
+            user = models.User(username=username, is_superuser=False)
 
         session.merge(user)
         session.commit()
@@ -145,11 +143,9 @@ def login(self, request, session=None):
         return redirect(request.args.get("next") or url_for("admin.index"))
     except AuthenticationError:
         flash("Incorrect login details")
-        return self.render('airflow/login.html',
-                           title="Airflow - Login",
-                           form=form)
+        return self.render("airflow/login.html", title="Airflow - Login", form=form)
 
 
 class LoginForm(Form):
-    username = StringField('Username', [InputRequired()])
-    password = PasswordField('Password', [InputRequired()])
+    username = StringField("Username", [InputRequired()])
+    password = PasswordField("Password", [InputRequired()])

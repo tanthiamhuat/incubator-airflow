@@ -20,6 +20,7 @@ from six import PY2
 try:
     from kubernetes import config, client
     from kubernetes.client.rest import ApiException
+
     has_kubernetes = True
 except ImportError as e:
     # We need an exception class to be able to use it in ``except`` elsewhere
@@ -39,13 +40,16 @@ def _load_kube_config(in_cluster, cluster_context, config_file):
     if PY2:
         # For connect_get_namespaced_pod_exec
         from kubernetes.client import Configuration
+
         configuration = Configuration()
         configuration.assert_hostname = False
         Configuration.set_default(configuration)
     return client.CoreV1Api()
 
 
-def get_kube_client(in_cluster=conf.getboolean('kubernetes', 'in_cluster'),
-                    cluster_context=None,
-                    config_file=None):
+def get_kube_client(
+    in_cluster=conf.getboolean("kubernetes", "in_cluster"),
+    cluster_context=None,
+    config_file=None,
+):
     return _load_kube_config(in_cluster, cluster_context, config_file)

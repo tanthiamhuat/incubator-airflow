@@ -23,9 +23,11 @@ import os
 # a backport.
 try:
     import inspect
+
     signature = inspect.signature
 except AttributeError:
     import funcsigs
+
     signature = funcsigs.signature
 
 from copy import copy
@@ -46,41 +48,43 @@ def apply_defaults(func):
     """
 
     import airflow.models
+
     # Cache inspect.signature for the wrapper closure to avoid calling it
     # at every decorated invocation. This is separate sig_cache created
     # per decoration, i.e. each function decorated using apply_defaults will
     # have a different sig_cache.
     sig_cache = signature(func)
     non_optional_args = {
-        name for (name, param) in sig_cache.parameters.items()
-        if param.default == param.empty and
-        param.name != 'self' and
-        param.kind not in (param.VAR_POSITIONAL, param.VAR_KEYWORD)}
+        name
+        for (name, param) in sig_cache.parameters.items()
+        if param.default == param.empty
+        and param.name != "self"
+        and param.kind not in (param.VAR_POSITIONAL, param.VAR_KEYWORD)
+    }
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         if len(args) > 1:
-            raise AirflowException(
-                "Use keyword arguments when initializing operators")
+            raise AirflowException("Use keyword arguments when initializing operators")
         dag_args = {}
         dag_params = {}
 
-        dag = kwargs.get('dag', None) or airflow.models._CONTEXT_MANAGER_DAG
+        dag = kwargs.get("dag", None) or airflow.models._CONTEXT_MANAGER_DAG
         if dag:
             dag_args = copy(dag.default_args) or {}
             dag_params = copy(dag.params) or {}
 
         params = {}
-        if 'params' in kwargs:
-            params = kwargs['params']
+        if "params" in kwargs:
+            params = kwargs["params"]
         dag_params.update(params)
 
         default_args = {}
-        if 'default_args' in kwargs:
-            default_args = kwargs['default_args']
-            if 'params' in default_args:
-                dag_params.update(default_args['params'])
-                del default_args['params']
+        if "default_args" in kwargs:
+            default_args = kwargs["default_args"]
+            if "params" in default_args:
+                dag_params.update(default_args["params"])
+                del default_args["params"]
 
         dag_args.update(default_args)
         default_args = dag_args
@@ -93,13 +97,15 @@ def apply_defaults(func):
             msg = "Argument {0} is required".format(missing_args)
             raise AirflowException(msg)
 
-        kwargs['params'] = dag_params
+        kwargs["params"] = dag_params
 
         result = func(*args, **kwargs)
         return result
+
     return wrapper
 
-if 'BUILDING_AIRFLOW_DOCS' in os.environ:
+
+if "BUILDING_AIRFLOW_DOCS" in os.environ:
     # flake8: noqa: F811
     # Monkey patch hook to get good function headers while building docs
     apply_defaults = lambda x: x

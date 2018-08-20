@@ -40,16 +40,19 @@ class PigOperator(BaseOperator):
     :type pigparams_jinja_translate: boolean
     """
 
-    template_fields = ('pig',)
-    template_ext = ('.pig', '.piglatin',)
-    ui_color = '#f0e4ec'
+    template_fields = ("pig",)
+    template_ext = (".pig", ".piglatin")
+    ui_color = "#f0e4ec"
 
     @apply_defaults
     def __init__(
-            self, pig,
-            pig_cli_conn_id='pig_cli_default',
-            pigparams_jinja_translate=False,
-            *args, **kwargs):
+        self,
+        pig,
+        pig_cli_conn_id="pig_cli_default",
+        pigparams_jinja_translate=False,
+        *args,
+        **kwargs
+    ):
 
         super(PigOperator, self).__init__(*args, **kwargs)
         self.pigparams_jinja_translate = pigparams_jinja_translate
@@ -61,11 +64,10 @@ class PigOperator(BaseOperator):
 
     def prepare_template(self):
         if self.pigparams_jinja_translate:
-            self.pig = re.sub(
-                "(\$([a-zA-Z_][a-zA-Z0-9_]*))", "{{ \g<2> }}", self.pig)
+            self.pig = re.sub("(\$([a-zA-Z_][a-zA-Z0-9_]*))", "{{ \g<2> }}", self.pig)
 
     def execute(self, context):
-        self.log.info('Executing: %s', self.pig)
+        self.log.info("Executing: %s", self.pig)
         self.hook = self.get_hook()
         self.hook.run_cli(pig=self.pig)
 

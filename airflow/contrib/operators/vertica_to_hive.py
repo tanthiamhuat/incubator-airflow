@@ -64,22 +64,24 @@ class VerticaToHiveTransfer(BaseOperator):
 
     """
 
-    template_fields = ('sql', 'partition', 'hive_table')
-    template_ext = ('.sql',)
-    ui_color = '#b4e0ff'
+    template_fields = ("sql", "partition", "hive_table")
+    template_ext = (".sql",)
+    ui_color = "#b4e0ff"
 
     @apply_defaults
     def __init__(
-            self,
-            sql,
-            hive_table,
-            create=True,
-            recreate=False,
-            partition=None,
-            delimiter=chr(1),
-            vertica_conn_id='vertica_default',
-            hive_cli_conn_id='hive_cli_default',
-            *args, **kwargs):
+        self,
+        sql,
+        hive_table,
+        create=True,
+        recreate=False,
+        partition=None,
+        delimiter=chr(1),
+        vertica_conn_id="vertica_default",
+        hive_cli_conn_id="hive_cli_default",
+        *args,
+        **kwargs
+    ):
         super(VerticaToHiveTransfer, self).__init__(*args, **kwargs)
         self.sql = sql
         self.hive_table = hive_table
@@ -97,15 +99,8 @@ class VerticaToHiveTransfer(BaseOperator):
         # Manual hack.
         # Reference:
         # https://github.com/uber/vertica-python/blob/master/vertica_python/vertica/column.py
-        d = {
-            5: 'BOOLEAN',
-            6: 'INT',
-            7: 'FLOAT',
-            8: 'STRING',
-            9: 'STRING',
-            16: 'FLOAT',
-        }
-        return d[vertica_type] if vertica_type in d else 'STRING'
+        d = {5: "BOOLEAN", 6: "INT", 7: "FLOAT", 8: "STRING", 9: "STRING", 16: "FLOAT"}
+        return d[vertica_type] if vertica_type in d else "STRING"
 
     def execute(self, context):
         hive = HiveCliHook(hive_cli_conn_id=self.hive_cli_conn_id)
@@ -116,14 +111,15 @@ class VerticaToHiveTransfer(BaseOperator):
         cursor = conn.cursor()
         cursor.execute(self.sql)
         with NamedTemporaryFile("w") as f:
-            csv_writer = csv.writer(f, delimiter=self.delimiter, encoding='utf-8')
+            csv_writer = csv.writer(f, delimiter=self.delimiter, encoding="utf-8")
             field_dict = OrderedDict()
             col_count = 0
             for field in cursor.description:
                 col_count += 1
                 col_position = "Column{position}".format(position=col_count)
-                field_dict[col_position if field[0] == '' else field[0]] = \
-                    self.type_map(field[1])
+                field_dict[
+                    col_position if field[0] == "" else field[0]
+                ] = self.type_map(field[1])
             csv_writer.writerows(cursor.iterate())
             f.flush()
             cursor.close()
@@ -136,4 +132,5 @@ class VerticaToHiveTransfer(BaseOperator):
                 create=self.create,
                 partition=self.partition,
                 delimiter=self.delimiter,
-                recreate=self.recreate)
+                recreate=self.recreate,
+            )

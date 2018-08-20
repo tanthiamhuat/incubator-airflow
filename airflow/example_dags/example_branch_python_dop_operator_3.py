@@ -23,40 +23,40 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import DAG
 
 args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2),
-    'depends_on_past': True,
+    "owner": "airflow",
+    "start_date": airflow.utils.dates.days_ago(2),
+    "depends_on_past": True,
 }
 
 # BranchPython operator that depends on past
 # and where tasks may run or be skipped on
 # alternating runs
-dag = DAG(dag_id='example_branch_dop_operator_v3',
-          schedule_interval='*/1 * * * *', default_args=args)
+dag = DAG(
+    dag_id="example_branch_dop_operator_v3",
+    schedule_interval="*/1 * * * *",
+    default_args=args,
+)
 
 
 def should_run(ds, **kwargs):
 
-    print('------------- exec dttm = {} and minute = {}'.
-          format(kwargs['execution_date'], kwargs['execution_date'].minute))
-    if kwargs['execution_date'].minute % 2 == 0:
+    print(
+        "------------- exec dttm = {} and minute = {}".format(
+            kwargs["execution_date"], kwargs["execution_date"].minute
+        )
+    )
+    if kwargs["execution_date"].minute % 2 == 0:
         return "oper_1"
     else:
         return "oper_2"
 
 
 cond = BranchPythonOperator(
-    task_id='condition',
-    provide_context=True,
-    python_callable=should_run,
-    dag=dag)
+    task_id="condition", provide_context=True, python_callable=should_run, dag=dag
+)
 
-oper_1 = DummyOperator(
-    task_id='oper_1',
-    dag=dag)
+oper_1 = DummyOperator(task_id="oper_1", dag=dag)
 oper_1.set_upstream(cond)
 
-oper_2 = DummyOperator(
-    task_id='oper_2',
-    dag=dag)
+oper_2 = DummyOperator(task_id="oper_2", dag=dag)
 oper_2.set_upstream(cond)

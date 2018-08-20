@@ -28,34 +28,33 @@ class SageMakerBaseSensor(BaseSensorOperator):
     and state_from_response() methods.
     Subclasses should also implement NON_TERMINAL_STATES and FAILED_STATE methods.
     """
-    ui_color = '#66c3ff'
+
+    ui_color = "#66c3ff"
 
     @apply_defaults
-    def __init__(
-            self,
-            aws_conn_id='aws_default',
-            *args, **kwargs):
+    def __init__(self, aws_conn_id="aws_default", *args, **kwargs):
         super(SageMakerBaseSensor, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
 
     def poke(self, context):
         response = self.get_sagemaker_response()
 
-        if not response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            self.log.info('Bad HTTP response: %s', response)
+        if not response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+            self.log.info("Bad HTTP response: %s", response)
             return False
 
         state = self.state_from_response(response)
 
-        self.log.info('Job currently %s', state)
+        self.log.info("Job currently %s", state)
 
         if state in self.non_terminal_states():
             return False
 
         if state in self.failed_states():
             failed_reason = self.get_failed_reason_from_response(response)
-            raise AirflowException("Sagemaker job failed for the following reason: %s"
-                                   % failed_reason)
+            raise AirflowException(
+                "Sagemaker job failed for the following reason: %s" % failed_reason
+            )
         return True
 
     def non_terminal_states(self):
@@ -65,12 +64,10 @@ class SageMakerBaseSensor(BaseSensorOperator):
         raise AirflowException("Failed States need to be specified in subclass")
 
     def get_sagemaker_response(self):
-        raise AirflowException(
-            "Method get_sagemaker_response()not implemented.")
+        raise AirflowException("Method get_sagemaker_response()not implemented.")
 
     def get_failed_reason_from_response(self, response):
-        return 'Unknown'
+        return "Unknown"
 
     def state_from_response(self, response):
-        raise AirflowException(
-            "Method state_from_response()not implemented.")
+        raise AirflowException("Method state_from_response()not implemented.")

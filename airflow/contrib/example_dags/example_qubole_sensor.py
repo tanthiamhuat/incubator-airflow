@@ -29,51 +29,58 @@ this example.*
 """
 
 from airflow import DAG
-from airflow.contrib.sensors.qubole_sensor import QuboleFileSensor, QubolePartitionSensor
+from airflow.contrib.sensors.qubole_sensor import (
+    QuboleFileSensor,
+    QubolePartitionSensor,
+)
 from airflow.utils import dates
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': dates.days_ago(2),
-    'email': ['airflow@example.com'],
-    'email_on_failure': False,
-    'email_on_retry': False
+    "owner": "airflow",
+    "depends_on_past": False,
+    "start_date": dates.days_ago(2),
+    "email": ["airflow@example.com"],
+    "email_on_failure": False,
+    "email_on_retry": False,
 }
 
-dag = DAG('example_qubole_sensor', default_args=default_args, schedule_interval=None)
+dag = DAG("example_qubole_sensor", default_args=default_args, schedule_interval=None)
 
 dag.doc_md = __doc__
 
 t1 = QuboleFileSensor(
-    task_id='check_s3_file',
-    qubole_conn_id='qubole_default',
+    task_id="check_s3_file",
+    qubole_conn_id="qubole_default",
     poke_interval=60,
     timeout=600,
     data={
-        "files":
-            [
-                "s3://paid-qubole/HadoopAPIExamples/jars/hadoop-0.20.1-dev-streaming.jar",
-                "s3://paid-qubole/HadoopAPITests/data/{{ ds.split('-')[2] }}.tsv"
-            ]  # will check for availability of all the files in array
+        "files": [
+            "s3://paid-qubole/HadoopAPIExamples/jars/hadoop-0.20.1-dev-streaming.jar",
+            "s3://paid-qubole/HadoopAPITests/data/{{ ds.split('-')[2] }}.tsv",
+        ]  # will check for availability of all the files in array
     },
-    dag=dag
+    dag=dag,
 )
 
 t2 = QubolePartitionSensor(
-    task_id='check_hive_partition',
+    task_id="check_hive_partition",
     poke_interval=10,
     timeout=60,
-    data={"schema": "default",
-          "table": "my_partitioned_table",
-          "columns": [
-              {"column": "month", "values":
-                  ["{{ ds.split('-')[1] }}"]},
-              {"column": "day", "values":
-                  ["{{ ds.split('-')[2] }}", "{{ yesterday_ds.split('-')[2] }}"]}
-          ]  # will check for partitions like [month=12/day=12,month=12/day=13]
-          },
-    dag=dag
+    data={
+        "schema": "default",
+        "table": "my_partitioned_table",
+        "columns": [
+            {"column": "month", "values": ["{{ ds.split('-')[1] }}"]},
+            {
+                "column": "day",
+                "values": [
+                    "{{ ds.split('-')[2] }}",
+                    "{{ yesterday_ds.split('-')[2] }}",
+                ],
+            },
+        ],  # will check for partitions like [month=12/day=12,month=12/day=13]
+    },
+    dag=dag,
 )
 
 t1.set_downstream(t2)

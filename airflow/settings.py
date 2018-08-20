@@ -38,9 +38,9 @@ from airflow.utils.sqlalchemy import setup_event_handlers
 
 log = logging.getLogger(__name__)
 
-RBAC = conf.getboolean('webserver', 'rbac')
+RBAC = conf.getboolean("webserver", "rbac")
 
-TIMEZONE = pendulum.timezone('UTC')
+TIMEZONE = pendulum.timezone("UTC")
 try:
     tz = conf.get("core", "default_timezone")
     if tz == "system":
@@ -73,13 +73,14 @@ class DummyStatsLogger(object):
 Stats = DummyStatsLogger
 
 try:
-    if conf.getboolean('scheduler', 'statsd_on'):
+    if conf.getboolean("scheduler", "statsd_on"):
         from statsd import StatsClient
 
         statsd = StatsClient(
-            host=conf.get('scheduler', 'statsd_host'),
-            port=conf.getint('scheduler', 'statsd_port'),
-            prefix=conf.get('scheduler', 'statsd_prefix'))
+            host=conf.get("scheduler", "statsd_host"),
+            port=conf.getint("scheduler", "statsd_port"),
+            prefix=conf.get("scheduler", "statsd_prefix"),
+        )
         Stats = statsd
 except (socket.gaierror, ImportError):
     log.warning("Could not configure StatsClient, using DummyStatsLogger instead.")
@@ -97,8 +98,8 @@ LOGGING_LEVEL = logging.INFO
 # the prefix to append to gunicorn worker processes after init
 GUNICORN_WORKER_READY_PREFIX = "[ready] "
 
-LOG_FORMAT = conf.get('core', 'log_format')
-SIMPLE_LOG_FORMAT = conf.get('core', 'simple_log_format')
+LOG_FORMAT = conf.get("core", "log_format")
+SIMPLE_LOG_FORMAT = conf.get("core", "simple_log_format")
 
 AIRFLOW_HOME = None
 SQL_ALCHEMY_CONN = None
@@ -139,9 +140,9 @@ def configure_vars():
     global AIRFLOW_HOME
     global SQL_ALCHEMY_CONN
     global DAGS_FOLDER
-    AIRFLOW_HOME = os.path.expanduser(conf.get('core', 'AIRFLOW_HOME'))
-    SQL_ALCHEMY_CONN = conf.get('core', 'SQL_ALCHEMY_CONN')
-    DAGS_FOLDER = os.path.expanduser(conf.get('core', 'DAGS_FOLDER'))
+    AIRFLOW_HOME = os.path.expanduser(conf.get("core", "AIRFLOW_HOME"))
+    SQL_ALCHEMY_CONN = conf.get("core", "SQL_ALCHEMY_CONN")
+    DAGS_FOLDER = os.path.expanduser(conf.get("core", "DAGS_FOLDER"))
 
 
 def configure_orm(disable_connection_pool=False):
@@ -150,16 +151,16 @@ def configure_orm(disable_connection_pool=False):
     global Session
     engine_args = {}
 
-    pool_connections = conf.getboolean('core', 'SQL_ALCHEMY_POOL_ENABLED')
+    pool_connections = conf.getboolean("core", "SQL_ALCHEMY_POOL_ENABLED")
     if disable_connection_pool or not pool_connections:
-        engine_args['poolclass'] = NullPool
+        engine_args["poolclass"] = NullPool
         log.debug("settings.configure_orm(): Using NullPool")
-    elif 'sqlite' not in SQL_ALCHEMY_CONN:
+    elif "sqlite" not in SQL_ALCHEMY_CONN:
         # Engine args not supported by sqlite.
         # If no config value is defined for the pool size, select a reasonable value.
         # 0 means no limit, which could lead to exceeding the Database connection limit.
         try:
-            pool_size = conf.getint('core', 'SQL_ALCHEMY_POOL_SIZE')
+            pool_size = conf.getint("core", "SQL_ALCHEMY_POOL_SIZE")
         except conf.AirflowConfigException:
             pool_size = 5
 
@@ -168,24 +169,26 @@ def configure_orm(disable_connection_pool=False):
         # co-exist on the same server, SQLAlchemy should set its
         # pool_recycle to an equal or smaller value.
         try:
-            pool_recycle = conf.getint('core', 'SQL_ALCHEMY_POOL_RECYCLE')
+            pool_recycle = conf.getint("core", "SQL_ALCHEMY_POOL_RECYCLE")
         except conf.AirflowConfigException:
             pool_recycle = 1800
 
-        log.info("setting.configure_orm(): Using pool settings. pool_size={}, "
-                 "pool_recycle={}".format(pool_size, pool_recycle))
-        engine_args['pool_size'] = pool_size
-        engine_args['pool_recycle'] = pool_recycle
+        log.info(
+            "setting.configure_orm(): Using pool settings. pool_size={}, "
+            "pool_recycle={}".format(pool_size, pool_recycle)
+        )
+        engine_args["pool_size"] = pool_size
+        engine_args["pool_recycle"] = pool_recycle
 
     engine = create_engine(SQL_ALCHEMY_CONN, **engine_args)
-    reconnect_timeout = conf.getint('core', 'SQL_ALCHEMY_RECONNECT_TIMEOUT')
+    reconnect_timeout = conf.getint("core", "SQL_ALCHEMY_RECONNECT_TIMEOUT")
     setup_event_handlers(engine, reconnect_timeout)
 
     Session = scoped_session(
-        sessionmaker(autocommit=False,
-                     autoflush=False,
-                     bind=engine,
-                     expire_on_commit=False))
+        sessionmaker(
+            autocommit=False, autoflush=False, bind=engine, expire_on_commit=False
+        )
+    )
 
 
 def dispose_orm():
@@ -204,13 +207,16 @@ def dispose_orm():
 
 def configure_adapters():
     from pendulum import Pendulum
+
     try:
         from sqlite3 import register_adapter
-        register_adapter(Pendulum, lambda val: val.isoformat(' '))
+
+        register_adapter(Pendulum, lambda val: val.isoformat(" "))
     except ImportError:
         pass
     try:
         import MySQLdb.converters
+
         MySQLdb.converters.conversions[Pendulum] = MySQLdb.converters.DateTime2literal
     except ImportError:
         pass
@@ -218,7 +224,7 @@ def configure_adapters():
 
 def validate_session():
     try:
-        worker_precheck = conf.getboolean('core', 'worker_precheck')
+        worker_precheck = conf.getboolean("core", "worker_precheck")
     except conf.AirflowConfigException:
         worker_precheck = False
     if not worker_precheck:
@@ -247,6 +253,7 @@ def configure_action_logging():
 
 try:
     from airflow_local_settings import *  # noqa F403 F401
+
     log.info("Loaded airflow_local_settings.")
 except Exception:
     pass
@@ -265,5 +272,4 @@ atexit.register(dispose_orm)
 
 KILOBYTE = 1024
 MEGABYTE = KILOBYTE * KILOBYTE
-WEB_COLORS = {'LIGHTBLUE': '#4d9de0',
-              'LIGHTORANGE': '#FF9933'}
+WEB_COLORS = {"LIGHTBLUE": "#4d9de0", "LIGHTORANGE": "#FF9933"}

@@ -31,7 +31,7 @@ from airflow.utils.decorators import apply_defaults
 # Hide the following error message in urllib3 when making WinRM connections:
 # requests.packages.urllib3.exceptions.HeaderParsingError: [StartBoundaryNotFoundDefect(),
 #   MultipartInvariantViolationDefect()], unparsed data: ''
-logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.CRITICAL)
+logging.getLogger("requests.packages.urllib3.connectionpool").setLevel(logging.CRITICAL)
 
 
 class WinRMOperator(BaseOperator):
@@ -51,18 +51,21 @@ class WinRMOperator(BaseOperator):
     :param do_xcom_push: return the stdout which also get set in xcom by airflow platform
     :type do_xcom_push: bool
     """
-    template_fields = ('command',)
+
+    template_fields = ("command",)
 
     @apply_defaults
-    def __init__(self,
-                 winrm_hook=None,
-                 ssh_conn_id=None,
-                 remote_host=None,
-                 command=None,
-                 timeout=10,
-                 do_xcom_push=False,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        winrm_hook=None,
+        ssh_conn_id=None,
+        remote_host=None,
+        command=None,
+        timeout=10,
+        do_xcom_push=False,
+        *args,
+        **kwargs
+    ):
         super(WinRMOperator, self).__init__(*args, **kwargs)
         self.winrm_hook = winrm_hook
         self.ssh_conn_id = ssh_conn_id
@@ -88,10 +91,11 @@ class WinRMOperator(BaseOperator):
         winrm_client = self.winrm_hook.get_conn()
 
         try:
-            self.log.info("Running command: '{command}'...".format(command=self.command))
+            self.log.info(
+                "Running command: '{command}'...".format(command=self.command)
+            )
             command_id = self.winrm_hook.winrm_protocol.run_command(
-                winrm_client,
-                self.command
+                winrm_client, self.command
             )
 
             # See: https://github.com/diyan/pywinrm/blob/master/winrm/protocol.py
@@ -100,20 +104,18 @@ class WinRMOperator(BaseOperator):
             command_done = False
             while not command_done:
                 try:
-                    stdout, stderr, return_code, command_done = \
-                        self.winrm_hook.winrm_protocol._raw_get_command_output(
-                            winrm_client,
-                            command_id
-                        )
+                    stdout, stderr, return_code, command_done = self.winrm_hook.winrm_protocol._raw_get_command_output(
+                        winrm_client, command_id
+                    )
 
                     # Only buffer stdout if we need to so that we minimize memory usage.
                     if self.do_xcom_push:
                         stdout_buffer.append(stdout)
                     stderr_buffer.append(stderr)
 
-                    for line in stdout.decode('utf-8').splitlines():
+                    for line in stdout.decode("utf-8").splitlines():
                         self.log.info(line)
-                    for line in stderr.decode('utf-8').splitlines():
+                    for line in stderr.decode("utf-8").splitlines():
                         self.log.warning(line)
                 except WinRMOperationTimeoutError as e:
                     # this is an expected error when waiting for a
@@ -130,17 +132,15 @@ class WinRMOperator(BaseOperator):
             # returning output if do_xcom_push is set
             if self.do_xcom_push:
                 enable_pickling = configuration.conf.getboolean(
-                    'core', 'enable_xcom_pickling'
+                    "core", "enable_xcom_pickling"
                 )
                 if enable_pickling:
                     return stdout_buffer
                 else:
-                    return b64encode(b''.join(stdout_buffer)).decode('utf-8')
+                    return b64encode(b"".join(stdout_buffer)).decode("utf-8")
         else:
             error_msg = "Error running cmd: {0}, return code: {1}, error: {2}".format(
-                self.command,
-                return_code,
-                b''.join(stderr_buffer).decode('utf-8')
+                self.command, return_code, b"".join(stderr_buffer).decode("utf-8")
             )
             raise AirflowException(error_msg)
 

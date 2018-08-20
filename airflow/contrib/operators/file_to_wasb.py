@@ -38,12 +38,20 @@ class FileToWasbOperator(BaseOperator):
         `WasbHook.load_file()` takes.
     :type load_options: dict
     """
-    template_fields = ('file_path', 'container_name', 'blob_name')
+
+    template_fields = ("file_path", "container_name", "blob_name")
 
     @apply_defaults
-    def __init__(self, file_path, container_name, blob_name,
-                 wasb_conn_id='wasb_default', load_options=None, *args,
-                 **kwargs):
+    def __init__(
+        self,
+        file_path,
+        container_name,
+        blob_name,
+        wasb_conn_id="wasb_default",
+        load_options=None,
+        *args,
+        **kwargs
+    ):
         super(FileToWasbOperator, self).__init__(*args, **kwargs)
         if load_options is None:
             load_options = {}
@@ -57,8 +65,9 @@ class FileToWasbOperator(BaseOperator):
         """Upload a file to Azure Blob Storage."""
         hook = WasbHook(wasb_conn_id=self.wasb_conn_id)
         self.log.info(
-            'Uploading {self.file_path} to wasb://{self.container_name} '
-            'as {self.blob_name}'.format(**locals())
+            "Uploading {self.file_path} to wasb://{self.container_name} "
+            "as {self.blob_name}".format(**locals())
         )
-        hook.load_file(self.file_path, self.container_name,
-                       self.blob_name, **self.load_options)
+        hook.load_file(
+            self.file_path, self.container_name, self.blob_name, **self.load_options
+        )

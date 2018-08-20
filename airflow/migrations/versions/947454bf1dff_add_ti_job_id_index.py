@@ -27,15 +27,15 @@ Create Date: 2017-08-15 15:12:13.845074
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '947454bf1dff'
-down_revision = 'bdaa763e6c56'
+revision = "947454bf1dff"
+down_revision = "bdaa763e6c56"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.create_index('ti_job_id', 'task_instance', ['job_id'], unique=False)
+    op.create_index("ti_job_id", "task_instance", ["job_id"], unique=False)
 
 
 def downgrade():
-    op.drop_index('ti_job_id', table_name='task_instance')
+    op.drop_index("ti_job_id", table_name="task_instance")

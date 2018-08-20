@@ -29,16 +29,17 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = 'bba5a7cfc896'
-down_revision = 'bbc73705a13e'
+revision = "bba5a7cfc896"
+down_revision = "bbc73705a13e"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.add_column('connection',
-                  sa.Column('is_extra_encrypted', sa.Boolean, default=False))
+    op.add_column(
+        "connection", sa.Column("is_extra_encrypted", sa.Boolean, default=False)
+    )
 
 
 def downgrade():
-    op.drop_column('connection', 'is_extra_encrypted')
+    op.drop_column("connection", "is_extra_encrypted")

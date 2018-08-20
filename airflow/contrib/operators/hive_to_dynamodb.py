@@ -53,24 +53,26 @@ class HiveToDynamoDBTransferOperator(BaseOperator):
     :type aws_conn_id: str
     """
 
-    template_fields = ('sql',)
-    template_ext = ('.sql',)
-    ui_color = '#a0e08c'
+    template_fields = ("sql",)
+    template_ext = (".sql",)
+    ui_color = "#a0e08c"
 
     @apply_defaults
     def __init__(
-            self,
-            sql,
-            table_name,
-            table_keys,
-            pre_process=None,
-            pre_process_args=None,
-            pre_process_kwargs=None,
-            region_name=None,
-            schema='default',
-            hiveserver2_conn_id='hiveserver2_default',
-            aws_conn_id='aws_default',
-            *args, **kwargs):
+        self,
+        sql,
+        table_name,
+        table_keys,
+        pre_process=None,
+        pre_process_args=None,
+        pre_process_kwargs=None,
+        region_name=None,
+        schema="default",
+        hiveserver2_conn_id="hiveserver2_default",
+        aws_conn_id="aws_default",
+        *args,
+        **kwargs
+    ):
         super(HiveToDynamoDBTransferOperator, self).__init__(*args, **kwargs)
         self.sql = sql
         self.table_name = table_name
@@ -86,24 +88,28 @@ class HiveToDynamoDBTransferOperator(BaseOperator):
     def execute(self, context):
         hive = HiveServer2Hook(hiveserver2_conn_id=self.hiveserver2_conn_id)
 
-        self.log.info('Extracting data from Hive')
+        self.log.info("Extracting data from Hive")
         self.log.info(self.sql)
 
         data = hive.get_pandas_df(self.sql, schema=self.schema)
-        dynamodb = AwsDynamoDBHook(aws_conn_id=self.aws_conn_id,
-                                   table_name=self.table_name,
-                                   table_keys=self.table_keys,
-                                   region_name=self.region_name)
+        dynamodb = AwsDynamoDBHook(
+            aws_conn_id=self.aws_conn_id,
+            table_name=self.table_name,
+            table_keys=self.table_keys,
+            region_name=self.region_name,
+        )
 
-        self.log.info('Inserting rows into dynamodb')
+        self.log.info("Inserting rows into dynamodb")
 
         if self.pre_process is None:
-            dynamodb.write_batch_data(
-                json.loads(data.to_json(orient='records')))
+            dynamodb.write_batch_data(json.loads(data.to_json(orient="records")))
         else:
             dynamodb.write_batch_data(
-                self.pre_process(data=data,
-                                 args=self.pre_process_args,
-                                 kwargs=self.pre_process_kwargs))
+                self.pre_process(
+                    data=data,
+                    args=self.pre_process_args,
+                    kwargs=self.pre_process_kwargs,
+                )
+            )
 
-        self.log.info('Done.')
+        self.log.info("Done.")

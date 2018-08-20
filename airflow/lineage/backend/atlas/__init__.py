@@ -42,9 +42,9 @@ class AtlasBackend(LineageBackend):
         except HttpError:
             client.typedefs.update(data=operator_typedef)
 
-        _execution_date = convert_to_utc(context['ti'].execution_date)
-        _start_date = convert_to_utc(context['ti'].start_date)
-        _end_date = convert_to_utc(context['ti'].end_date)
+        _execution_date = convert_to_utc(context["ti"].execution_date)
+        _start_date = convert_to_utc(context["ti"].start_date)
+        _end_date = convert_to_utc(context["ti"].end_date)
 
         inlet_list = []
         if inlets:
@@ -54,10 +54,12 @@ class AtlasBackend(LineageBackend):
 
                 entity.set_context(context)
                 client.entity_post.create(data={"entity": entity.as_dict()})
-                inlet_list.append({"typeName": entity.type_name,
-                                   "uniqueAttributes": {
-                                       "qualifiedName": entity.qualified_name
-                                   }})
+                inlet_list.append(
+                    {
+                        "typeName": entity.type_name,
+                        "uniqueAttributes": {"qualifiedName": entity.qualified_name},
+                    }
+                )
 
         outlet_list = []
         if outlets:
@@ -67,17 +69,18 @@ class AtlasBackend(LineageBackend):
 
                 entity.set_context(context)
                 client.entity_post.create(data={"entity": entity.as_dict()})
-                outlet_list.append({"typeName": entity.type_name,
-                                    "uniqueAttributes": {
-                                        "qualifiedName": entity.qualified_name
-                                    }})
+                outlet_list.append(
+                    {
+                        "typeName": entity.type_name,
+                        "uniqueAttributes": {"qualifiedName": entity.qualified_name},
+                    }
+                )
 
         operator_name = operator.__class__.__name__
         name = "{} {} ({})".format(operator.dag_id, operator.task_id, operator_name)
-        qualified_name = "{}_{}_{}@{}".format(operator.dag_id,
-                                              operator.task_id,
-                                              _execution_date,
-                                              operator_name)
+        qualified_name = "{}_{}_{}@{}".format(
+            operator.dag_id, operator.task_id, _execution_date, operator_name
+        )
 
         data = {
             "dag_id": operator.dag_id,

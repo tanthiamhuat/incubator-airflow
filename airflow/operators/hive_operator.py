@@ -61,24 +61,34 @@ class HiveOperator(BaseOperator):
     :type  mapred_job_name: string
     """
 
-    template_fields = ('hql', 'schema', 'hive_cli_conn_id', 'mapred_queue',
-                       'hiveconfs', 'mapred_job_name', 'mapred_queue_priority')
-    template_ext = ('.hql', '.sql',)
-    ui_color = '#f0e4ec'
+    template_fields = (
+        "hql",
+        "schema",
+        "hive_cli_conn_id",
+        "mapred_queue",
+        "hiveconfs",
+        "mapred_job_name",
+        "mapred_queue_priority",
+    )
+    template_ext = (".hql", ".sql")
+    ui_color = "#f0e4ec"
 
     @apply_defaults
     def __init__(
-            self, hql,
-            hive_cli_conn_id='hive_cli_default',
-            schema='default',
-            hiveconfs=None,
-            hiveconf_jinja_translate=False,
-            script_begin_tag=None,
-            run_as_owner=False,
-            mapred_queue=None,
-            mapred_queue_priority=None,
-            mapred_job_name=None,
-            *args, **kwargs):
+        self,
+        hql,
+        hive_cli_conn_id="hive_cli_default",
+        schema="default",
+        hiveconfs=None,
+        hiveconf_jinja_translate=False,
+        script_begin_tag=None,
+        run_as_owner=False,
+        mapred_queue=None,
+        mapred_queue_priority=None,
+        mapred_job_name=None,
+        *args,
+        **kwargs
+    ):
 
         super(HiveOperator, self).__init__(*args, **kwargs)
         self.hql = hql
@@ -93,8 +103,9 @@ class HiveOperator(BaseOperator):
         self.mapred_queue = mapred_queue
         self.mapred_queue_priority = mapred_queue_priority
         self.mapred_job_name = mapred_job_name
-        self.mapred_job_name_template = configuration.get('hive',
-                                                          'mapred_job_name_template')
+        self.mapred_job_name_template = configuration.get(
+            "hive", "mapred_job_name_template"
+        )
 
         # assigned lazily - just for consistency we can create the attribute with a
         # `None` initial value, later it will be populated by the execute method.
@@ -108,33 +119,37 @@ class HiveOperator(BaseOperator):
             run_as=self.run_as,
             mapred_queue=self.mapred_queue,
             mapred_queue_priority=self.mapred_queue_priority,
-            mapred_job_name=self.mapred_job_name)
+            mapred_job_name=self.mapred_job_name,
+        )
 
     def prepare_template(self):
         if self.hiveconf_jinja_translate:
             self.hql = re.sub(
-                "(\$\{(hiveconf:)?([ a-zA-Z0-9_]*)\})", "{{ \g<3> }}", self.hql)
+                "(\$\{(hiveconf:)?([ a-zA-Z0-9_]*)\})", "{{ \g<3> }}", self.hql
+            )
         if self.script_begin_tag and self.script_begin_tag in self.hql:
             self.hql = "\n".join(self.hql.split(self.script_begin_tag)[1:])
 
     def execute(self, context):
-        self.log.info('Executing: %s', self.hql)
+        self.log.info("Executing: %s", self.hql)
         self.hook = self.get_hook()
 
         # set the mapred_job_name if it's not set with dag, task, execution time info
         if not self.mapred_job_name:
-            ti = context['ti']
-            self.hook.mapred_job_name = self.mapred_job_name_template\
-                .format(dag_id=ti.dag_id, task_id=ti.task_id,
-                        execution_date=ti.execution_date.isoformat(),
-                        hostname=ti.hostname.split('.')[0])
+            ti = context["ti"]
+            self.hook.mapred_job_name = self.mapred_job_name_template.format(
+                dag_id=ti.dag_id,
+                task_id=ti.task_id,
+                execution_date=ti.execution_date.isoformat(),
+                hostname=ti.hostname.split(".")[0],
+            )
 
         if self.hiveconf_jinja_translate:
             self.hiveconfs = context_to_airflow_vars(context)
         else:
             self.hiveconfs.update(context_to_airflow_vars(context))
 
-        self.log.info('Passing HiveConf: %s', self.hiveconfs)
+        self.log.info("Passing HiveConf: %s", self.hiveconfs)
         self.hook.run_cli(hql=self.hql, schema=self.schema, hive_conf=self.hiveconfs)
 
     def dry_run(self):

@@ -23,14 +23,15 @@ from builtins import object
 
 
 class TriggerRule(object):
-    ALL_SUCCESS = 'all_success'
-    ALL_FAILED = 'all_failed'
-    ALL_DONE = 'all_done'
-    ONE_SUCCESS = 'one_success'
-    ONE_FAILED = 'one_failed'
-    DUMMY = 'dummy'
+    ALL_SUCCESS = "all_success"
+    ALL_FAILED = "all_failed"
+    ALL_DONE = "all_done"
+    ONE_SUCCESS = "one_success"
+    ONE_FAILED = "one_failed"
+    DUMMY = "dummy"
 
     _ALL_TRIGGER_RULES = {}
+
     @classmethod
     def is_valid(cls, trigger_rule):
         return trigger_rule in cls.all_triggers()

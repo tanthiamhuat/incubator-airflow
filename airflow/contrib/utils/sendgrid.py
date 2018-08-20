@@ -27,16 +27,31 @@ import mimetypes
 import os
 
 import sendgrid
-from sendgrid.helpers.mail import Attachment, Content, Email, Mail, \
-    Personalization, CustomArg, Category
+from sendgrid.helpers.mail import (
+    Attachment,
+    Content,
+    Email,
+    Mail,
+    Personalization,
+    CustomArg,
+    Category,
+)
 
 from airflow.utils.email import get_email_address_list
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
-def send_email(to, subject, html_content, files=None,
-               dryrun=False, cc=None, bcc=None,
-               mime_subtype='mixed', **kwargs):
+def send_email(
+    to,
+    subject,
+    html_content,
+    files=None,
+    dryrun=False,
+    cc=None,
+    bcc=None,
+    mime_subtype="mixed",
+    **kwargs
+):
     """
     Send an email with html content using sendgrid.
 
@@ -51,8 +66,8 @@ def send_email(to, subject, html_content, files=None,
     SENDGRID_API_KEY={your-sendgrid-api-key}.
     """
     mail = Mail()
-    from_email = kwargs.get('from_email') or os.environ.get('SENDGRID_MAIL_FROM')
-    from_name = kwargs.get('from_name') or os.environ.get('SENDGRID_MAIL_SENDER')
+    from_email = kwargs.get("from_email") or os.environ.get("SENDGRID_MAIL_FROM")
+    from_name = kwargs.get("from_name") or os.environ.get("SENDGRID_MAIL_SENDER")
     mail.from_email = Email(from_email, from_name)
     mail.subject = subject
 
@@ -71,15 +86,15 @@ def send_email(to, subject, html_content, files=None,
             personalization.add_bcc(Email(bcc_address))
 
     # Add custom_args to personalization if present
-    pers_custom_args = kwargs.get('personalization_custom_args', None)
+    pers_custom_args = kwargs.get("personalization_custom_args", None)
     if isinstance(pers_custom_args, dict):
         for key in pers_custom_args.keys():
             personalization.add_custom_arg(CustomArg(key, pers_custom_args[key]))
 
     mail.add_personalization(personalization)
-    mail.add_content(Content('text/html', html_content))
+    mail.add_content(Content("text/html", html_content))
 
-    categories = kwargs.get('categories', [])
+    categories = kwargs.get("categories", [])
     for cat in categories:
         mail.add_category(Category(cat))
 
@@ -92,19 +107,23 @@ def send_email(to, subject, html_content, files=None,
             attachment.type = mimetypes.guess_type(basename)[0]
             attachment.filename = basename
             attachment.disposition = "attachment"
-            attachment.content_id = '<%s>' % basename
+            attachment.content_id = "<%s>" % basename
         mail.add_attachment(attachment)
     _post_sendgrid_mail(mail.get())
 
 
 def _post_sendgrid_mail(mail_data):
     log = LoggingMixin().log
-    sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
+    sg = sendgrid.SendGridAPIClient(apikey=os.environ.get("SENDGRID_API_KEY"))
     response = sg.client.mail.send.post(request_body=mail_data)
     # 2xx status code.
     if response.status_code >= 200 and response.status_code < 300:
-        log.info('Email with subject %s is successfully sent to recipients: %s' %
-                 (mail_data['subject'], mail_data['personalizations']))
+        log.info(
+            "Email with subject %s is successfully sent to recipients: %s"
+            % (mail_data["subject"], mail_data["personalizations"])
+        )
     else:
-        log.warning('Failed to send out email with subject %s, status code: %s' %
-                    (mail_data['subject'], response.status_code))
+        log.warning(
+            "Failed to send out email with subject %s, status code: %s"
+            % (mail_data["subject"], response.status_code)
+        )

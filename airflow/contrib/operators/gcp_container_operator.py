@@ -29,17 +29,19 @@ from airflow.utils.decorators import apply_defaults
 
 
 class GKEClusterDeleteOperator(BaseOperator):
-    template_fields = ['project_id', 'gcp_conn_id', 'name', 'location', 'api_version']
+    template_fields = ["project_id", "gcp_conn_id", "name", "location", "api_version"]
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 name,
-                 location,
-                 gcp_conn_id='google_cloud_default',
-                 api_version='v2',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        name,
+        location,
+        gcp_conn_id="google_cloud_default",
+        api_version="v2",
+        *args,
+        **kwargs
+    ):
         """
         Deletes the cluster, including the Kubernetes endpoint and all worker nodes.
 
@@ -82,8 +84,9 @@ class GKEClusterDeleteOperator(BaseOperator):
     def _check_input(self):
         if not all([self.project_id, self.name, self.location]):
             self.log.error(
-                'One of (project_id, name, location) is missing or incorrect')
-            raise AirflowException('Operator has incorrect or missing input.')
+                "One of (project_id, name, location) is missing or incorrect"
+            )
+            raise AirflowException("Operator has incorrect or missing input.")
 
     def execute(self, context):
         self._check_input()
@@ -93,17 +96,19 @@ class GKEClusterDeleteOperator(BaseOperator):
 
 
 class GKEClusterCreateOperator(BaseOperator):
-    template_fields = ['project_id', 'gcp_conn_id', 'location', 'api_version', 'body']
+    template_fields = ["project_id", "gcp_conn_id", "location", "api_version", "body"]
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 location,
-                 body=None,
-                 gcp_conn_id='google_cloud_default',
-                 api_version='v2',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        location,
+        body=None,
+        gcp_conn_id="google_cloud_default",
+        api_version="v2",
+        *args,
+        **kwargs
+    ):
         """
         Create a Google Kubernetes Engine Cluster of specified dimensions
         The operator will wait until the cluster is created.
@@ -158,9 +163,11 @@ class GKEClusterCreateOperator(BaseOperator):
 
     def _check_input(self):
         if all([self.project_id, self.location, self.body]):
-            if isinstance(self.body, dict) \
-                    and 'name' in self.body \
-                    and 'initial_node_count' in self.body:
+            if (
+                isinstance(self.body, dict)
+                and "name" in self.body
+                and "initial_node_count" in self.body
+            ):
                 # Don't throw error
                 return
             # If not dict, then must
@@ -168,9 +175,10 @@ class GKEClusterCreateOperator(BaseOperator):
                 return
 
         self.log.error(
-            'One of (project_id, location, body, body[\'name\'], '
-            'body[\'initial_node_count\']) is missing or incorrect')
-        raise AirflowException('Operator has incorrect or missing input.')
+            "One of (project_id, location, body, body['name'], "
+            "body['initial_node_count']) is missing or incorrect"
+        )
+        raise AirflowException("Operator has incorrect or missing input.")
 
     def execute(self, context):
         self._check_input()
@@ -184,17 +192,22 @@ G_APP_CRED = "GOOGLE_APPLICATION_CREDENTIALS"
 
 
 class GKEPodOperator(KubernetesPodOperator):
-    template_fields = ('project_id', 'location',
-                       'cluster_name') + KubernetesPodOperator.template_fields
+    template_fields = (
+        "project_id",
+        "location",
+        "cluster_name",
+    ) + KubernetesPodOperator.template_fields
 
     @apply_defaults
-    def __init__(self,
-                 project_id,
-                 location,
-                 cluster_name,
-                 gcp_conn_id='google_cloud_default',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        project_id,
+        location,
+        cluster_name,
+        gcp_conn_id="google_cloud_default",
+        *args,
+        **kwargs
+    ):
         """
         Executes a task in a Kubernetes pod in the specified Google Kubernetes
         Engine cluster
@@ -249,6 +262,7 @@ class GKEPodOperator(KubernetesPodOperator):
         # service account credentials.
         if self.gcp_conn_id:
             from airflow.hooks.base_hook import BaseHook
+
             # extras is a deserialized json object
             extras = BaseHook.get_connection(self.gcp_conn_id).extra_dejson
             # key_file only gets set if a json file is created from a JSON string in
@@ -266,10 +280,18 @@ class GKEPodOperator(KubernetesPodOperator):
             # The gcloud command looks at the env variable `KUBECONFIG` for where to save
             # the kubernetes config file.
             subprocess.check_call(
-                ["gcloud", "container", "clusters", "get-credentials",
-                 self.cluster_name,
-                 "--zone", self.location,
-                 "--project", self.project_id])
+                [
+                    "gcloud",
+                    "container",
+                    "clusters",
+                    "get-credentials",
+                    self.cluster_name,
+                    "--zone",
+                    self.location,
+                    "--project",
+                    self.project_id,
+                ]
+            )
 
             # Since the key file is of type mkstemp() closing the file will delete it from
             # the file system so it cannot be accessed after we don't need it anymore
@@ -292,11 +314,11 @@ class GKEPodOperator(KubernetesPodOperator):
         The environment variable is used inside the gcloud command to determine correct
         service account to use.
         """
-        key_path = self._get_field(extras, 'key_path', False)
-        keyfile_json_str = self._get_field(extras, 'keyfile_dict', False)
+        key_path = self._get_field(extras, "key_path", False)
+        keyfile_json_str = self._get_field(extras, "keyfile_dict", False)
 
         if not key_path and not keyfile_json_str:
-            self.log.info('Using gcloud with application default credentials.')
+            self.log.info("Using gcloud with application default credentials.")
         elif key_path:
             os.environ[G_APP_CRED] = key_path
         else:
@@ -315,9 +337,9 @@ class GKEPodOperator(KubernetesPodOperator):
         to the hook page, which allow admins to specify service_account,
         key_path, etc. They get formatted as shown below.
         """
-        long_f = 'extra__google_cloud_platform__{}'.format(field)
+        long_f = "extra__google_cloud_platform__{}".format(field)
         if long_f in extras:
             return extras[long_f]
         else:
-            self.log.info('Field {} not found in extras.'.format(field))
+            self.log.info("Field {} not found in extras.".format(field))
             return default

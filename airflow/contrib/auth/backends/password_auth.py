@@ -41,7 +41,7 @@ from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 login_manager = flask_login.LoginManager()
-login_manager.login_view = 'airflow.login'  # Calls login() below
+login_manager.login_view = "airflow.login"  # Calls login() below
 login_manager.login_message = None
 
 log = LoggingMixin().log
@@ -53,7 +53,7 @@ class AuthenticationError(Exception):
 
 
 class PasswordUser(models.User):
-    _password = Column('password', String(255))
+    _password = Column("password", String(255))
 
     def __init__(self, user):
         self.user = user
@@ -66,7 +66,7 @@ class PasswordUser(models.User):
     def password(self, plaintext):
         self._password = generate_password_hash(plaintext, 12)
         if PY3:
-            self._password = str(self._password, 'utf-8')
+            self._password = str(self._password, "utf-8")
 
     def authenticate(self, plaintext):
         return check_password_hash(self._password, plaintext)
@@ -100,7 +100,7 @@ class PasswordUser(models.User):
 @provide_session
 def load_user(userid, session=None):
     log.debug("Loading user %s", userid)
-    if not userid or userid == 'None':
+    if not userid or userid == "None":
         return None
 
     user = session.query(models.User).filter(models.User.id == int(userid)).first()
@@ -122,8 +122,7 @@ def authenticate(session, username, password):
     if not username or not password:
         raise AuthenticationError()
 
-    user = session.query(PasswordUser).filter(
-        PasswordUser.username == username).first()
+    user = session.query(PasswordUser).filter(PasswordUser.username == username).first()
 
     if not user:
         raise AuthenticationError()
@@ -139,14 +138,14 @@ def authenticate(session, username, password):
 def login(self, request, session=None):
     if current_user.is_authenticated():
         flash("You are already logged in")
-        return redirect(url_for('admin.index'))
+        return redirect(url_for("admin.index"))
 
     username = None
     password = None
 
     form = LoginForm(request.form)
 
-    if request.method == 'POST' and form.validate():
+    if request.method == "POST" and form.validate():
         username = request.form.get("username")
         password = request.form.get("password")
 
@@ -157,17 +156,15 @@ def login(self, request, session=None):
         return redirect(request.args.get("next") or url_for("admin.index"))
     except AuthenticationError:
         flash("Incorrect login details")
-        return self.render('airflow/login.html',
-                           title="Airflow - Login",
-                           form=form)
+        return self.render("airflow/login.html", title="Airflow - Login", form=form)
     finally:
         session.commit()
         session.close()
 
 
 class LoginForm(Form):
-    username = StringField('Username', [InputRequired()])
-    password = PasswordField('Password', [InputRequired()])
+    username = StringField("Username", [InputRequired()])
+    password = PasswordField("Password", [InputRequired()])
 
 
 def _unauthorized():
@@ -193,8 +190,10 @@ def requires_authentication(function):
 
         header = request.headers.get("Authorization")
         if header:
-            userpass = ''.join(header.split()[1:])
-            username, password = base64.b64decode(userpass).decode("utf-8").split(":", 1)
+            userpass = "".join(header.split()[1:])
+            username, password = (
+                base64.b64decode(userpass).decode("utf-8").split(":", 1)
+            )
 
             session = settings.Session()
             try:
@@ -211,4 +210,5 @@ def requires_authentication(function):
                 session.commit()
                 session.close()
         return _unauthorized()
+
     return decorated

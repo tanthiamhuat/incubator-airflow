@@ -36,17 +36,20 @@ class EmrCreateJobFlowOperator(BaseOperator):
            emr_connection extra. (templated)
     :type steps: dict
     """
-    template_fields = ['job_flow_overrides']
+
+    template_fields = ["job_flow_overrides"]
     template_ext = ()
-    ui_color = '#f9c915'
+    ui_color = "#f9c915"
 
     @apply_defaults
     def __init__(
-            self,
-            aws_conn_id='s3_default',
-            emr_conn_id='emr_default',
-            job_flow_overrides=None,
-            *args, **kwargs):
+        self,
+        aws_conn_id="s3_default",
+        emr_conn_id="emr_default",
+        job_flow_overrides=None,
+        *args,
+        **kwargs
+    ):
         super(EmrCreateJobFlowOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
         self.emr_conn_id = emr_conn_id
@@ -58,13 +61,14 @@ class EmrCreateJobFlowOperator(BaseOperator):
         emr = EmrHook(aws_conn_id=self.aws_conn_id, emr_conn_id=self.emr_conn_id)
 
         self.log.info(
-            'Creating JobFlow using aws-conn-id: %s, emr-conn-id: %s',
-            self.aws_conn_id, self.emr_conn_id
+            "Creating JobFlow using aws-conn-id: %s, emr-conn-id: %s",
+            self.aws_conn_id,
+            self.emr_conn_id,
         )
         response = emr.create_job_flow(self.job_flow_overrides)
 
-        if not response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            raise AirflowException('JobFlow creation failed: %s' % response)
+        if not response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+            raise AirflowException("JobFlow creation failed: %s" % response)
         else:
-            self.log.info('JobFlow with id %s created', response['JobFlowId'])
-            return response['JobFlowId']
+            self.log.info("JobFlow with id %s created", response["JobFlowId"])
+            return response["JobFlowId"]

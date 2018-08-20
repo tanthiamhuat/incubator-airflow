@@ -29,22 +29,23 @@ class DaskExecutor(BaseExecutor):
     """
     DaskExecutor submits tasks to a Dask Distributed cluster.
     """
+
     def __init__(self, cluster_address=None):
         if cluster_address is None:
-            cluster_address = configuration.conf.get('dask', 'cluster_address')
+            cluster_address = configuration.conf.get("dask", "cluster_address")
         if not cluster_address:
-            raise ValueError(
-                'Please provide a Dask cluster address in airflow.cfg')
+            raise ValueError("Please provide a Dask cluster address in airflow.cfg")
         self.cluster_address = cluster_address
         # ssl / tls parameters
-        self.tls_ca = configuration.get('dask', 'tls_ca')
-        self.tls_key = configuration.get('dask', 'tls_key')
-        self.tls_cert = configuration.get('dask', 'tls_cert')
+        self.tls_ca = configuration.get("dask", "tls_ca")
+        self.tls_key = configuration.get("dask", "tls_key")
+        self.tls_cert = configuration.get("dask", "tls_cert")
         super(DaskExecutor, self).__init__(parallelism=0)
 
     def start(self):
         if self.tls_ca or self.tls_key or self.tls_cert:
             from distributed.security import Security
+
             security = Security(
                 tls_client_key=self.tls_key,
                 tls_client_cert=self.tls_cert,
@@ -59,8 +60,8 @@ class DaskExecutor(BaseExecutor):
     def execute_async(self, key, command, queue=None, executor_config=None):
         if queue is not None:
             warnings.warn(
-                'DaskExecutor does not support queues. '
-                'All tasks will be run in the same cluster'
+                "DaskExecutor does not support queues. "
+                "All tasks will be run in the same cluster"
             )
 
         def airflow_run():
