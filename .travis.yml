@@ -51,4 +51,6 @@ install:
   - sudo mv docker-compose /usr/local/bin
   - pip install --upgrade pip
 script:
+  # Pull the images in parallel
+  - docker-compose --log-level ERROR -f scripts/ci/docker-compose.yml pull --parallel
   - docker-compose --log-level ERROR -f scripts/ci/docker-compose.yml run airflow-testing /app/scripts/ci/run-ci.sh
