@@ -46,7 +46,7 @@ class State(object):
     UPSTREAM_FAILED = "upstream_failed"
     SKIPPED = "skipped"
 
-    task_states = (
+    task_states = {
         SUCCESS,
         RUNNING,
         FAILED,
@@ -55,13 +55,13 @@ class State(object):
         QUEUED,
         NONE,
         SCHEDULED,
-    )
+    }
 
-    dag_states = (
+    dag_states = {
         SUCCESS,
         RUNNING,
         FAILED,
-    )
+    }
 
     state_color = {
         QUEUED: 'gray',
@@ -87,7 +87,7 @@ class State(object):
     @classmethod
     def color_fg(cls, state):
         color = cls.color(state)
-        if color in ['green', 'red']:
+        if color in {'green', 'red'}:
             return 'white'
         else:
             return 'black'
@@ -99,12 +99,12 @@ class State(object):
         run attempt. Note that the attempt could have resulted in failure or
         have been interrupted; in any case, it is no longer running.
         """
-        return [
+        return {
             cls.SUCCESS,
             cls.SHUTDOWN,
             cls.FAILED,
             cls.SKIPPED,
-        ]
+        }
 
     @classmethod
     def unfinished(cls):
@@ -112,10 +112,10 @@ class State(object):
         A list of states indicating that a task either has not completed
         a run or has not even started.
         """
-        return [
+        return {
             cls.NONE,
             cls.SCHEDULED,
             cls.QUEUED,
             cls.RUNNING,
             cls.UP_FOR_RETRY
-        ]
+        }
