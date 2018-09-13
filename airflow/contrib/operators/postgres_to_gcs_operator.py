@@ -134,6 +134,7 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
         """
         schema = list(map(lambda schema_tuple: schema_tuple[0], cursor.description))
         file_no = 0
+        row_no = 1
         tmp_file_handle = NamedTemporaryFile(delete=True)
         tmp_file_handles = {self.filename.format(file_no): tmp_file_handle}
 
@@ -155,6 +156,9 @@ class PostgresToGoogleCloudStorageOperator(BaseOperator):
                 file_no += 1
                 tmp_file_handle = NamedTemporaryFile(delete=True)
                 tmp_file_handles[self.filename.format(file_no)] = tmp_file_handle
+            row_no += 1
+
+        self.log.info('Received %s rows over %s files', row_no, file_no + 1)
 
         return tmp_file_handles
 
